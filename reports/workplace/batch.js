@@ -1,0 +1,5501 @@
+const db = require('../db');
+
+const getUnassignedBatchCount = async () => {
+    const { count } = await db('Afr1BatchiSkAi0mo').whereNull('BatchNo').count().first() || {};
+
+    return count;
+}
+    
+
+const populateBatch = async (numInBatch) => {
+  let batchNum = 1;
+
+  // TODO - functionise this
+
+  while ((await getUnassignedBatchCount()) > 0) {
+    await db.raw(
+      `
+          UPDATE "Afr1BatchiSkAi0mo" 
+              SET "BatchNo" = ? 
+              WHERE "EstablishmentID" IN (
+                  SELECT "EstablishmentID" FROM "Afr1BatchiSkAi0mo" WHERE"BatchNo" IS NULL LIMIT ?
+              );
+        `,
+      [batchNum, numInBatch],
+    );
+
+    batchNum++;
+  }
+};
+
+const createBatches = async (runDate, numInBatch = 50000) => {
+  await db.schema.dropTableIfExists('Afr1BatchiSkAi0mo');
+
+  await db.raw(
+    `
+    CREATE TABLE "Afr1BatchiSkAi0mo" AS
+        SELECT "EstablishmentID",
+            ROW_NUMBER() OVER (ORDER BY "EstablishmentID") "SerialNo",
+            NULL::INT "BatchNo",
+            TO_DATE(?,'DD-MM-YYYY')::DATE AS "RunDate"
+        FROM "Establishment"
+        WHERE 
+            "Archived" = false
+            AND 
+            "Status" IS NULL;
+      `,
+    [runDate],
+  );
+
+  await db.raw('CREATE INDEX "Afr1BatchiSkAi0mo_idx" ON "Afr1BatchiSkAi0mo"("BatchNo")');
+
+  await populateBatch(numInBatch);
+};
+
+const dropBatch = async () => {
+  await db.schema.dropTableIfExists('Afr1BatchiSkAi0mo');
+};
+
+const getBatches = async () => db.select('BatchNo').from('Afr1BatchiSkAi0mo').groupBy(1).orderBy(1);
+
+const findWorkplacesByBatch = (batchNum) =>
+  db
+    .raw(
+      `
+      SELECT 'M' || DATE_PART('year', (b."RunDate" - INTERVAL '1 day')) || LPAD(DATE_PART('month', (b."RunDate" - INTERVAL '1 day'))::TEXT, 2, '0') period,
+      e."EstablishmentID" establishmentid,
+      "TribalID" tribalid,
+      "ParentID" parentid,
+      CASE 
+          WHEN e."IsParent"
+              THEN e."EstablishmentID"
+          ELSE CASE 
+                  WHEN e."ParentID" IS NOT NULL
+                      THEN e."ParentID"
+                  ELSE e."EstablishmentID"
+                  END
+          END orgid,
+      "NmdsID" nmdsid,
+      1 wkplacestat,
+      TO_CHAR("created", 'DD/MM/YYYY') estabcreateddate,
+      (
+          SELECT COUNT(1)
+          FROM "User" u
+          JOIN "UserAudit" a ON u."RegistrationID" = a."UserFK"
+              AND a."When" >= b."RunDate" - INTERVAL '1 month'
+              AND a."EventType" = 'loginSuccess'
+          WHERE u."EstablishmentID" = e."EstablishmentID"
+              AND u."Archived" = false
+          ) logincount_month,
+      (
+          SELECT COUNT(1)
+          FROM "User" u
+          JOIN "UserAudit" a ON u."RegistrationID" = a."UserFK"
+              AND a."When" >= b."RunDate" - INTERVAL '1 year'
+              AND a."EventType" = 'loginSuccess'
+          WHERE u."EstablishmentID" = e."EstablishmentID"
+              AND u."Archived" = false
+          ) logincount_year,
+      (
+          SELECT TO_CHAR(MAX(a."When"), 'DD/MM/YYYY')
+          FROM "User" u
+          JOIN "UserAudit" a ON u."RegistrationID" = a."UserFK"
+              AND a."EventType" = 'loginSuccess'
+          WHERE u."EstablishmentID" = e."EstablishmentID"
+              AND u."Archived" = false
+          ) lastloggedin,
+      TO_CHAR((
+              SELECT "When"
+              FROM (
+                  SELECT a."When"
+                  FROM "User" u
+                  JOIN "UserAudit" a ON u."RegistrationID" = a."UserFK"
+                      AND a."EventType" = 'loginSuccess'
+                  WHERE u."EstablishmentID" = e."EstablishmentID"
+                      AND u."Archived" = false
+                  ORDER BY 1 DESC LIMIT 2
+                  ) x
+              ORDER BY 1 LIMIT 1
+              ), 'DD/MM/YYYY') previous_logindate,
+      (
+          SELECT COUNT(1)
+          FROM "EstablishmentAudit"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "EventType" = 'changed'
+              AND "When" >= b."RunDate" - INTERVAL '1 month'
+          ) + (
+          SELECT COUNT(DISTINCT a."WorkerFK")
+          FROM "WorkerAudit" a
+          JOIN "Worker" w ON a."WorkerFK" = w."ID"
+              AND a."EventType" = 'changed'
+              AND a."When" >= b."RunDate" - INTERVAL '1 month'
+          WHERE w."EstablishmentFK" = e."EstablishmentID"
+              AND w."Archived" = false
+          ) updatecount_month,
+      (
+          SELECT COUNT(DISTINCT "EstablishmentFK")
+          FROM "EstablishmentAudit"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "EventType" = 'changed'
+              AND "When" >= b."RunDate" - INTERVAL '1 year'
+          ) + (
+          SELECT COUNT(DISTINCT a."WorkerFK")
+          FROM "WorkerAudit" a
+          JOIN "Worker" w ON a."WorkerFK" = w."ID"
+              AND a."EventType" = 'changed'
+              AND a."When" >= b."RunDate" - INTERVAL '1 year'
+          WHERE w."EstablishmentFK" = e."EstablishmentID"
+              AND w."Archived" = false
+          ) updatecount_year,
+      -- TO_CHAR(GREATEST(created,updated),'DD/MM/YYYY') estabupdateddate,
+      TO_CHAR(GREATEST(e."EmployerTypeChangedAt", e."NumberOfStaffChangedAt", e."OtherServicesChangedAt", e."CapacityServicesChangedAt", e."ShareDataChangedAt", e."ShareWithLAChangedAt", e."VacanciesChangedAt", e."StartersChangedAt", e."LeaversChangedAt", e."ServiceUsersChangedAt", e."NameChangedAt", e."MainServiceFKChangedAt", e."LocalIdentifierChangedAt", e."LocationIdChangedAt", e."Address1ChangedAt", e."Address2ChangedAt", e."Address3ChangedAt", e."TownChangedAt", e."CountyChangedAt", e."PostcodeChangedAt"), 'DD/MM/YYYY') estabupdateddate,
+      TO_CHAR(GREATEST(e."EmployerTypeSavedAt", e."NumberOfStaffSavedAt", e."OtherServicesSavedAt", e."CapacityServicesSavedAt", e."ShareDataSavedAt", e."ShareWithLASavedAt", e."VacanciesSavedAt", e."StartersSavedAt", e."LeaversSavedAt", e."ServiceUsersSavedAt", e."NameSavedAt", e."MainServiceFKSavedAt", e."LocalIdentifierSavedAt", e."LocationIdSavedAt", e."Address1SavedAt", e."Address2SavedAt", e."Address3SavedAt", e."TownSavedAt", e."CountySavedAt", e."PostcodeSavedAt"), 'DD/MM/YYYY') estabsavedate,
+      (
+          SELECT TO_CHAR(MAX(GREATEST("NameOrIdChangedAt", "ContractChangedAt", "MainJobFKChangedAt", "ApprovedMentalHealthWorkerChangedAt", "MainJobStartDateChangedAt", "OtherJobsChangedAt", "NationalInsuranceNumberChangedAt", "DateOfBirthChangedAt", "PostcodeChangedAt", "DisabilityChangedAt", "GenderChangedAt", "EthnicityFKChangedAt", "NationalityChangedAt", "CountryOfBirthChangedAt", "RecruitedFromChangedAt", "BritishCitizenshipChangedAt", "YearArrivedChangedAt", "SocialCareStartDateChangedAt", "DaysSickChangedAt", "ZeroHoursContractChangedAt", "WeeklyHoursAverageChangedAt", "WeeklyHoursContractedChangedAt", "AnnualHourlyPayChangedAt", "CareCertificateChangedAt", "ApprenticeshipTrainingChangedAt", "QualificationInSocialCareChangedAt", "SocialCareQualificationFKChangedAt", "OtherQualificationsChangedAt", "HighestQualificationFKChangedAt", "CompletedChangedAt", "RegisteredNurseChangedAt", "NurseSpecialismFKChangedAt", "LocalIdentifierChangedAt", "EstablishmentFkChangedAt", "FluJabChangedAt")), 'DD/MM/YYYY')
+          FROM "Worker"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "Archived" = false
+          ) workerupdate,
+      TO_CHAR(GREATEST(e.updated, (
+                  SELECT MAX(updated)
+                  FROM "Worker"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "Archived" = false
+                  )), 'DD/MM/YYYY') mupddate,
+      TO_CHAR(GREATEST((
+                  CASE 
+                      WHEN e.updated < GREATEST(e.updated, (
+                                  SELECT MAX(updated)
+                                  FROM "Worker"
+                                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                                      AND "Archived" = false
+                                  ))
+                          THEN e.updated
+                      ELSE NULL
+                      END
+                  ), (
+                  SELECT MAX(updated)
+                  FROM "Worker"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "Archived" = false
+                      AND updated < GREATEST(e.updated, (
+                              SELECT MAX(updated)
+                              FROM "Worker"
+                              WHERE "EstablishmentFK" = e."EstablishmentID"
+                                  AND "Archived" = false
+                              ))
+                  )), 'DD/MM/YYYY') previous_mupddate,
+      CASE 
+          WHEN "LastBulkUploaded" IS NULL
+              THEN 0
+          ELSE 1
+          END derivedfrom_hasbulkuploaded,
+      CASE 
+          WHEN "LastBulkUploaded" IS NULL
+              THEN 0
+          ELSE 1
+          END isbulkuploader,
+      TO_CHAR("LastBulkUploaded", 'DD/MM/YYYY') lastbulkuploaddate,
+      CASE "IsParent"
+          WHEN true
+              THEN 1
+          ELSE 0
+          END isparent,
+      CASE "DataOwner"
+          WHEN 'Parent'
+              THEN 1
+          WHEN 'Workplace'
+              THEN 2
+          ELSE 3
+          END parentpermission,
+      (
+          SELECT TO_CHAR(MAX(GREATEST("NameOrIdSavedAt", "ContractSavedAt", "MainJobFKSavedAt", "ApprovedMentalHealthWorkerSavedAt", "MainJobStartDateSavedAt", "OtherJobsSavedAt", "NationalInsuranceNumberSavedAt", "DateOfBirthSavedAt", "PostcodeSavedAt", "DisabilitySavedAt", "GenderSavedAt", "EthnicityFKSavedAt", "NationalitySavedAt", "CountryOfBirthSavedAt", "RecruitedFromSavedAt", "BritishCitizenshipSavedAt", "YearArrivedSavedAt", "SocialCareStartDateSavedAt", "DaysSickSavedAt", "ZeroHoursContractSavedAt", "WeeklyHoursAverageSavedAt", "WeeklyHoursContractedSavedAt", "AnnualHourlyPaySavedAt", "CareCertificateSavedAt", "ApprenticeshipTrainingSavedAt", "QualificationInSocialCareSavedAt", "SocialCareQualificationFKSavedAt", "OtherQualificationsSavedAt", "HighestQualificationFKSavedAt", "CompletedSavedAt", "RegisteredNurseSavedAt", "NurseSpecialismFKSavedAt", "LocalIdentifierSavedAt", "EstablishmentFkSavedAt", "FluJabSavedAt")), 'DD/MM/YYYY')
+          FROM "Worker"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "Archived" = false
+          ) workersavedate,
+      CASE "ShareDataWithCQC"
+          WHEN true
+              THEN 1
+          ELSE 0
+          END cqcpermission,
+      CASE "ShareDataWithLA"
+          WHEN true
+              THEN 1
+          ELSE 0
+          END lapermission,
+      CASE 
+          WHEN "IsRegulated" IS true
+              THEN 2
+          ELSE 0
+          END regtype,
+      "ProvID" providerid,
+      "LocationID" locationid,
+      CASE "EmployerTypeValue"
+          WHEN 'Local Authority (adult services)'
+              THEN 1
+          WHEN 'Local Authority (generic/other)'
+              THEN 3
+          WHEN 'Private Sector'
+              THEN 6
+          WHEN 'Voluntary / Charity'
+              THEN 7
+          WHEN 'Other'
+              THEN 8
+          END esttype,
+      TO_CHAR("EmployerTypeChangedAt", 'DD/MM/YYYY') esttype_changedate,
+      TO_CHAR("EmployerTypeSavedAt", 'DD/MM/YYYY') esttype_savedate,
+      "NameValue" establishmentname,
+      "Address1" address,
+      "PostCode" postcode,
+      COALESCE((
+              SELECT "RegionID"
+              FROM "Cssr"
+              WHERE "NmdsIDLetter" = SUBSTRING(e."NmdsID", 1, 1) LIMIT 1
+              ), NULL, - 1) regionid,
+      COALESCE((
+              SELECT "CssrID"
+              FROM "Cssr"
+              WHERE "NmdsIDLetter" = SUBSTRING(e."NmdsID", 1, 1)
+                  AND "LocalCustodianCode" IN (
+                      SELECT local_custodian_code
+                      FROM cqcref.pcodedata
+                      WHERE postcode = e."PostCode"
+                      ) LIMIT 1
+              ), NULL, - 1) cssr,
+      (
+          SELECT CASE "LocalAuthority"
+                  WHEN 'Mid Bedfordshire'
+                      THEN 1 -- Does not exists in database.
+                  WHEN 'Bedford'
+                      THEN 2
+                  WHEN 'South Bedfordshire'
+                      THEN 3 -- Does not exists in database.
+                  WHEN 'Cambridge'
+                      THEN 4
+                  WHEN 'East Cambridgeshire'
+                      THEN 5
+                  WHEN 'Fenland'
+                      THEN 6
+                  WHEN 'Huntingdonshire'
+                      THEN 7
+                  WHEN 'South Cambridgeshire'
+                      THEN 8
+                  WHEN 'Basildon'
+                      THEN 9
+                  WHEN 'Braintree'
+                      THEN 10
+                  WHEN 'Brentwood'
+                      THEN 11
+                  WHEN 'Castle Point'
+                      THEN 12
+                  WHEN 'Chelmsford'
+                      THEN 13
+                  WHEN 'Colchester'
+                      THEN 14
+                  WHEN 'Epping Forest'
+                      THEN 15
+                  WHEN 'Harlow'
+                      THEN 16
+                  WHEN 'Maldon'
+                      THEN 17
+                  WHEN 'Rochford'
+                      THEN 18
+                  WHEN 'Tendring'
+                      THEN 19
+                  WHEN 'Uttlesford'
+                      THEN 20
+                  WHEN 'Broxbourne'
+                      THEN 21
+                  WHEN 'Dacorum'
+                      THEN 22
+                  WHEN 'East Hertfordshire'
+                      THEN 23
+                  WHEN 'Hertsmere'
+                      THEN 24
+                  WHEN 'North Hertfordshire'
+                      THEN 25
+                  WHEN 'St Albans'
+                      THEN 26
+                  WHEN 'Stevenage'
+                      THEN 27
+                  WHEN 'Three Rivers'
+                      THEN 28
+                  WHEN 'Watford'
+                      THEN 29
+                  WHEN 'Welwyn Hatfield'
+                      THEN 30
+                  WHEN 'Luton'
+                      THEN 31
+                  WHEN 'Breckland'
+                      THEN 32
+                  WHEN 'Broadland'
+                      THEN 33
+                  WHEN 'Great Yarmouth'
+                      THEN 34
+                  WHEN 'King\`s Lynn and West Norfolk'
+                      THEN 35
+                  WHEN 'North Norfolk'
+                      THEN 36
+                  WHEN 'Norwich'
+                      THEN 37
+                  WHEN 'South Norfolk'
+                      THEN 38
+                  WHEN 'Peterborough'
+                      THEN 39
+                  WHEN 'Southend-on-Sea'
+                      THEN 40
+                  WHEN 'Babergh'
+                      THEN 41
+                  WHEN 'Forest Heath'
+                      THEN 42
+                  WHEN 'Ipswich'
+                      THEN 43
+                  WHEN 'Mid Suffolk'
+                      THEN 44
+                  WHEN 'St. Edmundsbury'
+                      THEN 45
+                  WHEN 'Suffolk Coastal'
+                      THEN 46
+                  WHEN 'Waveney'
+                      THEN 47
+                  WHEN 'Thurrock'
+                      THEN 48
+                  WHEN 'Derby'
+                      THEN 49
+                  WHEN 'Amber Valley'
+                      THEN 50
+                  WHEN 'Bolsover'
+                      THEN 51
+                  WHEN 'Chesterfield'
+                      THEN 52
+                  WHEN 'Derbyshire Dales'
+                      THEN 53
+                  WHEN 'Erewash'
+                      THEN 54
+                  WHEN 'High Peak'
+                      THEN 55
+                  WHEN 'North East Derbyshire'
+                      THEN 56
+                  WHEN 'South Derbyshire'
+                      THEN 57
+                  WHEN 'Leicester'
+                      THEN 58
+                  WHEN 'Blaby'
+                      THEN 59
+                  WHEN 'Charnwood'
+                      THEN 60
+                  WHEN 'Harborough'
+                      THEN 61
+                  WHEN 'Hinckley and Bosworth'
+                      THEN 62
+                  WHEN 'Melton'
+                      THEN 63
+                  WHEN 'North West Leicestershire'
+                      THEN 64
+                  WHEN 'Oadby and Wigston'
+                      THEN 65
+                  WHEN 'Boston'
+                      THEN 66
+                  WHEN 'East Lindsey'
+                      THEN 67
+                  WHEN 'Lincoln'
+                      THEN 68
+                  WHEN 'North Kesteven'
+                      THEN 69
+                  WHEN 'South Holland'
+                      THEN 70
+                  WHEN 'South Kesteven'
+                      THEN 71
+                  WHEN 'West Lindsey'
+                      THEN 72
+                  WHEN 'Corby'
+                      THEN 73
+                  WHEN 'Daventry'
+                      THEN 74
+                  WHEN 'East Northamptonshire'
+                      THEN 75
+                  WHEN 'Kettering'
+                      THEN 76
+                  WHEN 'Northampton'
+                      THEN 77
+                  WHEN 'South Northamptonshire'
+                      THEN 78
+                  WHEN 'Wellingborough'
+                      THEN 79
+                  WHEN 'Nottingham'
+                      THEN 80
+                  WHEN 'Ashfield'
+                      THEN 81
+                  WHEN 'Bassetlaw'
+                      THEN 82
+                  WHEN 'Broxtowe'
+                      THEN 83
+                  WHEN 'Gedling'
+                      THEN 84
+                  WHEN 'Mansfield'
+                      THEN 85
+                  WHEN 'Newark and Sherwood'
+                      THEN 86
+                  WHEN 'Rushcliffe'
+                      THEN 87
+                  WHEN 'Rutland'
+                      THEN 88
+                  WHEN 'Barking and Dagenham'
+                      THEN 89
+                  WHEN 'Barnet'
+                      THEN 90
+                  WHEN 'Bexley'
+                      THEN 91
+                  WHEN 'Brent'
+                      THEN 92
+                  WHEN 'Bromley'
+                      THEN 93
+                  WHEN 'Camden'
+                      THEN 94
+                  WHEN 'City of London'
+                      THEN 95
+                  WHEN 'Croydon'
+                      THEN 96
+                  WHEN 'Ealing'
+                      THEN 97
+                  WHEN 'Enfield'
+                      THEN 98
+                  WHEN 'Greenwich'
+                      THEN 99
+                  WHEN 'Hackney'
+                      THEN 100
+                  WHEN 'Hammersmith and Fulham'
+                      THEN 101
+                  WHEN 'Haringey'
+                      THEN 102
+                  WHEN 'Harrow'
+                      THEN 103
+                  WHEN 'Havering'
+                      THEN 104
+                  WHEN 'Hillingdon'
+                      THEN 105
+                  WHEN 'Hounslow'
+                      THEN 106
+                  WHEN 'Islington'
+                      THEN 107
+                  WHEN 'Kensington and Chelsea'
+                      THEN 108
+                  WHEN 'Kingston upon Thames'
+                      THEN 109
+                  WHEN 'Lambeth'
+                      THEN 110
+                  WHEN 'Lewisham'
+                      THEN 111
+                  WHEN 'Merton'
+                      THEN 112
+                  WHEN 'Newham'
+                      THEN 113
+                  WHEN 'Redbridge'
+                      THEN 114
+                  WHEN 'Richmond upon Thames'
+                      THEN 115
+                  WHEN 'Southwark'
+                      THEN 116
+                  WHEN 'Sutton'
+                      THEN 117
+                  WHEN 'Tower Hamlets'
+                      THEN 118
+                  WHEN 'Waltham Forest'
+                      THEN 119
+                  WHEN 'Wandsworth'
+                      THEN 120
+                  WHEN 'Westminster'
+                      THEN 121
+                  WHEN 'Darlington'
+                      THEN 122
+                  WHEN 'Chester-le-Street'
+                      THEN 123 -- Does not exists in database.
+                  WHEN 'Derwentside'
+                      THEN 124 -- Does not exists in database.
+                  WHEN 'Durham'
+                      THEN 125 -- Does not exists in database.
+                  WHEN 'Easington'
+                      THEN 126 -- Does not exists in database.
+                  WHEN 'Sedgefield'
+                      THEN 127 -- Does not exists in database.
+                  WHEN 'Teesdale'
+                      THEN 128 -- Does not exists in database.
+                  WHEN 'Wear Valley'
+                      THEN 129 -- Does not exists in database.
+                  WHEN 'Gateshead'
+                      THEN 130
+                  WHEN 'Hartlepool'
+                      THEN 131
+                  WHEN 'Middlesbrough'
+                      THEN 132
+                  WHEN 'Newcastle upon Tyne'
+                      THEN 133
+                  WHEN 'North Tyneside'
+                      THEN 134
+                  WHEN 'Alnwick'
+                      THEN 135 -- Does not exists in database.
+                  WHEN 'Berwick-upon-Tweed'
+                      THEN 136 -- Does not exists in database.
+                  WHEN 'Blyth Valley'
+                      THEN 137 -- Does not exists in database.
+                  WHEN 'Castle Morpeth'
+                      THEN 138 -- Does not exists in database.
+                  WHEN 'Tynedale'
+                      THEN 139 -- Does not exists in database.
+                  WHEN 'Wansbeck'
+                      THEN 140 -- Does not exists in database.
+                  WHEN 'Redcar and Cleveland'
+                      THEN 141
+                  WHEN 'South Tyneside'
+                      THEN 142
+                  WHEN 'Stockton-on-Tees'
+                      THEN 143
+                  WHEN 'Sunderland'
+                      THEN 144
+                  WHEN 'Blackburn with Darwen'
+                      THEN 145
+                  WHEN 'Blackpool'
+                      THEN 146
+                  WHEN 'Bolton'
+                      THEN 147
+                  WHEN 'Bury'
+                      THEN 148
+                  WHEN 'Chester'
+                      THEN 149 -- Does not exists in database.
+                  WHEN 'Congleton'
+                      THEN 150 -- Does not exists in database.
+                  WHEN 'Crewe and Nantwich'
+                      THEN 151 -- Does not exists in database.
+                  WHEN 'Ellesmere Port & Neston'
+                      THEN 152 -- Does not exists in database.
+                  WHEN 'Macclesfield'
+                      THEN 153 -- Does not exists in database.
+                  WHEN 'Vale Royal'
+                      THEN 154 -- Does not exists in database.
+                  WHEN 'Allerdale'
+                      THEN 155
+                  WHEN 'Barrow-in-Furness'
+                      THEN 156
+                  WHEN 'Carlisle'
+                      THEN 157
+                  WHEN 'Copeland'
+                      THEN 158
+                  WHEN 'Eden'
+                      THEN 159
+                  WHEN 'South Lakeland'
+                      THEN 160
+                  WHEN 'Halton'
+                      THEN 161
+                  WHEN 'Knowsley'
+                      THEN 162
+                  WHEN 'Burnley'
+                      THEN 163
+                  WHEN 'Chorley'
+                      THEN 164
+                  WHEN 'Fylde'
+                      THEN 165
+                  WHEN 'Hyndburn'
+                      THEN 166
+                  WHEN 'Lancaster'
+                      THEN 167
+                  WHEN 'Pendle'
+                      THEN 168
+                  WHEN 'Preston'
+                      THEN 169
+                  WHEN 'Ribble Valley'
+                      THEN 170
+                  WHEN 'Rossendale'
+                      THEN 171
+                  WHEN 'South Ribble'
+                      THEN 172
+                  WHEN 'West Lancashire'
+                      THEN 173
+                  WHEN 'Wyre'
+                      THEN 174
+                  WHEN 'Liverpool'
+                      THEN 175
+                  WHEN 'Manchester'
+                      THEN 176
+                  WHEN 'Oldham'
+                      THEN 177
+                  WHEN 'Rochdale'
+                      THEN 178
+                  WHEN 'Salford'
+                      THEN 179
+                  WHEN 'Sefton'
+                      THEN 180
+                  WHEN 'St. Helens'
+                      THEN 181
+                  WHEN 'Stockport'
+                      THEN 182
+                  WHEN 'Tameside'
+                      THEN 183
+                  WHEN 'Trafford'
+                      THEN 184
+                  WHEN 'Warrington'
+                      THEN 185
+                  WHEN 'Wigan'
+                      THEN 186
+                  WHEN 'Wirral'
+                      THEN 187
+                  WHEN 'Bracknell Forest'
+                      THEN 188
+                  WHEN 'Brighton and Hove'
+                      THEN 189
+                  WHEN 'Aylesbury Vale'
+                      THEN 190
+                  WHEN 'Chiltern'
+                      THEN 191
+                  WHEN 'South Bucks'
+                      THEN 192
+                  WHEN 'Wycombe'
+                      THEN 193
+                  WHEN 'Eastbourne'
+                      THEN 194
+                  WHEN 'Hastings'
+                      THEN 195
+                  WHEN 'Lewes'
+                      THEN 196
+                  WHEN 'Rother'
+                      THEN 197
+                  WHEN 'Wealden'
+                      THEN 198
+                  WHEN 'Basingstoke and Deane'
+                      THEN 199
+                  WHEN 'East Hampshire'
+                      THEN 200
+                  WHEN 'Eastleigh'
+                      THEN 201
+                  WHEN 'Fareham'
+                      THEN 202
+                  WHEN 'Gosport'
+                      THEN 203
+                  WHEN 'Hart'
+                      THEN 204
+                  WHEN 'Havant'
+                      THEN 205
+                  WHEN 'New Forest'
+                      THEN 206
+                  WHEN 'Rushmoor'
+                      THEN 207
+                  WHEN 'Test Valley'
+                      THEN 208
+                  WHEN 'Winchester'
+                      THEN 209
+                  WHEN 'Isle of Wight'
+                      THEN 210
+                  WHEN 'Ashford'
+                      THEN 211
+                  WHEN 'Canterbury'
+                      THEN 212
+                  WHEN 'Dartford'
+                      THEN 213
+                  WHEN 'Dover'
+                      THEN 214
+                  WHEN 'Gravesham'
+                      THEN 215
+                  WHEN 'Maidstone'
+                      THEN 216
+                  WHEN 'Sevenoaks'
+                      THEN 217
+                  WHEN 'Shepway'
+                      THEN 218
+                  WHEN 'Swale'
+                      THEN 219
+                  WHEN 'Thanet'
+                      THEN 220
+                  WHEN 'Tonbridge and Malling'
+                      THEN 221
+                  WHEN 'Tunbridge Wells'
+                      THEN 222
+                  WHEN 'Medway'
+                      THEN 223
+                  WHEN 'Milton Keynes'
+                      THEN 224
+                  WHEN 'Cherwell'
+                      THEN 225
+                  WHEN 'Oxford'
+                      THEN 226
+                  WHEN 'South Oxfordshire'
+                      THEN 227
+                  WHEN 'Vale of White Horse'
+                      THEN 228
+                  WHEN 'West Oxfordshire'
+                      THEN 229
+                  WHEN 'Portsmouth'
+                      THEN 230
+                  WHEN 'Reading'
+                      THEN 231
+                  WHEN 'Slough'
+                      THEN 232
+                  WHEN 'Southampton'
+                      THEN 233
+                  WHEN 'Elmbridge'
+                      THEN 234
+                  WHEN 'Epsom and Ewell'
+                      THEN 235
+                  WHEN 'Guildford'
+                      THEN 236
+                  WHEN 'Mole Valley'
+                      THEN 237
+                  WHEN 'Reigate and Banstead'
+                      THEN 238
+                  WHEN 'Runnymede'
+                      THEN 239
+                  WHEN 'Spelthorne'
+                      THEN 240
+                  WHEN 'Surrey Heath'
+                      THEN 241
+                  WHEN 'Tandridge'
+                      THEN 242
+                  WHEN 'Waverley'
+                      THEN 243
+                  WHEN 'Woking'
+                      THEN 244
+                  WHEN 'West Berkshire'
+                      THEN 245
+                  WHEN 'Adur'
+                      THEN 246
+                  WHEN 'Arun'
+                      THEN 247
+                  WHEN 'Chichester'
+                      THEN 248
+                  WHEN 'Crawley'
+                      THEN 249
+                  WHEN 'Horsham'
+                      THEN 250
+                  WHEN 'Mid Sussex'
+                      THEN 251
+                  WHEN 'Worthing'
+                      THEN 252
+                  WHEN 'Windsor and Maidenhead'
+                      THEN 253
+                  WHEN 'Wokingham'
+                      THEN 254
+                  WHEN 'Bath and North East Somerset'
+                      THEN 255
+                  WHEN 'Bournemouth'
+                      THEN 256
+                  WHEN 'City of Bristol'
+                      THEN 257
+                  WHEN 'Caradon'
+                      THEN 258 -- Does not exists in database.
+                  WHEN 'Carrick'
+                      THEN 259 -- Does not exists in database.
+                  WHEN 'Kerrier'
+                      THEN 260 -- Does not exists in database.
+                  WHEN 'North Cornwall'
+                      THEN 261 -- Does not exists in database.
+                  WHEN 'Penwith'
+                      THEN 262 -- Does not exists in database.
+                  WHEN 'Restormel'
+                      THEN 263 -- Does not exists in database.
+                  WHEN 'East Devon'
+                      THEN 264
+                  WHEN 'Exeter'
+                      THEN 265
+                  WHEN 'Mid Devon'
+                      THEN 266
+                  WHEN 'North Devon'
+                      THEN 267
+                  WHEN 'South Hams'
+                      THEN 268
+                  WHEN 'Teignbridge'
+                      THEN 269
+                  WHEN 'Torridge'
+                      THEN 270
+                  WHEN 'West Devon'
+                      THEN 271
+                  WHEN 'Christchurch'
+                      THEN 272
+                  WHEN 'East Dorset'
+                      THEN 273
+                  WHEN 'North Dorset'
+                      THEN 274
+                  WHEN 'Purbeck'
+                      THEN 275
+                  WHEN 'West Dorset'
+                      THEN 276
+                  WHEN 'Weymouth and Portland'
+                      THEN 277
+                  WHEN 'Cheltenham'
+                      THEN 278
+                  WHEN 'Cotswold'
+                      THEN 279
+                  WHEN 'Forest of Dean'
+                      THEN 280
+                  WHEN 'Gloucester'
+                      THEN 281
+                  WHEN 'Stroud'
+                      THEN 282
+                  WHEN 'Tewkesbury'
+                      THEN 283
+                  WHEN 'Isles of Scilly'
+                      THEN 284
+                  WHEN 'North Somerset'
+                      THEN 285
+                  WHEN 'Plymouth'
+                      THEN 286
+                  WHEN 'Poole'
+                      THEN 287
+                  WHEN 'Mendip'
+                      THEN 288
+                  WHEN 'Sedgemoor'
+                      THEN 289
+                  WHEN 'South Somerset'
+                      THEN 290
+                  WHEN 'Taunton Deane'
+                      THEN 291
+                  WHEN 'West Somerset'
+                      THEN 292
+                  WHEN 'South Gloucestershire'
+                      THEN 293
+                  WHEN 'Swindon'
+                      THEN 294
+                  WHEN 'Torbay'
+                      THEN 295
+                  WHEN 'Kennet'
+                      THEN 296 -- Does not exists in database.
+                  WHEN 'North Wiltshire'
+                      THEN 297 -- Does not exists in database.
+                  WHEN 'Salisbury'
+                      THEN 298 -- Does not exists in database.
+                  WHEN 'West Wiltshire'
+                      THEN 299 -- Does not exists in database.
+                  WHEN 'Birmingham'
+                      THEN 300
+                  WHEN 'Coventry'
+                      THEN 301
+                  WHEN 'Dudley'
+                      THEN 302
+                  WHEN 'Herefordshire'
+                      THEN 303
+                  WHEN 'Sandwell'
+                      THEN 304
+                  WHEN 'Bridgnorth'
+                      THEN 305 -- Does not exists in database.
+                  WHEN 'North Shropshire'
+                      THEN 306 -- Does not exists in database.
+                  WHEN 'Oswestry'
+                      THEN 307 -- Does not exists in database.
+                  WHEN 'Shrewsbury and Atcham'
+                      THEN 308 -- Does not exists in database.
+                  WHEN 'South Shropshire'
+                      THEN 309 -- Does not exists in database.
+                  WHEN 'Solihull'
+                      THEN 310
+                  WHEN 'Cannock Chase'
+                      THEN 311
+                  WHEN 'East Staffordshire'
+                      THEN 312
+                  WHEN 'Lichfield'
+                      THEN 313
+                  WHEN 'Newcastle-under-Lyme'
+                      THEN 314
+                  WHEN 'South Staffordshire'
+                      THEN 315
+                  WHEN 'Stafford'
+                      THEN 316
+                  WHEN 'Staffordshire Moorlands'
+                      THEN 317
+                  WHEN 'Tamworth'
+                      THEN 318
+                  WHEN 'Stoke-on-Trent'
+                      THEN 319
+                  WHEN 'Telford and Wrekin'
+                      THEN 320
+                  WHEN 'Walsall'
+                      THEN 321
+                  WHEN 'North Warwickshire'
+                      THEN 322
+                  WHEN 'Nuneaton and Bedworth'
+                      THEN 323
+                  WHEN 'Rugby'
+                      THEN 324
+                  WHEN 'Stratford-on-Avon'
+                      THEN 325
+                  WHEN 'Warwick'
+                      THEN 326
+                  WHEN 'Wolverhampton'
+                      THEN 327
+                  WHEN 'Bromsgrove'
+                      THEN 328
+                  WHEN 'Malvern Hills'
+                      THEN 329
+                  WHEN 'Redditch'
+                      THEN 330
+                  WHEN 'Worcester'
+                      THEN 331
+                  WHEN 'Wychavon'
+                      THEN 332
+                  WHEN 'Wyre Forest'
+                      THEN 333
+                  WHEN 'Barnsley'
+                      THEN 334
+                  WHEN 'Bradford'
+                      THEN 335
+                  WHEN 'Calderdale'
+                      THEN 336
+                  WHEN 'Doncaster'
+                      THEN 337
+                  WHEN 'East Riding of Yorkshire'
+                      THEN 338
+                  WHEN 'Kingston upon Hull'
+                      THEN 339
+                  WHEN 'Kirklees'
+                      THEN 340
+                  WHEN 'Leeds'
+                      THEN 341
+                  WHEN 'North East Lincolnshire'
+                      THEN 342
+                  WHEN 'North Lincolnshire'
+                      THEN 343
+                  WHEN 'Craven'
+                      THEN 344
+                  WHEN 'Hambleton'
+                      THEN 345
+                  WHEN 'Harrogate'
+                      THEN 346
+                  WHEN 'Richmondshire'
+                      THEN 347
+                  WHEN 'Ryedale'
+                      THEN 348
+                  WHEN 'Scarborough'
+                      THEN 349
+                  WHEN 'Selby'
+                      THEN 350
+                  WHEN 'Rotherham'
+                      THEN 351
+                  WHEN 'Sheffield'
+                      THEN 352
+                  WHEN 'Wakefield'
+                      THEN 353
+                  WHEN 'York'
+                      THEN 354
+                  WHEN 'Bedford'
+                      THEN 400
+                  WHEN 'Central Bedfordshire'
+                      THEN 401
+                  WHEN 'Cheshire East'
+                      THEN 402
+                  WHEN 'Cheshire West and Chester'
+                      THEN 403
+                  WHEN 'Cornwall'
+                      THEN 404
+                  WHEN 'Isles of Scilly'
+                      THEN 405
+                  WHEN 'County Durham'
+                      THEN 406
+                  WHEN 'Northumberland'
+                      THEN 407
+                  WHEN 'Shropshire'
+                      THEN 408
+                  WHEN 'Wiltshire'
+                      THEN 409
+                  ELSE - 1
+                  END
+          FROM "Cssr"
+          WHERE "NmdsIDLetter" = SUBSTRING(e."NmdsID", 1, 1)
+              AND "LocalCustodianCode" IN (
+                  SELECT local_custodian_code
+                  FROM cqcref.pcodedata
+                  WHERE postcode = e."PostCode"
+                  ) LIMIT 1
+          ) lauthid,
+      -- 'na' parliamentaryconstituency,
+      COALESCE("NumberOfStaffValue", - 1) totalstaff, -- 038
+      TO_CHAR("NumberOfStaffChangedAt", 'DD/MM/YYYY') totalstaff_changedate,
+      TO_CHAR("NumberOfStaffSavedAt", 'DD/MM/YYYY') totalstaff_savedate,
+      (
+          SELECT COUNT(1)
+          FROM "Worker"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "Archived" = false
+          ) wkrrecs,
+      (
+          SELECT TO_CHAR(MAX("When"), 'DD/MM/YYYY')
+          FROM "WorkerAudit"
+          WHERE "WorkerFK" IN (
+                  SELECT "ID"
+                  FROM "Worker"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                  )
+              AND "EventType" IN (
+                  'created',
+                  'deleted',
+                  'updated'
+                  )
+          ) wkrrecs_changedate,
+      TO_CHAR("NumberOfStaffSavedAt", 'DD/MM/YYYY') wkrrecs_WDFsavedate,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          WHEN "StartersValue" = 'Don''t know'
+              THEN - 2
+          WHEN "StartersValue" IS NULL
+              THEN - 1
+          ELSE (
+                  SELECT total_starters
+                  FROM "WorkerJobStats"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "JobID" IS NULL
+                  )
+          END totalstarters,
+      TO_CHAR("StartersChangedAt", 'DD/MM/YYYY') totalstarters_changedate,
+      TO_CHAR("StartersSavedAt", 'DD/MM/YYYY') totalstarters_savedate,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          WHEN "LeaversValue" = 'Don''t know'
+              THEN - 2
+          WHEN "LeaversValue" IS NULL
+              THEN - 1
+          ELSE (
+                  SELECT total_leavers
+                  FROM "WorkerJobStats"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "JobID" IS NULL
+                  )
+          END totalleavers,
+      TO_CHAR("LeaversChangedAt", 'DD/MM/YYYY') totalleavers_changedate,
+      TO_CHAR("LeaversSavedAt", 'DD/MM/YYYY') totalleavers_savedate,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          WHEN "VacanciesValue" = 'Don''t know'
+              THEN - 2
+          WHEN "VacanciesValue" IS NULL
+              THEN - 1
+          ELSE (
+                  SELECT total_vacancies
+                  FROM "WorkerJobStats"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "JobID" IS NULL
+                  )
+          END totalvacancies,
+      TO_CHAR("VacanciesChangedAt", 'DD/MM/YYYY') totalvacancies_changedate,
+      TO_CHAR("VacanciesSavedAt", 'DD/MM/YYYY') totalvacancies_savedate,
+      (
+          SELECT CASE name
+                  WHEN 'Care home services with nursing'
+                      THEN 1
+                  WHEN 'Care home services without nursing'
+                      THEN 2
+                  WHEN 'Other adult residential care services'
+                      THEN 5
+                  WHEN 'Day care and day services'
+                      THEN 6
+                  WHEN 'Other adult day care services'
+                      THEN 7
+                  WHEN 'Domiciliary care services'
+                      THEN 8
+                  WHEN 'Domestic services and home help'
+                      THEN 10
+                  WHEN 'Other adult domiciliary care service'
+                      THEN 12
+                  WHEN 'Carers support'
+                      THEN 13
+                  WHEN 'Short breaks / respite care'
+                      THEN 14
+                  WHEN 'Community support and outreach'
+                      THEN 15
+                  WHEN 'Social work and care management'
+                      THEN 16
+                  WHEN 'Shared lives'
+                      THEN 17
+                  WHEN 'Disability adaptations / assistive technology services'
+                      THEN 18
+                  WHEN 'Occupational / employment-related services'
+                      THEN 19
+                  WHEN 'Information and advice services'
+                      THEN 20
+                  WHEN 'Other adult community care service'
+                      THEN 21
+                  WHEN 'Any other services'
+                      THEN 52
+                  WHEN 'Sheltered housing'
+                      THEN 53
+                  WHEN 'Extra care housing services'
+                      THEN 54
+                  WHEN 'Supported living services'
+                      THEN 55
+                  WHEN 'Specialist college services'
+                      THEN 60
+                  WHEN 'Community based services for people with a learning disability'
+                      THEN 61
+                  WHEN 'Community based services for people with mental health needs'
+                      THEN 62
+                  WHEN 'Community based services for people who misuse substances'
+                      THEN 63
+                  WHEN 'Community healthcare services'
+                      THEN 64
+                  WHEN 'Hospice services'
+                      THEN 66
+                  WHEN 'Long term conditions services'
+                      THEN 67
+                  WHEN 'Hospital services for people with mental health needs, learning disabilities and/or problems with substance misuse'
+                      THEN 68
+                  WHEN 'Rehabilitation services'
+                      THEN 69
+                  WHEN 'Residential substance misuse treatment/ rehabilitation services'
+                      THEN 70
+                  WHEN 'Other healthcare service'
+                      THEN 71
+                  WHEN 'Head office services'
+                      THEN 72
+                  WHEN 'Nurses agency'
+                      THEN 74
+                  WHEN 'Any childrens / young peoples services'
+                      THEN 75
+                  END
+          FROM services
+          WHERE id = e."MainServiceFKValue"
+          ) mainstid,
+      TO_CHAR("MainServiceFKChangedAt", 'DD/MM/YYYY') mainstid_changedate,
+      TO_CHAR("MainServiceFKSavedAt", 'DD/MM/YYYY') mainstid_savedate,
+      -- jr28
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" IS NULL
+                  )
+              THEN 1
+          ELSE 0
+          END jr28flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IS NULL
+          ) jr28perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IS NULL
+          ) jr28temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IS NULL
+          ) jr28pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IS NULL
+          ) jr28agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IS NULL
+          ) jr28oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IS NULL
+          ) jr28emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IS NULL
+          ) jr28work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IS NULL
+                      ), - 1)
+          END jr28strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IS NULL
+                      ), - 1)
+          END jr28stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IS NULL
+                      ), - 1)
+          END jr28vacy,
+      -- jr29
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" IN (
+                          25,
+                          10,
+                          11,
+                          12,
+                          3,
+                          29,
+                          20,
+                          16
+                          )
+                  )
+              THEN 1
+          ELSE 0
+          END jr29flag,
+      (
+          SELECT SUM(total_perm_staff)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  25,
+                  10,
+                  11,
+                  12,
+                  3,
+                  29,
+                  20,
+                  16
+                  )
+          ) jr29perm,
+      (
+          SELECT SUM(total_temp_staff)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  25,
+                  10,
+                  11,
+                  12,
+                  3,
+                  29,
+                  20,
+                  16
+                  )
+          ) jr29temp,
+      (
+          SELECT SUM(total_pool_bank)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  25,
+                  10,
+                  11,
+                  12,
+                  3,
+                  29,
+                  20,
+                  16
+                  )
+          ) jr29pool,
+      (
+          SELECT SUM(total_agency)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  25,
+                  10,
+                  11,
+                  12,
+                  3,
+                  29,
+                  20,
+                  16
+                  )
+          ) jr29agcy,
+      (
+          SELECT SUM(total_other)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  25,
+                  10,
+                  11,
+                  12,
+                  3,
+                  29,
+                  20,
+                  16
+                  )
+          ) jr29oth,
+      (
+          SELECT SUM(total_employed)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  25,
+                  10,
+                  11,
+                  12,
+                  3,
+                  29,
+                  20,
+                  16
+                  )
+          ) jr29emp,
+      (
+          SELECT SUM(total_staff)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  25,
+                  10,
+                  11,
+                  12,
+                  3,
+                  29,
+                  20,
+                  16
+                  )
+          ) jr29work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT SUM(total_starters)
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IN (
+                              25,
+                              10,
+                              11,
+                              12,
+                              3,
+                              29,
+                              20,
+                              16
+                              )
+                      ), - 1)
+          END jr29strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT SUM(total_leavers)
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IN (
+                              25,
+                              10,
+                              11,
+                              12,
+                              3,
+                              29,
+                              20,
+                              16
+                              )
+                      ), - 1)
+          END jr29stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT SUM(total_vacancies)
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IN (
+                              25,
+                              10,
+                              11,
+                              12,
+                              3,
+                              29,
+                              20,
+                              16
+                              )
+                      ), - 1)
+          END jr29vacy,
+      -- jr30
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" IN (
+                          26,
+                          15,
+                          13,
+                          22,
+                          28,
+                          14
+                          )
+                  )
+              THEN 1
+          ELSE 0
+          END jr30flag,
+      (
+          SELECT SUM(total_perm_staff)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  26,
+                  15,
+                  13,
+                  22,
+                  28,
+                  14
+                  )
+          ) jr30perm,
+      (
+          SELECT SUM(total_temp_staff)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  26,
+                  15,
+                  13,
+                  22,
+                  28,
+                  14
+                  )
+          ) jr30temp,
+      (
+          SELECT SUM(total_pool_bank)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  26,
+                  15,
+                  13,
+                  22,
+                  28,
+                  14
+                  )
+          ) jr30pool,
+      (
+          SELECT SUM(total_agency)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  26,
+                  15,
+                  13,
+                  22,
+                  28,
+                  14
+                  )
+          ) jr30agcy,
+      (
+          SELECT SUM(total_other)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  26,
+                  15,
+                  13,
+                  22,
+                  28,
+                  14
+                  )
+          ) jr30oth,
+      (
+          SELECT SUM(total_employed)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  26,
+                  15,
+                  13,
+                  22,
+                  28,
+                  14
+                  )
+          ) jr30emp,
+      (
+          SELECT SUM(total_staff)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  26,
+                  15,
+                  13,
+                  22,
+                  28,
+                  14
+                  )
+          ) jr30work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT SUM(total_starters)
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IN (
+                              26,
+                              15,
+                              13,
+                              22,
+                              28,
+                              14
+                              )
+                      ), - 1)
+          END jr30strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT SUM(total_leavers)
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IN (
+                              26,
+                              15,
+                              13,
+                              22,
+                              28,
+                              14
+                              )
+                      ), - 1)
+          END jr30stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT SUM(total_vacancies)
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IN (
+                              26,
+                              15,
+                              13,
+                              22,
+                              28,
+                              14
+                              )
+                      ), - 1)
+          END jr30vacy,
+      -- jr31
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" IN (
+                          27,
+                          18,
+                          23,
+                          4,
+                          24,
+                          17
+                          )
+                  )
+              THEN 1
+          ELSE 0
+          END jr31flag,
+      (
+          SELECT SUM(total_perm_staff)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  27,
+                  18,
+                  23,
+                  4,
+                  24,
+                  17
+                  )
+          ) jr31perm,
+      (
+          SELECT SUM(total_temp_staff)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  27,
+                  18,
+                  23,
+                  4,
+                  24,
+                  17
+                  )
+          ) jr31temp,
+      (
+          SELECT SUM(total_pool_bank)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  27,
+                  18,
+                  23,
+                  4,
+                  24,
+                  17
+                  )
+          ) jr31pool,
+      (
+          SELECT SUM(total_agency)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  27,
+                  18,
+                  23,
+                  4,
+                  24,
+                  17
+                  )
+          ) jr31agcy,
+      (
+          SELECT SUM(total_other)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  27,
+                  18,
+                  23,
+                  4,
+                  24,
+                  17
+                  )
+          ) jr31oth,
+      (
+          SELECT SUM(total_employed)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  27,
+                  18,
+                  23,
+                  4,
+                  24,
+                  17
+                  )
+          ) jr31emp,
+      (
+          SELECT SUM(total_staff)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  27,
+                  18,
+                  23,
+                  4,
+                  24,
+                  17
+                  )
+          ) jr31work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT SUM(total_starters)
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IN (
+                              27,
+                              18,
+                              23,
+                              4,
+                              24,
+                              17
+                              )
+                      ), - 1)
+          END jr31strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT SUM(total_leavers)
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IN (
+                              27,
+                              18,
+                              23,
+                              4,
+                              24,
+                              17
+                              )
+                      ), - 1)
+          END jr31stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT SUM(total_vacancies)
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IN (
+                              27,
+                              18,
+                              23,
+                              4,
+                              24,
+                              17
+                              )
+                      ), - 1)
+          END jr31vacy,
+      -- jr32
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" IN (
+                          2,
+                          5,
+                          21,
+                          1,
+                          19,
+                          7,
+                          8,
+                          9,
+                          6
+                          )
+                  )
+              THEN 1
+          ELSE 0
+          END jr32flag,
+      (
+          SELECT SUM(total_perm_staff)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  2,
+                  5,
+                  21,
+                  1,
+                  19,
+                  7,
+                  8,
+                  9,
+                  6
+                  )
+          ) jr32perm,
+      (
+          SELECT SUM(total_temp_staff)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  2,
+                  5,
+                  21,
+                  1,
+                  19,
+                  7,
+                  8,
+                  9,
+                  6
+                  )
+          ) jr32temp,
+      (
+          SELECT SUM(total_pool_bank)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  2,
+                  5,
+                  21,
+                  1,
+                  19,
+                  7,
+                  8,
+                  9,
+                  6
+                  )
+          ) jr32pool,
+      (
+          SELECT SUM(total_agency)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  2,
+                  5,
+                  21,
+                  1,
+                  19,
+                  7,
+                  8,
+                  9,
+                  6
+                  )
+          ) jr32agcy,
+      (
+          SELECT SUM(total_other)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  2,
+                  5,
+                  21,
+                  1,
+                  19,
+                  7,
+                  8,
+                  9,
+                  6
+                  )
+          ) jr32oth,
+      (
+          SELECT SUM(total_employed)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  2,
+                  5,
+                  21,
+                  1,
+                  19,
+                  7,
+                  8,
+                  9,
+                  6
+                  )
+          ) jr32emp,
+      (
+          SELECT SUM(total_staff)
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" IN (
+                  2,
+                  5,
+                  21,
+                  1,
+                  19,
+                  7,
+                  8,
+                  9,
+                  6
+                  )
+          ) jr32work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT SUM(total_starters)
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IN (
+                              2,
+                              5,
+                              21,
+                              1,
+                              19,
+                              7,
+                              8,
+                              9,
+                              6
+                              )
+                      ), - 1)
+          END jr32strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT SUM(total_leavers)
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IN (
+                              2,
+                              5,
+                              21,
+                              1,
+                              19,
+                              7,
+                              8,
+                              9,
+                              6
+                              )
+                      ), - 1)
+          END jr32stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT SUM(total_vacancies)
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" IN (
+                              2,
+                              5,
+                              21,
+                              1,
+                              19,
+                              7,
+                              8,
+                              9,
+                              6
+                              )
+                      ), - 1)
+          END jr32vacy,
+      -- jr01
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 26
+                  )
+              THEN 1
+          ELSE 0
+          END jr01flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 26
+          ) jr01perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 26
+          ) jr01temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 26
+          ) jr01pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 26
+          ) jr01agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 26
+          ) jr01oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 26
+          ) jr01emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 26
+          ) jr01work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 26
+                      ), - 1)
+          END jr01strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 26
+                      ), - 1)
+          END jr01stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 26
+                      ), - 1)
+          END jr01vacy,
+      -- jr02
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 15
+                  )
+              THEN 1
+          ELSE 0
+          END jr02flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 15
+          ) jr02perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 15
+          ) jr02temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 15
+          ) jr02pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 15
+          ) jr02agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 15
+          ) jr02oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 15
+          ) jr02emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 15
+          ) jr02work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 15
+                      ), - 1)
+          END jr02strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 15
+                      ), - 1)
+          END jr02stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 15
+                      ), - 1)
+          END jr02vacy,
+      -- jr03
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 13
+                  )
+              THEN 1
+          ELSE 0
+          END jr03flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 13
+          ) jr03perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 13
+          ) jr03temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 13
+          ) jr03pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 13
+          ) jr03agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 13
+          ) jr03oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 13
+          ) jr03emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 13
+          ) jr03work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 13
+                      ), - 1)
+          END jr03strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 13
+                      ), - 1)
+          END jr03stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 13
+                      ), - 1)
+          END jr03vacy,
+      -- jr04
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 22
+                  )
+              THEN 1
+          ELSE 0
+          END jr04flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 22
+          ) jr04perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 22
+          ) jr04temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 22
+          ) jr04pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 22
+          ) jr04agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 22
+          ) jr04oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 22
+          ) jr04emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 22
+          ) jr04work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 22
+                      ), - 1)
+          END jr04strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 22
+                      ), - 1)
+          END jr04stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 22
+                      ), - 1)
+          END jr04vacy,
+      -- jr05
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 28
+                  )
+              THEN 1
+          ELSE 0
+          END jr05flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 28
+          ) jr05perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 28
+          ) jr05temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 28
+          ) jr05pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 28
+          ) jr05agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 28
+          ) jr05oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 28
+          ) jr05emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 28
+          ) jr05work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 28
+                      ), - 1)
+          END jr05strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 28
+                      ), - 1)
+          END jr05stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 28
+                      ), - 1)
+          END jr05vacy,
+      -- jr06
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 27
+                  )
+              THEN 1
+          ELSE 0
+          END jr06flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 27
+          ) jr06perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 27
+          ) jr06temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 27
+          ) jr06pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 27
+          ) jr06agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 27
+          ) jr06oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 27
+          ) jr06emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 27
+          ) jr06work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 27
+                      ), - 1)
+          END jr06strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 27
+                      ), - 1)
+          END jr06stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 27
+                      ), - 1)
+          END jr06vacy,
+      -- jr07
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 25
+                  )
+              THEN 1
+          ELSE 0
+          END jr07flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 25
+          ) jr07perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 25
+          ) jr07temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 25
+          ) jr07pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 25
+          ) jr07agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 25
+          ) jr07oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 25
+          ) jr07emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 25
+          ) jr07work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 25
+                      ), - 1)
+          END jr07strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 25
+                      ), - 1)
+          END jr07stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 25
+                      ), - 1)
+          END jr07vacy,
+      -- jr 08
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 10
+                  )
+              THEN 1
+          ELSE 0
+          END jr08flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 10
+          ) jr08perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 10
+          ) jr08temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 10
+          ) jr08pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 10
+          ) jr08agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 10
+          ) jr08oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 10
+          ) jr08emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 10
+          ) jr08work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 10
+                      ), - 1)
+          END jr08strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 10
+                      ), - 1)
+          END jr08stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 10
+                      ), - 1)
+          END jr08vacy,
+      -- jr09
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 11
+                  )
+              THEN 1
+          ELSE 0
+          END jr09flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 11
+          ) jr09perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 11
+          ) jr09temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 11
+          ) jr09pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 11
+          ) jr09agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 11
+          ) jr09oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 11
+          ) jr09emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 11
+          ) jr09work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 11
+                      ), - 1)
+          END jr09strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 11
+                      ), - 1)
+          END jr09stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 11
+                      ), - 1)
+          END jr09vacy,
+      -- jr10
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 12
+                  )
+              THEN 1
+          ELSE 0
+          END jr10flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 12
+          ) jr10perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 12
+          ) jr10temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 12
+          ) jr10pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 12
+          ) jr10agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 12
+          ) jr10oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 12
+          ) jr10emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 12
+          ) jr10work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 12
+                      ), - 1)
+          END jr10strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 12
+                      ), - 1)
+          END jr10stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 12
+                      ), - 1)
+          END jr10vacy,
+      -- jr11
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 3
+                  )
+              THEN 1
+          ELSE 0
+          END jr11flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 3
+          ) jr11perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 3
+          ) jr11temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 3
+          ) jr11pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 3
+          ) jr11agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 3
+          ) jr11oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 3
+          ) jr11emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 3
+          ) jr11work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 3
+                      ), - 1)
+          END jr11strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 3
+                      ), - 1)
+          END jr11stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 3
+                      ), - 1)
+          END jr11vacy,
+      -- jr15
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 18
+                  )
+              THEN 1
+          ELSE 0
+          END jr15flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 18
+          ) jr15perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 18
+          ) jr15temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 18
+          ) jr15pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 18
+          ) jr15agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 18
+          ) jr15oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 18
+          ) jr15emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 18
+          ) jr15work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 18
+                      ), - 1)
+          END jr15strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 18
+                      ), - 1)
+          END jr15stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 18
+                      ), - 1)
+          END jr15vacy,
+      -- jr16
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 23
+                  )
+              THEN 1
+          ELSE 0
+          END jr16flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 23
+          ) jr16perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 23
+          ) jr16temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 23
+          ) jr16pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 23
+          ) jr16agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 23
+          ) jr16oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 23
+          ) jr16emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 23
+          ) jr16work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 23
+                      ), - 1)
+          END jr16strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 23
+                      ), - 1)
+          END jr16stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 23
+                      ), - 1)
+          END jr16vacy,
+      -- jr17
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 4
+                  )
+              THEN 1
+          ELSE 0
+          END jr17flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 4
+          ) jr17perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 4
+          ) jr17temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 4
+          ) jr17pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 4
+          ) jr17agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 4
+          ) jr17oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 4
+          ) jr17emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 4
+          ) jr17work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 4
+                      ), - 1)
+          END jr17strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 4
+                      ), - 1)
+          END jr17stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 4
+                      ), - 1)
+          END jr17vacy,
+      -- jr22
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 29
+                  )
+              THEN 1
+          ELSE 0
+          END jr22flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 29
+          ) jr22perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 29
+          ) jr22temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 29
+          ) jr22pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 29
+          ) jr22agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 29
+          ) jr22oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 29
+          ) jr22emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 29
+          ) jr22work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 29
+                      ), - 1)
+          END jr22strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 29
+                      ), - 1)
+          END jr22stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 29
+                      ), - 1)
+          END jr22vacy,
+      -- jr23
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 20
+                  )
+              THEN 1
+          ELSE 0
+          END jr23flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 20
+          ) jr23perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 20
+          ) jr23temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 20
+          ) jr23pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 20
+          ) jr23agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 20
+          ) jr23oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 20
+          ) jr23emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 20
+          ) jr23work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 20
+                      ), - 1)
+          END jr23strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 20
+                      ), - 1)
+          END jr23stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 20
+                      ), - 1)
+          END jr23vacy,
+      -- jr24
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 14
+                  )
+              THEN 1
+          ELSE 0
+          END jr24flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 14
+          ) jr24perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 14
+          ) jr24temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 14
+          ) jr24pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 14
+          ) jr24agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 14
+          ) jr24oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 14
+          ) jr24emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 14
+          ) jr24work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 14
+                      ), - 1)
+          END jr24strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 14
+                      ), - 1)
+          END jr24stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 14
+                      ), - 1)
+          END jr24vacy,
+      -- jr25
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 2
+                  )
+              THEN 1
+          ELSE 0
+          END jr25flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 2
+          ) jr25perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 2
+          ) jr25temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 2
+          ) jr25pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 2
+          ) jr25agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 2
+          ) jr25oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 2
+          ) jr25emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 2
+          ) jr25work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 2
+                      ), - 1)
+          END jr25strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 2
+                      ), - 1)
+          END jr25stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 2
+                      ), - 1)
+          END jr25vacy,
+      -- jr26
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 5
+                  )
+              THEN 1
+          ELSE 0
+          END jr26flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 5
+          ) jr26perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 5
+          ) jr26temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 5
+          ) jr26pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 5
+          ) jr26agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 5
+          ) jr26oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 5
+          ) jr26emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 5
+          ) jr26work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 5
+                      ), - 1)
+          END jr26strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 5
+                      ), - 1)
+          END jr26stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 5
+                      ), - 1)
+          END jr26vacy,
+      -- jr27
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 21
+                  )
+              THEN 1
+          ELSE 0
+          END jr27flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 21
+          ) jr27perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 21
+          ) jr27temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 21
+          ) jr27pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 21
+          ) jr27agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 21
+          ) jr27oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 21
+          ) jr27emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 21
+          ) jr27work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 21
+                      ), - 1)
+          END jr27strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 21
+                      ), - 1)
+          END jr27stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 21
+                      ), - 1)
+          END jr27vacy,
+      -- jr34
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 1
+                  )
+              THEN 1
+          ELSE 0
+          END jr34flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 1
+          ) jr34perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 1
+          ) jr34temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 1
+          ) jr34pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 1
+          ) jr34agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 1
+          ) jr34oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 1
+          ) jr34emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 1
+          ) jr34work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 1
+                      ), - 1)
+          END jr34strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 1
+                      ), - 1)
+          END jr34stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 1
+                      ), - 1)
+          END jr34vacy,
+      -- jr35
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 24
+                  )
+              THEN 1
+          ELSE 0
+          END jr35flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 24
+          ) jr35perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 24
+          ) jr35temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 24
+          ) jr35pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 24
+          ) jr35agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 24
+          ) jr35oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 24
+          ) jr35emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 24
+          ) jr35work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 24
+                      ), - 1)
+          END jr35strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 24
+                      ), - 1)
+          END jr35stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 24
+                      ), - 1)
+          END jr35vacy,
+      -- jr36
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 19
+                  )
+              THEN 1
+          ELSE 0
+          END jr36flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 19
+          ) jr36perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 19
+          ) jr36temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 19
+          ) jr36pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 19
+          ) jr36agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 19
+          ) jr36oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 19
+          ) jr36emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 19
+          ) jr36work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 19
+                      ), - 1)
+          END jr36strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 19
+                      ), - 1)
+          END jr36stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 19
+                      ), - 1)
+          END jr36vacy,
+      -- jr37
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 17
+                  )
+              THEN 1
+          ELSE 0
+          END jr37flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 17
+          ) jr37perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 17
+          ) jr37temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 17
+          ) jr37pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 17
+          ) jr37agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 17
+          ) jr37oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 17
+          ) jr37emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 17
+          ) jr37work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 17
+                      ), - 1)
+          END jr37strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 17
+                      ), - 1)
+          END jr37stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 17
+                      ), - 1)
+          END jr37vacy,
+      -- jr38
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 16
+                  )
+              THEN 1
+          ELSE 0
+          END jr38flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 16
+          ) jr38perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 16
+          ) jr38temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 16
+          ) jr38pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 16
+          ) jr38agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 16
+          ) jr38oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 16
+          ) jr38emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 16
+          ) jr38work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 16
+                      ), - 1)
+          END jr38strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 16
+                      ), - 1)
+          END jr38stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 16
+                      ), - 1)
+          END jr38vacy,
+      -- jr39
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 7
+                  )
+              THEN 1
+          ELSE 0
+          END jr39flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 7
+          ) jr39perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 7
+          ) jr39temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 7
+          ) jr39pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 7
+          ) jr39agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 7
+          ) jr39oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 7
+          ) jr39emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 7
+          ) jr39work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 7
+                      ), - 1)
+          END jr39strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 7
+                      ), - 1)
+          END jr39stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 7
+                      ), - 1)
+          END jr39vacy,
+      -- jr40
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 8
+                  )
+              THEN 1
+          ELSE 0
+          END jr40flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 8
+          ) jr40perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 8
+          ) jr40temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 8
+          ) jr40pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 8
+          ) jr40agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 8
+          ) jr40oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 8
+          ) jr40emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 8
+          ) jr40work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 8
+                      ), - 1)
+          END jr40strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 8
+                      ), - 1)
+          END jr40stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 8
+                      ), - 1)
+          END jr40vacy,
+      -- jr41
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 9
+                  )
+              THEN 1
+          ELSE 0
+          END jr41flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 9
+          ) jr41perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 9
+          ) jr41temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 9
+          ) jr41pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 9
+          ) jr41agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 9
+          ) jr41oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 9
+          ) jr41emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 9
+          ) jr41work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 9
+                      ), - 1)
+          END jr41strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 9
+                      ), - 1)
+          END jr41stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 9
+                      ), - 1)
+          END jr41vacy,
+      -- jr42
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 6
+                  )
+              THEN 1
+          ELSE 0
+          END jr42flag,
+      (
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 6
+          ) jr42perm,
+      (
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 6
+          ) jr42temp,
+      (
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 6
+          ) jr42pool,
+      (
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 6
+          ) jr42agcy,
+      (
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 6
+          ) jr42oth,
+      (
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 6
+          ) jr42emp,
+      (
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 6
+          ) jr42work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 6
+                      ), - 1)
+          END jr42strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 6
+                      ), - 1)
+          END jr42stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 6
+                      ), - 1)
+          END jr42vacy,
+      TO_CHAR("ServiceUsersChangedAt", 'DD/MM/YYYY') ut_changedate,
+      TO_CHAR("ServiceUsersSavedAt", 'DD/MM/YYYY') ut_savedate,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 1 LIMIT 1
+              ), 0) ut01flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 2 LIMIT 1
+              ), 0) ut02flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 3 LIMIT 1
+              ), 0) ut22flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 4 LIMIT 1
+              ), 0) ut23flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 5 LIMIT 1
+              ), 0) ut25flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 6 LIMIT 1
+              ), 0) ut26flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 7 LIMIT 1
+              ), 0) ut27flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 8 LIMIT 1
+              ), 0) ut46flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 9 LIMIT 1
+              ), 0) ut03flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 10 LIMIT 1
+              ), 0) ut28flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 11 LIMIT 1
+              ), 0) ut06flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 12 LIMIT 1
+              ), 0) ut29flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 13 LIMIT 1
+              ), 0) ut05flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 14 LIMIT 1
+              ), 0) ut04flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 15 LIMIT 1
+              ), 0) ut07flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 16 LIMIT 1
+              ), 0) ut08flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 17 LIMIT 1
+              ), 0) ut31flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 18 LIMIT 1
+              ), 0) ut09flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 19 LIMIT 1
+              ), 0) ut45flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 20 LIMIT 1
+              ), 0) ut18flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 21 LIMIT 1
+              ), 0) ut19flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 22 LIMIT 1
+              ), 0) ut20flag,
+      COALESCE((
+              SELECT 1
+              FROM "EstablishmentServiceUsers"
+              WHERE "EstablishmentID" = e."EstablishmentID"
+                  AND "ServiceUserID" = 23 LIMIT 1
+              ), 0) ut21flag,
+      TO_CHAR(GREATEST("MainServiceFKChangedAt", "OtherServicesChangedAt"), 'DD/MM/YYYY') st_changedate,
+      TO_CHAR(GREATEST("MainServiceFKSavedAt", "OtherServicesSavedAt"), 'DD/MM/YYYY') st_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 24
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 24
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st01flag,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 24
+                  AND sc."Type" = 'Capacity'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st01cap,
+      CASE 
+          WHEN "MainServiceFKValue" = 24
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 24
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st01cap_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 24
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 24
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st01cap_savedate,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 24
+                  AND sc."Type" = 'Utilisation'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st01util,
+      CASE 
+          WHEN "MainServiceFKValue" = 24
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 24
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st01util_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 24
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 24
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st01util_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 25
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 25
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st02flag,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 25
+                  AND sc."Type" = 'Capacity'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st02cap,
+      CASE 
+          WHEN "MainServiceFKValue" = 25
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 25
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st02cap_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 25
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 25
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st02cap_savedate,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 25
+                  AND sc."Type" = 'Utilisation'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st02util,
+      CASE 
+          WHEN "MainServiceFKValue" = 25
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 25
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st02util_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 25
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 25
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st02util_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 13
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 13
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st53flag,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 13
+                  AND sc."Type" = 'Utilisation'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st53util,
+      CASE 
+          WHEN "MainServiceFKValue" = 13
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 13
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st53util_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 13
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 13
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st53util_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 12
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 12
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st05flag,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 12
+                  AND sc."Type" = 'Capacity'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st05cap,
+      CASE 
+          WHEN "MainServiceFKValue" = 12
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 12
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st05cap_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 12
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 12
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st05cap_savedate,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 12
+                  AND sc."Type" = 'Utilisation'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st05util,
+      CASE 
+          WHEN "MainServiceFKValue" = 12
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 12
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st05util_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 12
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 12
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st05util_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 9
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 9
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st06flag,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 9
+                  AND sc."Type" = 'Capacity'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st06cap,
+      CASE 
+          WHEN "MainServiceFKValue" = 9
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 9
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st06cap_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 9
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 9
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st06cap_savedate,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 9
+                  AND sc."Type" = 'Utilisation'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st06util,
+      CASE 
+          WHEN "MainServiceFKValue" = 9
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 9
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st06util_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 9
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 9
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st06util_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 10
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 10
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st07flag,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 10
+                  AND sc."Type" = 'Capacity'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st07cap,
+      CASE 
+          WHEN "MainServiceFKValue" = 10
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 10
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st07cap_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 10
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 10
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st07cap_savedate,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 10
+                  AND sc."Type" = 'Utilisation'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st07util,
+      CASE 
+          WHEN "MainServiceFKValue" = 10
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 10
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st07util_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 10
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 10
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st07util_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 11
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 11
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st10flag,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 11
+                  AND sc."Type" = 'Utilisation'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st10util,
+      CASE 
+          WHEN "MainServiceFKValue" = 11
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 11
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st10util_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 11
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 11
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st10util_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 20
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 20
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st08flag,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 20
+                  AND sc."Type" = 'Utilisation'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st08util,
+      CASE 
+          WHEN "MainServiceFKValue" = 20
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 20
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st08util_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 20
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 20
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st08util_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 21
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 21
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st54flag,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 21
+                  AND sc."Type" = 'Utilisation'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st54util,
+      CASE 
+          WHEN "MainServiceFKValue" = 21
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 21
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st54util_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 21
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 21
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st54util_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 22
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 22
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st74flag,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 22
+                  AND sc."Type" = 'Utilisation'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st74util,
+      CASE 
+          WHEN "MainServiceFKValue" = 22
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 22
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st74util_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 22
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 22
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st74util_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 23
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 23
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st55flag,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 23
+                  AND sc."Type" = 'Utilisation'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st55util,
+      CASE 
+          WHEN "MainServiceFKValue" = 23
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 23
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st55util_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 23
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 23
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st55util_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 35
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 35
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st73flag,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 35
+                  AND sc."Type" = 'Utilisation'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st73util,
+      CASE 
+          WHEN "MainServiceFKValue" = 35
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 35
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st73util_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 35
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 35
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st73util_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 18
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 18
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st12flag,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 18
+                  AND sc."Type" = 'Utilisation'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st12util,
+      CASE 
+          WHEN "MainServiceFKValue" = 18
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 18
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st12util_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 18
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 18
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st12util_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 1
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 1
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st13flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 2
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 2
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st15flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 3
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 3
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st18flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 4
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 4
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st20flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 5
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 5
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st19flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 19
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 19
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st17flag,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 19
+                  AND sc."Type" = 'Capacity'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st17cap,
+      CASE 
+          WHEN "MainServiceFKValue" = 19
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 19
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st17cap_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 19
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 19
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st17cap_savedate,
+      COALESCE((
+              SELECT "Answer"
+              FROM "EstablishmentCapacity" ec
+              JOIN "ServicesCapacity" sc ON ec."ServiceCapacityID" = sc."ServiceCapacityID"
+                  AND sc."ServiceID" = 19
+                  AND sc."Type" = 'Utilisation'
+              WHERE ec."EstablishmentID" = e."EstablishmentID"
+              ), - 1) st17util,
+      CASE 
+          WHEN "MainServiceFKValue" = 19
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 19
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesChangedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st17util_changedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 19
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 19
+                  ) = 1
+              THEN TO_CHAR("CapacityServicesSavedAt", 'DD/MM/YYYY')
+          ELSE NULL
+          END st17util_savedate,
+      CASE 
+          WHEN "MainServiceFKValue" = 7
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 7
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st14flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 8
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 8
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st16flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 6
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 6
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st21flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 26
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 26
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st63flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 27
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 27
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st61flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 28
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 28
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st62flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 29
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 29
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st64flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 30
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 30
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st66flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 31
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 31
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st68flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 32
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 32
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st67flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 33
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 33
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st69flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 34
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 34
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st70flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 17
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 17
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st71flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 14
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 14
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st75flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 16
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 16
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st72flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 36
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 36
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st60flag,
+      CASE 
+          WHEN "MainServiceFKValue" = 15
+              OR (
+                  SELECT COUNT(1)
+                  FROM "EstablishmentServices"
+                  WHERE "EstablishmentID" = e."EstablishmentID"
+                      AND "ServiceID" = 15
+                  ) = 1
+              THEN 1
+          ELSE 0
+          END st52flag,
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM cqc."MandatoryTraining"
+                  WHERE "EstablishmentFK" = e."EstablishmentID" LIMIT 1
+                  )
+              THEN 1
+          ELSE 0
+          END hasmandatorytraining
+    FROM "Establishment" e
+    JOIN "Afr1BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID"
+      AND b."BatchNo" = ?`,
+      [batchNum],
+    )
+    .stream();
+
+module.exports = {
+  createBatches,
+  dropBatch,
+  getBatches,
+  findWorkplacesByBatch,
+};
