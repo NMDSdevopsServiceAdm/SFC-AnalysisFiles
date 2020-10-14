@@ -33,7 +33,7 @@ const run = async () => {
   await generateWorkersReport(runDate, dest);
   await generateLeaversReport(runDate, dest);
 
-  await finish();
+  await finish(dest);
 
   console.log(dayjs().format('DD-MM-YYYY HH:mm:ss'));
 }
