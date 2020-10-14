@@ -1561,7 +1561,7 @@ const findWorkersByBatch = (batchNum) =>
                 (cqcref.pcodedata.postcode = w."PostcodeValue") 
                 AND ("LocalCustodianCode" = cqcref.pcodedata.local_custodian_code)) LIMIT 1), -1) homelauthid,
        'na' homeparliamentaryconstituency,
-       -- chad (select (point(e."Longitude",e."Latitude") <@> point(w."Longitude",w."Latitude")) as "distwrkk") distwrkk,
+       (select (point(e."Longitude",e."Latitude") <@> point(w."Longitude",w."Latitude")) as "distwrkk") distwrkk,
        CASE
           WHEN "RecruitedFromValue" IS NULL THEN -1
           WHEN "RecruitedFromValue" = 'No' THEN 225
