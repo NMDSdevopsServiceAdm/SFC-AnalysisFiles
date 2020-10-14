@@ -1,11 +1,11 @@
 const exec = require('await-exec');
 const dayjs = require('dayjs');
 const fs = require('fs');
-const generateWorkplaceReport = require('../reports/workplace');
-const generateWorkersReport = require('../reports/workers');
-const generateLeaversReport = require('../reports/leavers');
-const { refreshViews } = require('../reports/views');
-const { uploadFile } = require('../reports/s3');
+const generateWorkplaceReport = require('../src/reports/workplace');
+const generateWorkersReport = require('../src/reports/workers');
+const generateLeaversReport = require('../src/reports/leavers');
+const { refreshViews } = require('../src/reports/views');
+const { uploadFile } = require('../src/reports/s3');
 
 (async () => {
   async function run() {
