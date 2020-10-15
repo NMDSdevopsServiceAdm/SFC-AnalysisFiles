@@ -28,7 +28,7 @@ const populateBatch = async (numInBatch) => {
   }
 };
 
-const createBatches = async (runDate, numInBatch = 50000) => {
+const createBatches = async (runDate, numInBatch = 2000) => {
   await db.schema.dropTableIfExists('Afr1BatchiSkAi0mo');
 
   await db.raw(
