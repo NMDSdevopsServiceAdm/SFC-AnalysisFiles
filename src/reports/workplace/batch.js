@@ -1165,48 +1165,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr28flag,
-      (
+    COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" IS NULL
-          ) jr28perm,
-      (
+          ), 0) jr28perm,
+    COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" IS NULL
-          ) jr28temp,
-      (
+          ), 0) jr28temp,
+    COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" IS NULL
-          ) jr28pool,
-      (
+          ), 0) jr28pool,
+    COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" IS NULL
-          ) jr28agcy,
-      (
+          ), 0) jr28agcy,
+    COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" IS NULL
-          ) jr28oth,
-      (
+          ), 0) jr28oth,
+    COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" IS NULL
-          ) jr28emp,
-      (
+          ), 0) jr28emp,
+    COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" IS NULL
-          ) jr28work,
+          ), 0) jr28work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -1257,7 +1257,7 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr29flag,
-      (
+      COALESCE((
           SELECT SUM(total_perm_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1271,8 +1271,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   20,
                   16
                   )
-          ) jr29perm,
-      (
+          ), 0) jr29perm,
+      COALESCE((
           SELECT SUM(total_temp_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1286,8 +1286,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   20,
                   16
                   )
-          ) jr29temp,
-      (
+          ), 0) jr29temp,
+      COALESCE((
           SELECT SUM(total_pool_bank)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1301,8 +1301,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   20,
                   16
                   )
-          ) jr29pool,
-      (
+          ), 0) jr29pool,
+      COALESCE((
           SELECT SUM(total_agency)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1316,8 +1316,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   20,
                   16
                   )
-          ) jr29agcy,
-      (
+          ), 0) jr29agcy,
+      COALESCE((
           SELECT SUM(total_other)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1331,8 +1331,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   20,
                   16
                   )
-          ) jr29oth,
-      (
+          ), 0) jr29oth,
+      COALESCE((
           SELECT SUM(total_employed)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1346,8 +1346,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   20,
                   16
                   )
-          ) jr29emp,
-      (
+          ), 0) jr29emp,
+      COALESCE((
           SELECT SUM(total_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1361,7 +1361,7 @@ const findWorkplacesByBatch = (batchNum) =>
                   20,
                   16
                   )
-          ) jr29work,
+          ), 0) jr29work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -1437,7 +1437,7 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr30flag,
-      (
+      COALESCE((
           SELECT SUM(total_perm_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1449,8 +1449,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   28,
                   14
                   )
-          ) jr30perm,
-      (
+          ), 0) jr30perm,
+      COALESCE((
           SELECT SUM(total_temp_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1462,8 +1462,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   28,
                   14
                   )
-          ) jr30temp,
-      (
+          ), 0) jr30temp,
+      COALESCE((
           SELECT SUM(total_pool_bank)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1475,8 +1475,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   28,
                   14
                   )
-          ) jr30pool,
-      (
+          ), 0) jr30pool,
+      COALESCE((
           SELECT SUM(total_agency)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1488,8 +1488,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   28,
                   14
                   )
-          ) jr30agcy,
-      (
+          ), 0) jr30agcy,
+      COALESCE((
           SELECT SUM(total_other)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1501,8 +1501,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   28,
                   14
                   )
-          ) jr30oth,
-      (
+          ), 0) jr30oth,
+      COALESCE((
           SELECT SUM(total_employed)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1514,8 +1514,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   28,
                   14
                   )
-          ) jr30emp,
-      (
+          ), 0) jr30emp,
+      COALESCE((
           SELECT SUM(total_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1527,7 +1527,7 @@ const findWorkplacesByBatch = (batchNum) =>
                   28,
                   14
                   )
-          ) jr30work,
+          ), 0) jr30work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -1597,7 +1597,7 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr31flag,
-      (
+      COALESCE((
           SELECT SUM(total_perm_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1609,8 +1609,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   24,
                   17
                   )
-          ) jr31perm,
-      (
+          ), 0) jr31perm,
+      COALESCE((
           SELECT SUM(total_temp_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1622,8 +1622,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   24,
                   17
                   )
-          ) jr31temp,
-      (
+          ), 0) jr31temp,
+      COALESCE((
           SELECT SUM(total_pool_bank)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1635,8 +1635,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   24,
                   17
                   )
-          ) jr31pool,
-      (
+          ), 0) jr31pool,
+      COALESCE((
           SELECT SUM(total_agency)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1648,8 +1648,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   24,
                   17
                   )
-          ) jr31agcy,
-      (
+          ), 0) jr31agcy,
+      COALESCE((
           SELECT SUM(total_other)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1661,8 +1661,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   24,
                   17
                   )
-          ) jr31oth,
-      (
+          ), 0) jr31oth,
+      COALESCE((
           SELECT SUM(total_employed)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1674,8 +1674,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   24,
                   17
                   )
-          ) jr31emp,
-      (
+          ), 0) jr31emp,
+      COALESCE((
           SELECT SUM(total_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1687,7 +1687,7 @@ const findWorkplacesByBatch = (batchNum) =>
                   24,
                   17
                   )
-          ) jr31work,
+          ), 0) jr31work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -1760,7 +1760,7 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr32flag,
-      (
+      COALESCE((
           SELECT SUM(total_perm_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1775,8 +1775,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   9,
                   6
                   )
-          ) jr32perm,
-      (
+          ), 0) jr32perm,
+    COALESCE((
           SELECT SUM(total_temp_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1791,8 +1791,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   9,
                   6
                   )
-          ) jr32temp,
-      (
+          ), 0) jr32temp,
+    COALESCE((
           SELECT SUM(total_pool_bank)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1807,8 +1807,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   9,
                   6
                   )
-          ) jr32pool,
-      (
+          ), 0) jr32pool,
+    COALESCE((
           SELECT SUM(total_agency)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1823,8 +1823,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   9,
                   6
                   )
-          ) jr32agcy,
-      (
+          ), 0) jr32agcy,
+    COALESCE((
           SELECT SUM(total_other)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1839,8 +1839,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   9,
                   6
                   )
-          ) jr32oth,
-      (
+          ), 0) jr32oth,
+    COALESCE((
           SELECT SUM(total_employed)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1855,8 +1855,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   9,
                   6
                   )
-          ) jr32emp,
-      (
+          ), 0) jr32emp,
+    COALESCE((
           SELECT SUM(total_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
@@ -1871,7 +1871,7 @@ const findWorkplacesByBatch = (batchNum) =>
                   9,
                   6
                   )
-          ) jr32work,
+          ), 0) jr32work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -1943,48 +1943,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr01flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 26
-          ) jr01perm,
-      (
+          ), 0) jr01perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 26
-          ) jr01temp,
-      (
+          ), 0) jr01temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 26
-          ) jr01pool,
-      (
+          ), 0) jr01pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 26
-          ) jr01agcy,
-      (
+          ), 0) jr01agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 26
-          ) jr01oth,
-      (
+          ), 0) jr01oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 26
-          ) jr01emp,
-      (
+          ), 0) jr01emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 26
-          ) jr01work,
+          ), 0) jr01work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -2026,48 +2026,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr02flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 15
-          ) jr02perm,
-      (
+          ), 0) jr02perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 15
-          ) jr02temp,
-      (
+          ), 0) jr02temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 15
-          ) jr02pool,
-      (
+          ), 0) jr02pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 15
-          ) jr02agcy,
-      (
+          ), 0) jr02agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 15
-          ) jr02oth,
-      (
+          ), 0) jr02oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 15
-          ) jr02emp,
-      (
+          ), 0) jr02emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 15
-          ) jr02work,
+          ), 0) jr02work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -2109,48 +2109,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr03flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 13
-          ) jr03perm,
-      (
+          ), 0) jr03perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 13
-          ) jr03temp,
-      (
+          ), 0) jr03temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 13
-          ) jr03pool,
-      (
+          ), 0) jr03pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 13
-          ) jr03agcy,
-      (
+          ), 0) jr03agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 13
-          ) jr03oth,
-      (
+          ), 0) jr03oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 13
-          ) jr03emp,
-      (
+          ), 0) jr03emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 13
-          ) jr03work,
+          ), 0) jr03work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -2192,48 +2192,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr04flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 22
-          ) jr04perm,
-      (
+          ), 0) jr04perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 22
-          ) jr04temp,
-      (
+          ), 0) jr04temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 22
-          ) jr04pool,
-      (
+          ), 0) jr04pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 22
-          ) jr04agcy,
-      (
+          ), 0) jr04agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 22
-          ) jr04oth,
-      (
+          ), 0) jr04oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 22
-          ) jr04emp,
-      (
+          ), 0) jr04emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 22
-          ) jr04work,
+          ), 0) jr04work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -2275,48 +2275,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr05flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 28
-          ) jr05perm,
-      (
+          ), 0) jr05perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 28
-          ) jr05temp,
-      (
+          ), 0) jr05temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 28
-          ) jr05pool,
-      (
+          ), 0) jr05pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 28
-          ) jr05agcy,
-      (
+          ), 0) jr05agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 28
-          ) jr05oth,
-      (
+          ), 0) jr05oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 28
-          ) jr05emp,
-      (
+          ), 0) jr05emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 28
-          ) jr05work,
+          ), 0) jr05work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -2358,48 +2358,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr06flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 27
-          ) jr06perm,
-      (
+          ), 0) jr06perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 27
-          ) jr06temp,
-      (
+          ), 0) jr06temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 27
-          ) jr06pool,
-      (
+          ), 0) jr06pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 27
-          ) jr06agcy,
-      (
+          ), 0) jr06agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 27
-          ) jr06oth,
-      (
+          ), 0) jr06oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 27
-          ) jr06emp,
-      (
+          ), 0) jr06emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 27
-          ) jr06work,
+          ), 0) jr06work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -2441,48 +2441,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr07flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 25
-          ) jr07perm,
-      (
+          ), 0) jr07perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 25
-          ) jr07temp,
-      (
+          ), 0) jr07temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 25
-          ) jr07pool,
-      (
+          ), 0) jr07pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 25
-          ) jr07agcy,
-      (
+          ), 0) jr07agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 25
-          ) jr07oth,
-      (
+          ), 0) jr07oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 25
-          ) jr07emp,
-      (
+          ), 0) jr07emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 25
-          ) jr07work,
+          ), 0) jr07work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -2524,48 +2524,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr08flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 10
-          ) jr08perm,
-      (
+          ), 0) jr08perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 10
-          ) jr08temp,
-      (
+          ), 0) jr08temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 10
-          ) jr08pool,
-      (
+          ), 0) jr08pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 10
-          ) jr08agcy,
-      (
+          ), 0) jr08agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 10
-          ) jr08oth,
-      (
+          ), 0) jr08oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 10
-          ) jr08emp,
-      (
+          ), 0) jr08emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 10
-          ) jr08work,
+          ), 0) jr08work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -2607,48 +2607,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr09flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 11
-          ) jr09perm,
-      (
+          ), 0) jr09perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 11
-          ) jr09temp,
-      (
+          ), 0) jr09temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 11
-          ) jr09pool,
-      (
+          ), 0) jr09pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 11
-          ) jr09agcy,
-      (
+          ), 0) jr09agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 11
-          ) jr09oth,
-      (
+          ), 0) jr09oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 11
-          ) jr09emp,
-      (
+          ), 0) jr09emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 11
-          ) jr09work,
+          ), 0) jr09work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -2690,48 +2690,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr10flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 12
-          ) jr10perm,
-      (
+          ), 0) jr10perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 12
-          ) jr10temp,
-      (
+          ), 0) jr10temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 12
-          ) jr10pool,
-      (
+          ), 0) jr10pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 12
-          ) jr10agcy,
-      (
+          ), 0) jr10agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 12
-          ) jr10oth,
-      (
+          ), 0) jr10oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 12
-          ) jr10emp,
-      (
+          ), 0) jr10emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 12
-          ) jr10work,
+          ), 0) jr10work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -2773,48 +2773,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr11flag,
-      (
+     COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 3
-          ) jr11perm,
-      (
+          ), 0) jr11perm,
+     COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" = 3
-          ) jr11temp,
-      (
+          AND "MainJobFKValue" = 3
+          ), 0) jr11temp,
+     COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 3
-          ) jr11pool,
-      (
+          ), 0) jr11pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 3
-          ) jr11agcy,
-      (
+          ), 0) jr11agcy,
+     COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 3
-          ) jr11oth,
-      (
+          ), 0) jr11oth,
+     COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 3
-          ) jr11emp,
-      (
+          ), 0) jr11emp,
+     COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 3
-          ) jr11work,
+          ), 0) jr11work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -2856,48 +2856,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr15flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 18
-          ) jr15perm,
-      (
+          ), 0) jr15perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 18
-          ) jr15temp,
-      (
+          ), 0) jr15temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 18
-          ) jr15pool,
-      (
+          ), 0) jr15pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 18
-          ) jr15agcy,
-      (
+          ), 0) jr15agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 18
-          ) jr15oth,
-      (
+          ), 0) jr15oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 18
-          ) jr15emp,
-      (
+          ), 0) jr15emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 18
-          ) jr15work,
+          ), 0) jr15work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -2939,48 +2939,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr16flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 23
-          ) jr16perm,
-      (
+          ), 0) jr16perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 23
-          ) jr16temp,
-      (
+          ), 0) jr16temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 23
-          ) jr16pool,
-      (
+          ), 0) jr16pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 23
-          ) jr16agcy,
-      (
+          ), 0) jr16agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 23
-          ) jr16oth,
-      (
+          ), 0) jr16oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 23
-          ) jr16emp,
-      (
+          ), 0) jr16emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 23
-          ) jr16work,
+          ), 0) jr16work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -3022,48 +3022,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr17flag,
-      (
+     COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 4
-          ) jr17perm,
-      (
+          ), 0) jr17perm,
+     COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 4
-          ) jr17temp,
-      (
+          ), 0) jr17temp,
+     COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 4
-          ) jr17pool,
-      (
+          ), 0) jr17pool,
+     COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 4
-          ) jr17agcy,
-      (
+          ), 0) jr17agcy,
+     COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 4
-          ) jr17oth,
-      (
+          ), 0) jr17oth,
+     COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 4
-          ) jr17emp,
-      (
+          ), 0) jr17emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 4
-          ) jr17work,
+          ), 0) jr17work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -3105,48 +3105,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr22flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 29
-          ) jr22perm,
-      (
+          ), 0) jr22perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 29
-          ) jr22temp,
-      (
+          ), 0) jr22temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 29
-          ) jr22pool,
-      (
+          ), 0) jr22pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 29
-          ) jr22agcy,
-      (
+          ), 0) jr22agcy,
+     COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 29
-          ) jr22oth,
-      (
+          ), 0) jr22oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 29
-          ) jr22emp,
-      (
+          ), 0) jr22emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 29
-          ) jr22work,
+          ), 0) jr22work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -3188,48 +3188,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr23flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 20
-          ) jr23perm,
-      (
+          ), 0) jr23perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 20
-          ) jr23temp,
-      (
+          ), 0) jr23temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 20
-          ) jr23pool,
-      (
+          ), 0) jr23pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 20
-          ) jr23agcy,
-      (
+          ), 0) jr23agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 20
-          ) jr23oth,
-      (
+          ), 0) jr23oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 20
-          ) jr23emp,
-      (
+          ), 0) jr23emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 20
-          ) jr23work,
+          ), 0) jr23work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -3271,48 +3271,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr24flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 14
-          ) jr24perm,
-      (
+          ), 0) jr24perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 14
-          ) jr24temp,
-      (
+          ), 0) jr24temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 14
-          ) jr24pool,
-      (
+          ), 0) jr24pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 14
-          ) jr24agcy,
-      (
+          ), 0) jr24agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 14
-          ) jr24oth,
-      (
+          ), 0) jr24oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 14
-          ) jr24emp,
-      (
+          ), 0) jr24emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 14
-          ) jr24work,
+          ), 0) jr24work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -3354,48 +3354,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr25flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 2
-          ) jr25perm,
-      (
+          ), 0) jr25perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 2
-          ) jr25temp,
-      (
+          ), 0) jr25temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 2
-          ) jr25pool,
-      (
+          ), 0) jr25pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 2
-          ) jr25agcy,
-      (
+          ), 0) jr25agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 2
-          ) jr25oth,
-      (
+          ), 0) jr25oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 2
-          ) jr25emp,
-      (
+          ), 0) jr25emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 2
-          ) jr25work,
+          ), 0) jr25work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -3437,48 +3437,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr26flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 5
-          ) jr26perm,
-      (
+          ), 0) jr26perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 5
-          ) jr26temp,
-      (
+          ), 0) jr26temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 5
-          ) jr26pool,
-      (
+          ), 0) jr26pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 5
-          ) jr26agcy,
-      (
+          ), 0) jr26agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 5
-          ) jr26oth,
-      (
+          ), 0) jr26oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 5
-          ) jr26emp,
-      (
+          ), 0) jr26emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 5
-          ) jr26work,
+          ), 0) jr26work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -3520,48 +3520,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr27flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 21
-          ) jr27perm,
-      (
+          ), 0) jr27perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 21
-          ) jr27temp,
-      (
+          ), 0) jr27temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 21
-          ) jr27pool,
-      (
+          ), 0) jr27pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 21
-          ) jr27agcy,
-      (
+          ), 0) jr27agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 21
-          ) jr27oth,
-      (
+          ), 0) jr27oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 21
-          ) jr27emp,
-      (
+          ), 0) jr27emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 21
-          ) jr27work,
+          ), 0) jr27work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -3603,48 +3603,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr34flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 1
-          ) jr34perm,
-      (
+          ), 0) jr34perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 1
-          ) jr34temp,
-      (
+          ), 0) jr34temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 1
-          ) jr34pool,
-      (
+          ), 0) jr34pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 1
-          ) jr34agcy,
-      (
+          ), 0) jr34agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 1
-          ) jr34oth,
-      (
+          ), 0) jr34oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 1
-          ) jr34emp,
-      (
+          ), 0) jr34emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 1
-          ) jr34work,
+          ), 0) jr34work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -3686,48 +3686,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr35flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 24
-          ) jr35perm,
-      (
+          ), 0) jr35perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 24
-          ) jr35temp,
-      (
+          ), 0) jr35temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 24
-          ) jr35pool,
-      (
+          ), 0) jr35pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 24
-          ) jr35agcy,
-      (
+          ), 0) jr35agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 24
-          ) jr35oth,
-      (
+          ), 0) jr35oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 24
-          ) jr35emp,
-      (
+          ), 0) jr35emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 24
-          ) jr35work,
+          ), 0) jr35work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -3769,48 +3769,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr36flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 19
-          ) jr36perm,
-      (
+          ), 0) jr36perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 19
-          ) jr36temp,
-      (
+          ), 0) jr36temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 19
-          ) jr36pool,
-      (
+          ), 0) jr36pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 19
-          ) jr36agcy,
-      (
+          ), 0) jr36agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 19
-          ) jr36oth,
-      (
+          ), 0) jr36oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 19
-          ) jr36emp,
-      (
+          ), 0) jr36emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 19
-          ) jr36work,
+          ), 0) jr36work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -3852,48 +3852,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr37flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 17
-          ) jr37perm,
-      (
+          ), 0) jr37perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 17
-          ) jr37temp,
-      (
+          ), 0) jr37temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 17
-          ) jr37pool,
-      (
+          ), 0) jr37pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 17
-          ) jr37agcy,
-      (
+          ), 0) jr37agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 17
-          ) jr37oth,
-      (
+          ), 0) jr37oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 17
-          ) jr37emp,
-      (
+          ), 0) jr37emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 17
-          ) jr37work,
+          ), 0) jr37work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -3935,48 +3935,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr38flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 16
-          ) jr38perm,
-      (
+          ), 0) jr38perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 16
-          ) jr38temp,
-      (
+          ), 0) jr38temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 16
-          ) jr38pool,
-      (
+          ), 0) jr38pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 16
-          ) jr38agcy,
-      (
+          ), 0) jr38agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 16
-          ) jr38oth,
-      (
+          ), 0) jr38oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 16
-          ) jr38emp,
-      (
+          ), 0) jr38emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 16
-          ) jr38work,
+          ), 0) jr38work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -4018,48 +4018,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr39flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 7
-          ) jr39perm,
-      (
+          ), 0) jr39perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 7
-          ) jr39temp,
-      (
+          ), 0) jr39temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 7
-          ) jr39pool,
-      (
+          ), 0) jr39pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 7
-          ) jr39agcy,
-      (
+          ), 0) jr39agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 7
-          ) jr39oth,
-      (
+          ), 0) jr39oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 7
-          ) jr39emp,
-      (
+          ), 0) jr39emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 7
-          ) jr39work,
+          ), 0) jr39work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -4101,48 +4101,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr40flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 8
-          ) jr40perm,
-      (
+          ), 0) jr40perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 8
-          ) jr40temp,
-      (
+          ), 0) jr40temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 8
-          ) jr40pool,
-      (
+          ), 0) jr40pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 8
-          ) jr40agcy,
-      (
+          ), 0) jr40agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 8
-          ) jr40oth,
-      (
+          ), 0) jr40oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 8
-          ) jr40emp,
-      (
+          ), 0) jr40emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 8
-          ) jr40work,
+          ), 0) jr40work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -4184,48 +4184,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr41flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 9
-          ) jr41perm,
-      (
+          ), 0) jr41perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 9
-          ) jr41temp,
-      (
+          ), 0) jr41temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 9
-          ) jr41pool,
-      (
+          ), 0) jr41pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 9
-          ) jr41agcy,
-      (
+          ), 0) jr41agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 9
-          ) jr41oth,
-      (
+          ), 0) jr41oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 9
-          ) jr41emp,
-      (
+          ), 0) jr41emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 9
-          ) jr41work,
+          ), 0) jr41work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
@@ -4267,48 +4267,48 @@ const findWorkplacesByBatch = (batchNum) =>
               THEN 1
           ELSE 0
           END jr42flag,
-      (
+      COALESCE((
           SELECT total_perm_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 6
-          ) jr42perm,
-      (
+          ), 0) jr42perm,
+      COALESCE((
           SELECT total_temp_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 6
-          ) jr42temp,
-      (
+          ), 0) jr42temp,
+      COALESCE((
           SELECT total_pool_bank
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 6
-          ) jr42pool,
-      (
+          ), 0) jr42pool,
+      COALESCE((
           SELECT total_agency
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 6
-          ) jr42agcy,
-      (
+          ), 0) jr42agcy,
+      COALESCE((
           SELECT total_other
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 6
-          ) jr42oth,
-      (
+          ), 0) jr42oth,
+      COALESCE((
           SELECT total_employed
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 6
-          ) jr42emp,
-      (
+          ), 0) jr42emp,
+      COALESCE((
           SELECT total_staff
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "MainJobFKValue" = 6
-          ) jr42work,
+          ), 0) jr42work,
       CASE 
           WHEN "StartersValue" = 'None'
               THEN 0
