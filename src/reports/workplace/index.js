@@ -22,7 +22,7 @@ module.exports = async (runDate, folder) => {
     (batch) => {
       console.log(`Processing Workplace Batch #${batch.BatchNo}`);
 
-      const csvName = `${folder}/workplaces_${batch.BatchNo}_${runDate}.csv`;
+      const csvName = `${folder}/${runDate}_workplaces_report_${batch.BatchNo.toString().padStart(2, '0')}.csv`;
 
       return processBatch(batch.BatchNo, csvName);
     },

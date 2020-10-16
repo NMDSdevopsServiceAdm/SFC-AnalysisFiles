@@ -7,9 +7,9 @@ const generateLeaversReport = require('../src/reports/leavers');
 const { refreshViews } = require('../src/reports/views');
 const { uploadFile } = require('../src/reports/s3');
 
-const finish = async (dest) => {
+const zipAndUploadReports = async (dest) => {
   const now = dayjs();
-  const zipName = `analysis_files_${now.format('YYYY_MM_DD_HH_mm_ss')}.zip`;
+  const zipName = `${now.format('YYYY-MM-DD-HH-mm-ss')}_analysis_files.zip`;
 
   await exec(`cd ${dest} && zip -r ${zipName} *.csv`);
 
@@ -33,7 +33,7 @@ const run = async () => {
   await generateWorkersReport(runDate, dest);
   await generateLeaversReport(runDate, dest);
 
-  await finish(dest);
+  await zipAndUploadReports(dest);
 
   console.log(dayjs().format('DD-MM-YYYY HH:mm:ss'));
 }
