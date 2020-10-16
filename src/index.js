@@ -4,8 +4,7 @@ const scheduler = new Bree({
   jobs: [
     {
       name: 'generate_analysis_files',
-      interval: '8h',
-      timeout: 0,
+      cron: '0 0 1,15 * *',
     },
   ],
 });
