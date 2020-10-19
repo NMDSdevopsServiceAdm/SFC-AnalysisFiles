@@ -24,11 +24,10 @@ const setup = async () => {
 const zipAndUploadReports = async () => {
   const now = dayjs();
   const zipName = `${now.format('YYYY-MM-DD-HH-mm-ss')}_analysis_files.zip`;
-  const bucketName = 'sfcreports';
 
   await exec(`cd ${reportDir} && zip -r ${zipName} *.csv`);
 
-  return uploadFile(bucketName, zipName, fs.readFileSync(`${reportDir}/${zipName}`));
+  return uploadFile(zipName, fs.readFileSync(`${reportDir}/${zipName}`));
 };
 
 const run = async () => {
