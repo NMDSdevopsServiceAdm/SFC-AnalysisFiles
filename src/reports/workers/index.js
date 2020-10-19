@@ -14,7 +14,7 @@ async function processBatch(batchNo, fileName) {
   await streamToCsv(fileName, findWorkersByBatch(batchNo));
 }
 
-module.exports = async (runDate, folder) => {
+module.exports = async (runDate, reportDir) => {
   await before(runDate);
 
   await Promise.map(
@@ -22,7 +22,7 @@ module.exports = async (runDate, folder) => {
     (batch) => {
       console.log(`Processing Workers Batch #${batch.BatchNo}`);
 
-      const csvName = `${folder}/${runDate}_workers_report_${batch.BatchNo.toString().padStart(2, '0')}.csv`;
+      const csvName = `${reportDir}/${runDate}_workers_report_${batch.BatchNo.toString().padStart(2, '0')}.csv`;
 
       return processBatch(batch.BatchNo, csvName);
     },

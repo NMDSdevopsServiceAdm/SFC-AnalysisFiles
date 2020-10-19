@@ -1,42 +1,56 @@
 const exec = require('await-exec');
-const dayjs = require('dayjs');
 const fs = require('fs');
+
+const dayjs = require('dayjs');
+const relativeTime = require('dayjs/plugin/relativeTime');
+const humanizeDuration = require('humanize-duration');
+dayjs.extend(relativeTime);
+
 const generateWorkplaceReport = require('../src/reports/workplace');
 const generateWorkersReport = require('../src/reports/workers');
 const generateLeaversReport = require('../src/reports/leavers');
 const { refreshViews } = require('../src/reports/views');
 const { uploadFile } = require('../src/reports/s3');
 
-const zipAndUploadReports = async (dest) => {
+const reportDir = './reports';
+
+const setup = async () => {
+  console.log(`Refreshing ${reportDir} directory`);
+
+  await exec(`rm -rf ${reportDir}`);
+  await exec(`mkdir ${reportDir}`);
+};
+
+const zipAndUploadReports = async () => {
   const now = dayjs();
   const zipName = `${now.format('YYYY-MM-DD-HH-mm-ss')}_analysis_files.zip`;
+  const bucketName = 'sfcreports';
 
-  await exec(`cd ${dest} && zip -r ${zipName} *.csv`);
+  await exec(`cd ${reportDir} && zip -r ${zipName} *.csv`);
 
-  await uploadFile('sfcreports', zipName, fs.readFileSync(`${dest}/${zipName}`));
-
-  console.log(`Cleaning up ${dest}`);
-  await exec(`rm -rf ${dest}`);
-}
+  return uploadFile(bucketName, zipName, fs.readFileSync(`${reportDir}/${zipName}`));
+};
 
 const run = async () => {
-  console.log(dayjs().format('DD-MM-YYYY HH:mm:ss'));
+  const startTime = dayjs();
+  console.log(`Start: ${startTime.format('DD-MM-YYYY HH:mm:ss')}`);
 
-  const dest = './output';
-  await exec(`mkdir -p ${dest}`);
-
+  await setup();
   await refreshViews();
 
   const runDate = dayjs().format('DD-MM-YYYY');
-  
-  await generateWorkplaceReport(runDate, dest);
-  await generateWorkersReport(runDate, dest);
-  await generateLeaversReport(runDate, dest);
+  await generateWorkplaceReport(runDate, reportDir);
+  await generateWorkersReport(runDate, reportDir);
+  await generateLeaversReport(runDate, reportDir);
 
-  await zipAndUploadReports(dest);
+  await zipAndUploadReports();
 
-  console.log(dayjs().format('DD-MM-YYYY HH:mm:ss'));
-}
+  const finishTime = dayjs();
+  console.log(`Finish: ${finishTime.format('DD-MM-YYYY HH:mm:ss')}`);
+
+  const duration = startTime.diff(finishTime);
+  console.log(`Duration: ${humanizeDuration(duration)}`);
+};
 
 (async () => {
   run()

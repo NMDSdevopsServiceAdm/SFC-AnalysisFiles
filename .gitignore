@@ -1,4 +1,4 @@
 node_modules/
-output/
+reports/
 .eslintcache
 .DS_Store

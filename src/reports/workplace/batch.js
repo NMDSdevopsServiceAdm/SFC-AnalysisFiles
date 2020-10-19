@@ -1,11 +1,10 @@
 const db = require('../db');
 
 const getUnassignedBatchCount = async () => {
-    const { count } = await db('Afr1BatchiSkAi0mo').whereNull('BatchNo').count().first() || {};
+  const { count } = (await db('Afr1BatchiSkAi0mo').whereNull('BatchNo').count().first()) || {};
 
-    return count;
-}
-    
+  return count;
+};
 
 const populateBatch = async (numInBatch) => {
   let batchNum = 1;
