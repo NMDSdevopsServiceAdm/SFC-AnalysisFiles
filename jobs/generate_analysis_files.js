@@ -12,7 +12,7 @@ const generateLeaversReport = require('../src/reports/leavers');
 const { refreshViews } = require('../src/reports/views');
 const { uploadFile } = require('../src/reports/s3');
 
-const reportDir = './reports';
+const reportDir = './output';
 
 const setup = async () => {
   console.log(`Refreshing ${reportDir} directory`);
