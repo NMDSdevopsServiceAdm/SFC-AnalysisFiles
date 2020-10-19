@@ -45,4 +45,4 @@ node src/index.js
 
 Change the schedule
 
-The jobs and the schedule that they run on can be found in `src/index.js` 
+The jobs and the schedule that they run on can be found in `src/index.js`

@@ -5,7 +5,7 @@ const s3 = new AWS.S3();
 
 const uploadFile = async (fileName, body) => {
   console.log('Uploading to S3');
-  
+
   const params = {
     Bucket: config.get('s3.bucket'),
     Key: fileName,
