@@ -171,7 +171,7 @@ const findWorkersByBatch = (batchNum) =>
        END esttype,
        COALESCE((SELECT "RegionID" FROM "Cssr" WHERE "NmdsIDLetter" = SUBSTRING(e."NmdsID",1,1) LIMIT 1),NULL,-1) regionid,
        COALESCE(
-           (SELECT "CssrID" FROM "Cssr", cqcref.pcodedata WHERE postcode = e."PostCode" AND pcodedata.local_custodian_code = "Cssr"."LocalCustodianCode" GROUP BY "Cssr"."CssrID", "Cssr"."CssR" LIMIT 1),NULL,-1) cssr,
+           (SELECT "CssrID" FROM "Cssr", cqcref.pcodedata WHERE "NmdsIDLetter" = SUBSTRING(e."NmdsID",1,1) AND postcode = e."PostCode" AND pcodedata.local_custodian_code = "Cssr"."LocalCustodianCode" GROUP BY "Cssr"."CssrID", "Cssr"."CssR" LIMIT 1),NULL,-1) cssr,
        COALESCE((
           SELECT CASE "LocalAuthority"
                     WHEN 'Mid Bedfordshire' THEN 1
