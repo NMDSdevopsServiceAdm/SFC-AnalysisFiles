@@ -17,7 +17,7 @@ const populateBatch = async (numInBatch) => {
           UPDATE "Afr1BatchiSkAi0mo" 
               SET "BatchNo" = ? 
               WHERE "EstablishmentID" IN (
-                  SELECT "EstablishmentID" FROM "Afr1BatchiSkAi0mo" WHERE"BatchNo" IS NULL LIMIT ?
+                  SELECT "EstablishmentID" FROM "Afr1BatchiSkAi0mo" WHERE "BatchNo" IS NULL LIMIT ?
               );
         `,
       [batchNum, numInBatch],
