@@ -7,9 +7,19 @@ async function streamToCsv(fileName, stream) {
 
   csvStream.pipe(writeStream);
 
-  for await (const row of stream) {
+  stream.on('data', function (row) {
     csvStream.write(row);
-  }
+  });
+
+  await new Promise(function (resolve, reject) {
+    stream.on('finish', function () {
+      resolve();
+    });
+
+    stream.on('error', function () {
+      reject();
+    });
+  });
 }
 
 module.exports = {
