@@ -1,4 +1,4 @@
-const db = require('../db');
+const db = require('../../db');
 
 const getUnassignedBatchCount = async () => {
   const { count } = (await db('Afr1BatchiSkAi0mo').whereNull('BatchNo').count().first()) || {};

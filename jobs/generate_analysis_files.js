@@ -10,7 +10,7 @@ const generateWorkplaceReport = require('../src/reports/workplace');
 const generateWorkersReport = require('../src/reports/workers');
 const generateLeaversReport = require('../src/reports/leavers');
 const { refreshViews } = require('../src/reports/views');
-const { uploadFile } = require('../src/reports/s3');
+const { uploadFile } = require('../src/s3');
 
 const reportDir = './output';
 

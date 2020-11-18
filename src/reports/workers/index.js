@@ -1,6 +1,6 @@
 const Promise = require('bluebird');
 const { createBatches, dropBatch, getBatches, findWorkersByBatch } = require('./batch');
-const { streamToCsv } = require('../csv');
+const { streamToCsv } = require('../../csv/stream');
 
 const before = async (runDate) => {
   await createBatches(runDate);
