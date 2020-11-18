@@ -46,3 +46,17 @@ node src/index.js
 Change the schedule
 
 The jobs and the schedule that they run on can be found in `src/index.js`
+
+# Deployment
+
+## Pre-prod
+
+```
+cf push --no-route sfcreports-preprod -f manifest.pre-prod.yml -u process
+```
+
+## Production
+
+```
+cf push --no-route sfcreports -f manifest.prod.yml -u process
+```
