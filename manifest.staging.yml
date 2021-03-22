@@ -1,0 +1,9 @@
+applications:
+  - name: sfcreports-staging
+    memory: 8G
+    disk_quota: 4GB
+    instances: 1
+    buildpack: https://github.com/cloudfoundry/nodejs-buildpack.git#v1.7.31
+    services:
+      - sfcstaging-db
+stack: cflinuxfs3

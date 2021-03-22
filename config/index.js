@@ -16,6 +16,16 @@ var config = convict({
       env: 'REPORTS_S3_BUCKET',
     },
   },
+  cron: {
+    doc: 'When it should run',
+    default: '0 0 1,15 * *',
+    env: 'CRON',
+  },
+  environment: {
+    doc: 'Which environment is this?',
+    default: '',
+    env: 'NODE_ENV',
+  },
 });
 
 // Perform validation
