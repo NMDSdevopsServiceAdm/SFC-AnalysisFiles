@@ -1601,6 +1601,7 @@ const findWorkersByBatch = (batchNum) =>
        CASE "SocialCareStartDateValue" WHEN 'Yes' THEN "SocialCareStartDateYear" WHEN 'No' THEN -2 ELSE  -1 END startsec,
        TO_CHAR("SocialCareStartDateChangedAt",'DD/MM/YYYY') startsec_changedate,
        TO_CHAR("SocialCareStartDateSavedAt",'DD/MM/YYYY') startsec_savedate,
+       CASE "SocialCareStartDateValue" WHEN 'Yes' THEN  "SocialCareStartDateYear" - extract( year FROM "DateOfBirthValue")  WHEN 'No' THEN -2 ELSE  -1 END startage,
        CASE "DaysSickValue" WHEN 'Yes' THEN "DaysSickDays" WHEN 'No' THEN -2 ELSE  -1 END dayssick,
        TO_CHAR("DaysSickChangedAt",'DD/MM/YYYY') dayssick_changedate,
        TO_CHAR("DaysSickSavedAt",'DD/MM/YYYY') dayssick_savedate,
