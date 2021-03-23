@@ -120,7 +120,14 @@ const findWorkersByBatch = (batchNum) =>
           w."NurseSpecialismFKChangedAt",
           w."LocalIdentifierChangedAt",
           w."EstablishmentFkChangedAt",
-          w."FluJabChangedAt"),'DD/MM/YYYY') updateddate,
+          w."FluJabChangedAt",
+          (
+             SELECT MAX(updated) FROM "WorkerQualifications" WHERE "WorkerFK" = w."ID"
+          ),
+          (
+             SELECT MAX(updated) FROM "WorkerTraining" WHERE "WorkerFK" = w."ID"
+          )
+          ),'DD/MM/YYYY') updateddate,
        TO_CHAR(GREATEST(
           w."NameOrIdSavedAt",
           w."ContractSavedAt",
@@ -156,7 +163,13 @@ const findWorkersByBatch = (batchNum) =>
           w."NurseSpecialismFKSavedAt",
           w."LocalIdentifierSavedAt",
           w."EstablishmentFkSavedAt",
-          w."FluJabSavedAt"),'DD/MM/YYYY') savedate,
+          w."FluJabSavedAt",
+          (
+             SELECT MAX(updated) FROM "WorkerQualifications" WHERE "WorkerFK" = w."ID"
+          ),
+          (
+             SELECT MAX(updated) FROM "WorkerTraining" WHERE "WorkerFK" = w."ID"
+          )),'DD/MM/YYYY') savedate,
        CASE e."ShareDataWithCQC" WHEN true THEN 1 ELSE 0 END cqcpermission,
        CASE e."ShareDataWithLA" WHEN true THEN 1 ELSE 0 END lapermission,
        CASE WHEN e."IsRegulated" is true THEN 2 ELSE 0 END regtype,
