@@ -5606,12 +5606,7 @@ const findWorkplacesByBatch = (batchNum) =>
                   )
               THEN 1
           ELSE 0
-          END hasmandatorytraining,
-      CASE 
-          WHEN "DataOwner" = 'Parent'
-              THEN 1
-          ELSE 2
-          END dataowner
+          END hasmandatorytraining
     FROM "Establishment" e
     JOIN "Afr1BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID"
       AND b."BatchNo" = ?`,
