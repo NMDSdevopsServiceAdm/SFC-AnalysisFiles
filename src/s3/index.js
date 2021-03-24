@@ -7,7 +7,7 @@ const uploadFile = async (fileName, body) => {
   const s3 = new AWS.S3();
   const params = {
     Bucket: config.get('s3.bucket'),
-    Key: fileName,
+    Key: `${config.get('environment')}/${fileName}`,
     Body: body,
   };
 

@@ -35,6 +35,8 @@ export DATABASE_URL=
 export AWS_ACCESS_KEY_ID=
 export AWS_SECRET_ACCESS_KEY=
 export REPORTS_S3_BUCKET=
+export CRON=
+export NODE_ENV=
 ```
 
 Run the scheduler
@@ -47,16 +49,28 @@ Change the schedule
 
 The jobs and the schedule that they run on can be found in `src/index.js`
 
+# Running as a task
+
+```
+cf run-task sfcreports-staging "node --max-old-space-size=8192 jobs/generate_analysis_files.js" --name run-analysis-files -m 8G -k 4G
+```
+
 # Deployment
+
+## Staging
+
+```
+cf push --no-route -f manifest.staging.yml -u process
+```
 
 ## Pre-prod
 
 ```
-cf push --no-route sfcreports-preprod -f manifest.pre-prod.yml -u process
+cf push --no-route -f manifest.pre-prod.yml -u process
 ```
 
 ## Production
 
 ```
-cf push --no-route sfcreports -f manifest.prod.yml -u process
+cf push --no-route -f manifest.prod.yml -u process
 ```
