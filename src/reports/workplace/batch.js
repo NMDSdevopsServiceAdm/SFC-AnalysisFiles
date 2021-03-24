@@ -116,21 +116,24 @@ const findWorkplacesByBatch = (batchNum) =>
                   ) x
               ORDER BY 1 LIMIT 1
               ), 'DD/MM/YYYY') previous_logindate,
-      (
-          SELECT COUNT(1)
-          FROM "EstablishmentAudit"
-          WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "EventType" = 'changed'
-              AND "When" >= b."RunDate" - INTERVAL '1 month'
-          ) + (
-          SELECT COUNT(DISTINCT a."WorkerFK")
-          FROM "WorkerAudit" a
-          JOIN "Worker" w ON a."WorkerFK" = w."ID"
-              AND a."EventType" = 'changed'
-              AND a."When" >= b."RunDate" - INTERVAL '1 month'
-          WHERE w."EstablishmentFK" = e."EstablishmentID"
-              AND w."Archived" = false
-          ) updatecount_month,
+        (SELECT COUNT(1) FROM (
+            SELECT to_char("When", 'yyyy-mm-dd') changeDate
+            FROM "EstablishmentAudit"
+            WHERE "EstablishmentFK" = e."EstablishmentID"
+            AND "EventType" = 'changed'
+            AND "When" >= NOW() - INTERVAL '1 month'
+            GROUP BY changeDate
+        ) as estAudit) 
+        + 
+        (SELECT COUNT(DISTINCT changedate) FROM (
+            SELECT DISTINCT a."WorkerFK", to_char(a."When", 'yyyy-mm-dd') changeDate
+            FROM cqc."WorkerAudit" a
+            JOIN cqc."Worker" w ON a."WorkerFK" = w."ID"
+            AND a."EventType" = 'changed'
+            AND a."When" >= NOW() - INTERVAL '1 month'
+            WHERE w."EstablishmentFK" = e."EstablishmentID"
+            AND w."Archived" = false
+        ) as wrkAudit) updatecount_month,
       (
           SELECT COUNT(DISTINCT "EstablishmentFK")
           FROM "EstablishmentAudit"
