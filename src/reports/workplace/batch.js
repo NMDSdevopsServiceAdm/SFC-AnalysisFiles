@@ -116,39 +116,42 @@ const findWorkplacesByBatch = (batchNum) =>
                   ) x
               ORDER BY 1 LIMIT 1
               ), 'DD/MM/YYYY') previous_logindate,
-        (SELECT COUNT(1) FROM (
+        (SELECT COUNT(DISTINCT changedate) FROM (
             SELECT to_char("When", 'yyyy-mm-dd') changeDate
             FROM "EstablishmentAudit"
             WHERE "EstablishmentFK" = e."EstablishmentID"
             AND "EventType" = 'changed'
             AND "When" >= NOW() - INTERVAL '1 month'
             GROUP BY changeDate
-        ) as estAudit) 
-        + 
+            union
+            SELECT DISTINCT changedate FROM (
+                SELECT DISTINCT a."WorkerFK", to_char(a."When", 'yyyy-mm-dd') changeDate
+                FROM cqc."WorkerAudit" a
+                JOIN cqc."Worker" w ON a."WorkerFK" = w."ID"
+                AND a."EventType" = 'changed'
+                AND a."When" >= NOW() - INTERVAL '1 month'
+                WHERE w."EstablishmentFK" = e."EstablishmentID"
+                AND w."Archived" = false
+            ) as wrkAudit
+        ) as chngDate) updatecount_month,
         (SELECT COUNT(DISTINCT changedate) FROM (
-            SELECT DISTINCT a."WorkerFK", to_char(a."When", 'yyyy-mm-dd') changeDate
-            FROM cqc."WorkerAudit" a
-            JOIN cqc."Worker" w ON a."WorkerFK" = w."ID"
-            AND a."EventType" = 'changed'
-            AND a."When" >= NOW() - INTERVAL '1 month'
-            WHERE w."EstablishmentFK" = e."EstablishmentID"
-            AND w."Archived" = false
-        ) as wrkAudit) updatecount_month,
-      (
-          SELECT COUNT(DISTINCT "EstablishmentFK")
-          FROM "EstablishmentAudit"
-          WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "EventType" = 'changed'
-              AND "When" >= b."RunDate" - INTERVAL '1 year'
-          ) + (
-          SELECT COUNT(DISTINCT a."WorkerFK")
-          FROM "WorkerAudit" a
-          JOIN "Worker" w ON a."WorkerFK" = w."ID"
-              AND a."EventType" = 'changed'
-              AND a."When" >= b."RunDate" - INTERVAL '1 year'
-          WHERE w."EstablishmentFK" = e."EstablishmentID"
-              AND w."Archived" = false
-          ) updatecount_year,
+            SELECT to_char("When", 'yyyy-mm-dd') changeDate
+            FROM "EstablishmentAudit"
+            WHERE "EstablishmentFK" = e."EstablishmentID"
+            AND "EventType" = 'changed'
+            AND "When" >= NOW() - INTERVAL '1 year'
+            GROUP BY changeDate
+            union
+            SELECT DISTINCT changedate FROM (
+                SELECT DISTINCT a."WorkerFK", to_char(a."When", 'yyyy-mm-dd') changeDate
+                FROM cqc."WorkerAudit" a
+                JOIN cqc."Worker" w ON a."WorkerFK" = w."ID"
+                AND a."EventType" = 'changed'
+                AND a."When" >= NOW() - INTERVAL '1 year'
+                WHERE w."EstablishmentFK" = e."EstablishmentID"
+                AND w."Archived" = false
+            ) as wrkAudit
+        ) as chngDate) updatecount_year,
       -- TO_CHAR(GREATEST(created,updated),'DD/MM/YYYY') estabupdateddate,
       TO_CHAR(GREATEST(e."EmployerTypeChangedAt", e."NumberOfStaffChangedAt", e."OtherServicesChangedAt", e."CapacityServicesChangedAt", e."ShareDataChangedAt", e."ShareWithLAChangedAt", e."VacanciesChangedAt", e."StartersChangedAt", e."LeaversChangedAt", e."ServiceUsersChangedAt", e."NameChangedAt", e."MainServiceFKChangedAt", e."LocalIdentifierChangedAt", e."LocationIdChangedAt", e."Address1ChangedAt", e."Address2ChangedAt", e."Address3ChangedAt", e."TownChangedAt", e."CountyChangedAt", e."PostcodeChangedAt"), 'DD/MM/YYYY') estabupdateddate,
       TO_CHAR(GREATEST(e."EmployerTypeSavedAt", e."NumberOfStaffSavedAt", e."OtherServicesSavedAt", e."CapacityServicesSavedAt", e."ShareDataSavedAt", e."ShareWithLASavedAt", e."VacanciesSavedAt", e."StartersSavedAt", e."LeaversSavedAt", e."ServiceUsersSavedAt", e."NameSavedAt", e."MainServiceFKSavedAt", e."LocalIdentifierSavedAt", e."LocationIdSavedAt", e."Address1SavedAt", e."Address2SavedAt", e."Address3SavedAt", e."TownSavedAt", e."CountySavedAt", e."PostcodeSavedAt"), 'DD/MM/YYYY') estabsavedate,
