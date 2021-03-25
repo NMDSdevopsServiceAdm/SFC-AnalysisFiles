@@ -307,10 +307,10 @@ const findWorkplacesByBatch = (batchNum) =>
                               ))
                   )), 'DD/MM/YYYY') previous_mupddate,
       CASE 
-          WHEN "LastBulkUploaded" IS NULL
-              THEN 0
-          ELSE 1
-          END derivedfrom_hasbulkuploaded,
+          WHEN "DataSource" = 'Bulk'
+              THEN 1
+          ELSE 0
+      END derivedfrom_hasbulkuploaded,
       CASE 
           WHEN "LastBulkUploaded" IS NULL
               THEN 0
