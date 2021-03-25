@@ -2338,7 +2338,12 @@ const findWorkersByBatch = (batchNum) =>
        COALESCE((SELECT total_accredited_unknown FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 34 LIMIT 1), 0) tr40dn,
        CASE "FluJabValue" WHEN 'No' THEN 2 WHEN 'Yes' THEN 1 WHEN 'Don''t know' THEN -2 ELSE -1 END FluJab2020,
        TO_CHAR("FluJabChangedAt",'DD/MM/YYYY') FluJab2020_changedate,
-       TO_CHAR("FluJabSavedAt",'DD/MM/YYYY') FluJab2020_savedate
+       TO_CHAR("FluJabSavedAt",'DD/MM/YYYY') FluJab2020_savedate,
+       CASE 
+          WHEN w."DataSource" = 'Bulk'
+              THEN 1
+          ELSE 0
+       END derivedfrom_hasbulkuploaded
 FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND e."Archived" = false AND w."Archived" = false
 JOIN "Afr2BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
