@@ -1033,6 +1033,7 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Korea Republic of' THEN 410
                          WHEN 'Kuwait' THEN 414
                          WHEN 'Kyrgyzstan' THEN 417
+                         WHEN 'Lao' THEN 418
                          WHEN 'Lebanon' THEN 422
                          WHEN 'Lesotho' THEN 426
                          WHEN 'Latvia' THEN 428
@@ -1065,8 +1066,10 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Nepal' THEN 524
                          WHEN 'Netherlands' THEN 528
                          WHEN 'Curacao (Formerly Netherlands Antilles)' THEN 531
+                         WHEN 'Curacao' THEN 531
                          WHEN 'Aruba' THEN 533
                          WHEN 'Sint Maarten (Dutch part)' THEN 534
+                         WHEN 'Sint Maarten' THEN 534
                          WHEN 'Bonaire, Sint Eustatius and Saba' THEN 535
                          WHEN 'New Caledonia' THEN 540
                          WHEN 'Vanuatu' THEN 548
