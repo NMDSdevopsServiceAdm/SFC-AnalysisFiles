@@ -1034,6 +1034,7 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Kuwait' THEN 414
                          WHEN 'Kyrgyzstan' THEN 417
                          WHEN 'Lao' THEN 418
+                         WHEN 'Lao People's Democratic People' THEN 418
                          WHEN 'Lebanon' THEN 422
                          WHEN 'Lesotho' THEN 426
                          WHEN 'Latvia' THEN 428
