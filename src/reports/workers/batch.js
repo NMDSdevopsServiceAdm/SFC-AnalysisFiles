@@ -996,7 +996,7 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Gabon' THEN 266
                          WHEN 'Georgia' THEN 268
                          WHEN 'Gambia' THEN 270
-                         WHEN 'Palestine, State of' THEN 275
+                         WHEN 'Palestinian Territory Occupied' THEN 275
                          WHEN 'Germany' THEN 276
                          WHEN 'Ghana' THEN 288
                          WHEN 'Gibraltar' THEN 292
@@ -1034,12 +1034,12 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Kuwait' THEN 414
                          WHEN 'Kyrgyzstan' THEN 417
                          WHEN 'Lao' THEN 418
-                         WHEN 'Lao People's Democratic People' THEN 418
+                         WHEN 'Lao People''s Democratic People' THEN 418
                          WHEN 'Lebanon' THEN 422
                          WHEN 'Lesotho' THEN 426
                          WHEN 'Latvia' THEN 428
                          WHEN 'Liberia' THEN 430
-                         WHEN 'Libya' THEN 434
+                         WHEN 'Libyan Arab Jamahiriya' THEN 434
                          WHEN 'Liechtenstein' THEN 438
                          WHEN 'Lithuania' THEN 440
                          WHEN 'Luxembourg' THEN 442
@@ -1050,6 +1050,7 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Maldives' THEN 462
                          WHEN 'Mali' THEN 466
                          WHEN 'Malta' THEN 470
+                         WHEN 'Martinique' THEN  474
                          WHEN 'Mauritania' THEN 478
                          WHEN 'Mauritius' THEN 480
                          WHEN 'Laos' THEN 481
@@ -1104,7 +1105,7 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Russian Federation' THEN 643
                          WHEN 'Rwanda' THEN 646
                          WHEN 'Saint Barthelemy' THEN 652
-                         WHEN 'St Helena Ascension and Tristan da Cunha' THEN 654
+                         WHEN 'Saint Helena' THEN 654
                          WHEN 'Saint Kitts and Nevis' THEN 659
                          WHEN 'Anguilla' THEN 660
                          WHEN 'Saint Lucia' THEN 662
