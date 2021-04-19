@@ -787,6 +787,7 @@ const findWorkersByBatch = (batchNum) =>
                           WHEN 'South Korean' THEN 410
                           WHEN 'Kuwaiti' THEN 414
                           WHEN 'Kyrgyz' THEN 417
+                          WHEN 'Lao' THEN 418
                           WHEN 'Lebanese' THEN 422
                           WHEN 'Mosotho' THEN 426
                           WHEN 'Latvian' THEN 428
@@ -805,7 +806,6 @@ const findWorkersByBatch = (batchNum) =>
                           WHEN 'Martiniquais' THEN 474
                           WHEN 'Mauritanian' THEN 478
                           WHEN 'Mauritian' THEN 480
-                          WHEN 'Lao' THEN 481
                           WHEN 'Mexican' THEN 484
                           WHEN 'Monegasque' THEN 492
                           WHEN 'Mongolian' THEN 496
@@ -896,7 +896,7 @@ const findWorkersByBatch = (batchNum) =>
                           WHEN 'Samoan' THEN 882
                           WHEN 'Yemeni' THEN 887
                           WHEN 'Zambian' THEN 894
-                          WHEN 'Kosovon' THEN 995
+                          WHEN 'Kosovan' THEN 995
                           WHEN 'Workers nationality unknown' THEN 998
                        END
                 FROM   "Nationality"
