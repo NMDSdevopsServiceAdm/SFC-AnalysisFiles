@@ -630,7 +630,7 @@ const findLeaversByBatch = (batchNum) =>
        TO_CHAR("MainJobStartDateValue",'DD/MM/YYYY') strtdate,
        TO_CHAR("MainJobStartDateChangedAt",'DD/MM/YYYY') strtdate_changedate,
        TO_CHAR("MainJobStartDateSavedAt",'DD/MM/YYYY') strtdate_savedate,
-       EXTRACT(YEAR FROM AGE("DateOfBirthValue")) age,
+       EXTRACT(YEAR FROM AGE(w."updated", "DateOfBirthValue")) age,
        TO_CHAR("DateOfBirthChangedAt",'DD/MM/YYYY') age_changedate,
        TO_CHAR("DateOfBirthSavedAt",'DD/MM/YYYY') age_savedate,
        CASE "GenderValue" WHEN 'Male' THEN 1 WHEN 'Female' THEN 2 WHEN 'Don''t know' THEN 3 WHEN 'Other' THEN 4 ELSE -1 END gender,
