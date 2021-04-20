@@ -2348,7 +2348,55 @@ const findWorkersByBatch = (batchNum) =>
           WHEN w."DataSource" = 'Bulk'
               THEN 1
           ELSE 0
-       END derivedfrom_hasbulkuploaded
+       END derivedfrom_hasbulkuploaded,
+       (SELECT "ChangeEvents"::json->'current'->'rate' as rate
+         FROM "WorkerAudit"
+         WHERE "WorkerFK" = w."ID"
+         AND "EventType" = 'changed' 
+         AND "PropertyName" = 'AnnualHourlyPay'
+         ORDER BY "When" DESC
+         LIMIT 1 
+       ) previous_pay,
+       (
+          SELECT 
+            CASE ("ChangeEvents"::json->'current'->>'jobId') 
+               WHEN '26' THEN 1
+               WHEN '15' THEN 2
+               WHEN '13' THEN 3
+               WHEN '22' THEN 4
+               WHEN '28' THEN 5
+               WHEN '27' THEN 6
+               WHEN '25' THEN 7
+               WHEN '10' THEN 8
+               WHEN '11' THEN 9
+               WHEN '12' THEN 10
+               WHEN '3' THEN 11
+               WHEN '18' THEN 15
+               WHEN '23' THEN 16
+               WHEN '4' THEN 17
+               WHEN '29' THEN 22
+               WHEN '20' THEN 23
+               WHEN '14' THEN 24
+               WHEN '2' THEN 25
+               WHEN '5' THEN 26
+               WHEN '21' THEN 27
+               WHEN '1' THEN 34
+               WHEN '24' THEN 35
+               WHEN '19' THEN 36
+               WHEN '17' THEN 37
+               WHEN '16' THEN 38
+               WHEN '7' THEN 39
+               WHEN '8' THEN 40
+               WHEN '9' THEN 41
+               WHEN '6' THEN 42
+            END
+         FROM "WorkerAudit"
+         WHERE "WorkerFK" = w."ID"
+         AND "EventType" = 'changed' 
+         AND "PropertyName" = 'MainJob'
+         ORDER BY "When" DESC
+         LIMIT 1
+       ) previous_mainjrid
 FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND e."Archived" = false AND w."Archived" = false
 JOIN "Afr2BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
