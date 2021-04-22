@@ -120,7 +120,14 @@ const findWorkersByBatch = (batchNum) =>
           w."NurseSpecialismFKChangedAt",
           w."LocalIdentifierChangedAt",
           w."EstablishmentFkChangedAt",
-          w."FluJabChangedAt"),'DD/MM/YYYY') updateddate,
+          w."FluJabChangedAt",
+          (
+             SELECT MAX(updated) FROM "WorkerQualifications" WHERE "WorkerFK" = w."ID"
+          ),
+          (
+             SELECT MAX(updated) FROM "WorkerTraining" WHERE "WorkerFK" = w."ID"
+          )
+          ),'DD/MM/YYYY') updateddate,
        TO_CHAR(GREATEST(
           w."NameOrIdSavedAt",
           w."ContractSavedAt",
@@ -156,7 +163,13 @@ const findWorkersByBatch = (batchNum) =>
           w."NurseSpecialismFKSavedAt",
           w."LocalIdentifierSavedAt",
           w."EstablishmentFkSavedAt",
-          w."FluJabSavedAt"),'DD/MM/YYYY') savedate,
+          w."FluJabSavedAt",
+          (
+             SELECT MAX(updated) FROM "WorkerQualifications" WHERE "WorkerFK" = w."ID"
+          ),
+          (
+             SELECT MAX(updated) FROM "WorkerTraining" WHERE "WorkerFK" = w."ID"
+          )),'DD/MM/YYYY') savedate,
        CASE e."ShareDataWithCQC" WHEN true THEN 1 ELSE 0 END cqcpermission,
        CASE e."ShareDataWithLA" WHEN true THEN 1 ELSE 0 END lapermission,
        CASE WHEN e."IsRegulated" is true THEN 2 ELSE 0 END regtype,
@@ -774,6 +787,7 @@ const findWorkersByBatch = (batchNum) =>
                           WHEN 'South Korean' THEN 410
                           WHEN 'Kuwaiti' THEN 414
                           WHEN 'Kyrgyz' THEN 417
+                          WHEN 'Lao' THEN 418
                           WHEN 'Lebanese' THEN 422
                           WHEN 'Mosotho' THEN 426
                           WHEN 'Latvian' THEN 428
@@ -792,7 +806,6 @@ const findWorkersByBatch = (batchNum) =>
                           WHEN 'Martiniquais' THEN 474
                           WHEN 'Mauritanian' THEN 478
                           WHEN 'Mauritian' THEN 480
-                          WHEN 'Lao' THEN 481
                           WHEN 'Mexican' THEN 484
                           WHEN 'Monegasque' THEN 492
                           WHEN 'Mongolian' THEN 496
@@ -883,7 +896,7 @@ const findWorkersByBatch = (batchNum) =>
                           WHEN 'Samoan' THEN 882
                           WHEN 'Yemeni' THEN 887
                           WHEN 'Zambian' THEN 894
-                          WHEN 'Kosovon' THEN 995
+                          WHEN 'Kosovan' THEN 995
                           WHEN 'Workers nationality unknown' THEN 998
                        END
                 FROM   "Nationality"
@@ -983,7 +996,7 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Gabon' THEN 266
                          WHEN 'Georgia' THEN 268
                          WHEN 'Gambia' THEN 270
-                         WHEN 'Palestine, State of' THEN 275
+                         WHEN 'Palestinian Territory Occupied' THEN 275
                          WHEN 'Germany' THEN 276
                          WHEN 'Ghana' THEN 288
                          WHEN 'Gibraltar' THEN 292
@@ -1020,12 +1033,13 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Korea Republic of' THEN 410
                          WHEN 'Kuwait' THEN 414
                          WHEN 'Kyrgyzstan' THEN 417
-                         WHEN 'Laos' THEN 418
+                         WHEN 'Lao' THEN 418
+                         WHEN 'Lao People''s Democratic People' THEN 418
                          WHEN 'Lebanon' THEN 422
                          WHEN 'Lesotho' THEN 426
                          WHEN 'Latvia' THEN 428
                          WHEN 'Liberia' THEN 430
-                         WHEN 'Libya' THEN 434
+                         WHEN 'Libyan Arab Jamahiriya' THEN 434
                          WHEN 'Liechtenstein' THEN 438
                          WHEN 'Lithuania' THEN 440
                          WHEN 'Luxembourg' THEN 442
@@ -1036,8 +1050,10 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Maldives' THEN 462
                          WHEN 'Mali' THEN 466
                          WHEN 'Malta' THEN 470
+                         WHEN 'Martinique' THEN  474
                          WHEN 'Mauritania' THEN 478
                          WHEN 'Mauritius' THEN 480
+                         WHEN 'Laos' THEN 481
                          WHEN 'Mexico' THEN 484
                          WHEN 'Monaco' THEN 492
                          WHEN 'Mongolia' THEN 496
@@ -1052,8 +1068,10 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Nepal' THEN 524
                          WHEN 'Netherlands' THEN 528
                          WHEN 'Curacao (Formerly Netherlands Antilles)' THEN 531
+                         WHEN 'Curacao' THEN 531
                          WHEN 'Aruba' THEN 533
                          WHEN 'Sint Maarten (Dutch part)' THEN 534
+                         WHEN 'Sint Maarten' THEN 534
                          WHEN 'Bonaire, Sint Eustatius and Saba' THEN 535
                          WHEN 'New Caledonia' THEN 540
                          WHEN 'Vanuatu' THEN 548
@@ -1087,7 +1105,7 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Russian Federation' THEN 643
                          WHEN 'Rwanda' THEN 646
                          WHEN 'Saint Barthelemy' THEN 652
-                         WHEN 'St Helena Ascension and Tristan da Cunha' THEN 654
+                         WHEN 'Saint Helena' THEN 654
                          WHEN 'Saint Kitts and Nevis' THEN 659
                          WHEN 'Anguilla' THEN 660
                          WHEN 'Saint Lucia' THEN 662
@@ -1588,6 +1606,7 @@ const findWorkersByBatch = (batchNum) =>
        CASE "SocialCareStartDateValue" WHEN 'Yes' THEN "SocialCareStartDateYear" WHEN 'No' THEN -2 ELSE  -1 END startsec,
        TO_CHAR("SocialCareStartDateChangedAt",'DD/MM/YYYY') startsec_changedate,
        TO_CHAR("SocialCareStartDateSavedAt",'DD/MM/YYYY') startsec_savedate,
+       CASE "SocialCareStartDateValue" WHEN 'Yes' THEN  "SocialCareStartDateYear" - extract( year FROM "DateOfBirthValue")  WHEN 'No' THEN -2 ELSE  -1 END startage,
        CASE "DaysSickValue" WHEN 'Yes' THEN "DaysSickDays" WHEN 'No' THEN -2 ELSE  -1 END dayssick,
        TO_CHAR("DaysSickChangedAt",'DD/MM/YYYY') dayssick_changedate,
        TO_CHAR("DaysSickSavedAt",'DD/MM/YYYY') dayssick_savedate,
@@ -2324,7 +2343,60 @@ const findWorkersByBatch = (batchNum) =>
        COALESCE((SELECT total_accredited_unknown FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 34 LIMIT 1), 0) tr40dn,
        CASE "FluJabValue" WHEN 'No' THEN 2 WHEN 'Yes' THEN 1 WHEN 'Don''t know' THEN -2 ELSE -1 END FluJab2020,
        TO_CHAR("FluJabChangedAt",'DD/MM/YYYY') FluJab2020_changedate,
-       TO_CHAR("FluJabSavedAt",'DD/MM/YYYY') FluJab2020_savedate
+       TO_CHAR("FluJabSavedAt",'DD/MM/YYYY') FluJab2020_savedate,
+       CASE 
+          WHEN w."DataSource" = 'Bulk'
+              THEN 1
+          ELSE 0
+       END derivedfrom_hasbulkuploaded,
+       (SELECT "ChangeEvents"::json->'current'->'rate' as rate
+         FROM "WorkerAudit"
+         WHERE "WorkerFK" = w."ID"
+         AND "EventType" = 'changed' 
+         AND "PropertyName" = 'AnnualHourlyPay'
+         ORDER BY "When" DESC
+         LIMIT 1 
+       ) previous_pay,
+       (
+          SELECT 
+            CASE ("ChangeEvents"::json->'current'->>'jobId') 
+               WHEN '26' THEN 1
+               WHEN '15' THEN 2
+               WHEN '13' THEN 3
+               WHEN '22' THEN 4
+               WHEN '28' THEN 5
+               WHEN '27' THEN 6
+               WHEN '25' THEN 7
+               WHEN '10' THEN 8
+               WHEN '11' THEN 9
+               WHEN '12' THEN 10
+               WHEN '3' THEN 11
+               WHEN '18' THEN 15
+               WHEN '23' THEN 16
+               WHEN '4' THEN 17
+               WHEN '29' THEN 22
+               WHEN '20' THEN 23
+               WHEN '14' THEN 24
+               WHEN '2' THEN 25
+               WHEN '5' THEN 26
+               WHEN '21' THEN 27
+               WHEN '1' THEN 34
+               WHEN '24' THEN 35
+               WHEN '19' THEN 36
+               WHEN '17' THEN 37
+               WHEN '16' THEN 38
+               WHEN '7' THEN 39
+               WHEN '8' THEN 40
+               WHEN '9' THEN 41
+               WHEN '6' THEN 42
+            END
+         FROM "WorkerAudit"
+         WHERE "WorkerFK" = w."ID"
+         AND "EventType" = 'changed' 
+         AND "PropertyName" = 'MainJob'
+         ORDER BY "When" DESC
+         LIMIT 1
+       ) previous_mainjrid
 FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND e."Archived" = false AND w."Archived" = false
 JOIN "Afr2BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};

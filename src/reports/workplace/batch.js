@@ -116,36 +116,42 @@ const findWorkplacesByBatch = (batchNum) =>
                   ) x
               ORDER BY 1 LIMIT 1
               ), 'DD/MM/YYYY') previous_logindate,
-      (
-          SELECT COUNT(1)
-          FROM "EstablishmentAudit"
-          WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "EventType" = 'changed'
-              AND "When" >= b."RunDate" - INTERVAL '1 month'
-          ) + (
-          SELECT COUNT(DISTINCT a."WorkerFK")
-          FROM "WorkerAudit" a
-          JOIN "Worker" w ON a."WorkerFK" = w."ID"
-              AND a."EventType" = 'changed'
-              AND a."When" >= b."RunDate" - INTERVAL '1 month'
-          WHERE w."EstablishmentFK" = e."EstablishmentID"
-              AND w."Archived" = false
-          ) updatecount_month,
-      (
-          SELECT COUNT(DISTINCT "EstablishmentFK")
-          FROM "EstablishmentAudit"
-          WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "EventType" = 'changed'
-              AND "When" >= b."RunDate" - INTERVAL '1 year'
-          ) + (
-          SELECT COUNT(DISTINCT a."WorkerFK")
-          FROM "WorkerAudit" a
-          JOIN "Worker" w ON a."WorkerFK" = w."ID"
-              AND a."EventType" = 'changed'
-              AND a."When" >= b."RunDate" - INTERVAL '1 year'
-          WHERE w."EstablishmentFK" = e."EstablishmentID"
-              AND w."Archived" = false
-          ) updatecount_year,
+        (SELECT COUNT(DISTINCT changedate) FROM (
+            SELECT to_char("When", 'yyyy-mm-dd') changeDate
+            FROM "EstablishmentAudit"
+            WHERE "EstablishmentFK" = e."EstablishmentID"
+            AND "EventType" = 'changed'
+            AND "When" >= b."RunDate" - INTERVAL '1 month'
+            GROUP BY changeDate
+            union
+            SELECT DISTINCT changedate FROM (
+                SELECT DISTINCT a."WorkerFK", to_char(a."When", 'yyyy-mm-dd') changeDate
+                FROM cqc."WorkerAudit" a
+                JOIN cqc."Worker" w ON a."WorkerFK" = w."ID"
+                AND a."EventType" = 'changed'
+                AND a."When" >= b."RunDate" - INTERVAL '1 month'
+                WHERE w."EstablishmentFK" = e."EstablishmentID"
+                AND w."Archived" = false
+            ) as wrkAudit
+        ) as chngDate) updatecount_month,
+        (SELECT COUNT(DISTINCT changedate) FROM (
+            SELECT to_char("When", 'yyyy-mm-dd') changeDate
+            FROM "EstablishmentAudit"
+            WHERE "EstablishmentFK" = e."EstablishmentID"
+            AND "EventType" = 'changed'
+            AND "When" >= b."RunDate" - INTERVAL '1 year'
+            GROUP BY changeDate
+            union
+            SELECT DISTINCT changedate FROM (
+                SELECT DISTINCT a."WorkerFK", to_char(a."When", 'yyyy-mm-dd') changeDate
+                FROM cqc."WorkerAudit" a
+                JOIN cqc."Worker" w ON a."WorkerFK" = w."ID"
+                AND a."EventType" = 'changed'
+                AND a."When" >= b."RunDate" - INTERVAL '1 year'
+                WHERE w."EstablishmentFK" = e."EstablishmentID"
+                AND w."Archived" = false
+            ) as wrkAudit
+        ) as chngDate) updatecount_year,
       -- TO_CHAR(GREATEST(created,updated),'DD/MM/YYYY') estabupdateddate,
       TO_CHAR(GREATEST(e."EmployerTypeChangedAt", e."NumberOfStaffChangedAt", e."OtherServicesChangedAt", e."CapacityServicesChangedAt", e."ShareDataChangedAt", e."ShareWithLAChangedAt", e."VacanciesChangedAt", e."StartersChangedAt", e."LeaversChangedAt", e."ServiceUsersChangedAt", e."NameChangedAt", e."MainServiceFKChangedAt", e."LocalIdentifierChangedAt", e."LocationIdChangedAt", e."Address1ChangedAt", e."Address2ChangedAt", e."Address3ChangedAt", e."TownChangedAt", e."CountyChangedAt", e."PostcodeChangedAt"), 'DD/MM/YYYY') estabupdateddate,
       TO_CHAR(GREATEST(e."EmployerTypeSavedAt", e."NumberOfStaffSavedAt", e."OtherServicesSavedAt", e."CapacityServicesSavedAt", e."ShareDataSavedAt", e."ShareWithLASavedAt", e."VacanciesSavedAt", e."StartersSavedAt", e."LeaversSavedAt", e."ServiceUsersSavedAt", e."NameSavedAt", e."MainServiceFKSavedAt", e."LocalIdentifierSavedAt", e."LocationIdSavedAt", e."Address1SavedAt", e."Address2SavedAt", e."Address3SavedAt", e."TownSavedAt", e."CountySavedAt", e."PostcodeSavedAt"), 'DD/MM/YYYY') estabsavedate,
@@ -154,41 +160,60 @@ const findWorkplacesByBatch = (batchNum) =>
           FROM "Worker"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "Archived" = false
-          ) workerupdate,
-      TO_CHAR(GREATEST(e.updated, (
-                  SELECT MAX(updated)
-                  FROM "Worker"
-                  WHERE "EstablishmentFK" = e."EstablishmentID"
-                      AND "Archived" = false
-                  )), 'DD/MM/YYYY') mupddate,
-      TO_CHAR(GREATEST((
-                  CASE 
-                      WHEN e.updated < GREATEST(e.updated, (
-                                  SELECT MAX(updated)
-                                  FROM "Worker"
-                                  WHERE "EstablishmentFK" = e."EstablishmentID"
-                                      AND "Archived" = false
-                                  ))
-                          THEN e.updated
-                      ELSE NULL
-                      END
-                  ), (
-                  SELECT MAX(updated)
-                  FROM "Worker"
-                  WHERE "EstablishmentFK" = e."EstablishmentID"
-                      AND "Archived" = false
-                      AND updated < GREATEST(e.updated, (
-                              SELECT MAX(updated)
-                              FROM "Worker"
-                              WHERE "EstablishmentFK" = e."EstablishmentID"
-                                  AND "Archived" = false
-                              ))
-                  )), 'DD/MM/YYYY') previous_mupddate,
+      ) workerupdate,
+      TO_CHAR(
+		GREATEST(
+	  	  (
+		    SELECT date_trunc('day', "When") "day"
+		    FROM "EstablishmentAudit"
+			WHERE "EstablishmentFK" = e."EstablishmentID"
+			GROUP BY 1
+			ORDER BY 1 DESC
+			LIMIT 1
+		  ),
+		  (
+		  	SELECT date_trunc('day', "When") "day"
+			FROM "WorkerAudit"
+			WHERE "WorkerFK" IN (
+			  SELECT "ID"
+			  FROM "Worker"
+			  WHERE "EstablishmentFK" = e."EstablishmentID"
+			)
+			GROUP BY 1
+			ORDER BY 1 DESC
+			LIMIT 1
+		  )
+	  ), 'DD/MM/YYYY') mupddate,
+      TO_CHAR(
+		GREATEST(
+	  	  (
+		    SELECT date_trunc('day', "When") "day"
+		    FROM "EstablishmentAudit"
+			WHERE "EstablishmentFK" = e."EstablishmentID"
+			GROUP BY 1
+			ORDER BY 1 DESC
+			LIMIT 1
+			OFFSET 1
+		  ),
+		  (
+		  	SELECT date_trunc('day', "When") "day"
+			FROM "WorkerAudit"
+			WHERE "WorkerFK" IN (
+			  SELECT "ID"
+			  FROM "Worker"
+			  WHERE "EstablishmentFK" = e."EstablishmentID"
+			)
+			GROUP BY 1
+			ORDER BY 1 DESC
+			LIMIT 1
+			OFFSET 1
+		  )
+	  ), 'DD/MM/YYYY') previous_mupddate,
       CASE 
-          WHEN "LastBulkUploaded" IS NULL
-              THEN 0
-          ELSE 1
-          END derivedfrom_hasbulkuploaded,
+          WHEN "DataSource" = 'Bulk'
+              THEN 1
+          ELSE 0
+      END derivedfrom_hasbulkuploaded,
       CASE 
           WHEN "LastBulkUploaded" IS NULL
               THEN 0
