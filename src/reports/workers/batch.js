@@ -82,7 +82,7 @@ const findWorkersByBatch = (batchNum) =>
        CASE WHEN e."IsParent" THEN e."EstablishmentID" ELSE CASE WHEN e."ParentID" IS NOT NULL THEN e."ParentID" ELSE e."EstablishmentID" END END orgid,
        e."NmdsID" nmdsid,
        w."ID" workerid,
-       UPPER(MD5(REPLACE(pgp_pub_decrypt(w."NationalInsuranceNumberValue" :: bytea, dearmor(convert_from(decode(:private,'base64'),'UTF8')), dearmor(:passphrase)) ,' ','') || TO_CHAR(pgp_pub_decrypt(DATE w."DateOfBirthValue" :: bytea, dearmor(convert_from(decode(:private,'base64'),'UTF8')), dearmor(:passphrase)) ", 'YYYYMMDD'))) wrkglbid,
+       UPPER(MD5(REPLACE(pgp_pub_decrypt(w."NationalInsuranceNumberValue" :: bytea, dearmor(convert_from(decode(:private,'base64'),'UTF8')), dearmor(:passphrase)) ,' ','') || TO_CHAR(DATE pgp_pub_decrypt(w."DateOfBirthValue" :: bytea, dearmor(convert_from(decode(:private,'base64'),'UTF8')), dearmor(:passphrase)), 'YYYYMMDD'))) wrkglbid,
        1 wkplacestat,
        TO_CHAR(w."created",'DD/MM/YYYY') createddate,
        TO_CHAR(GREATEST(
