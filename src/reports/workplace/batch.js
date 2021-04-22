@@ -161,151 +161,54 @@ const findWorkplacesByBatch = (batchNum) =>
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "Archived" = false
       ) workerupdate,
-      TO_CHAR(GREATEST(
-          e.updated, 
-          e.created, 
-          e."EmployerTypeSavedAt",
-          e."NumberOfStaffSavedAt",
-          e."OtherServicesSavedAt", 
-          e."CapacityServicesSavedAt", 
-          e."ShareDataSavedAt", 
-          e."ShareWithLASavedAt", 
-          e."VacanciesSavedAt", 
-          e."StartersSavedAt", 
-          e."LeaversSavedAt", 
-          e."ServiceUsersSavedAt", 
-          e."NameSavedAt", 
-          e."MainServiceFKSavedAt", 
-          e."LocalIdentifierSavedAt", 
-          e."LocationIdSavedAt", 
-          e."Address1SavedAt", 
-          e."Address2SavedAt", 
-          e."Address3SavedAt", 
-          e."TownSavedAt", 
-          e."CountySavedAt", 
-          e."PostcodeSavedAt",
-          e."EmployerTypeChangedAt", 
-          e."NumberOfStaffChangedAt",
-          e."OtherServicesChangedAt", 
-          e."CapacityServicesChangedAt", 
-          e."ShareDataChangedAt", 
-          e."ShareWithLAChangedAt", 
-          e."VacanciesChangedAt", 
-          e."StartersChangedAt", 
-          e."LeaversChangedAt", 
-          e."ServiceUsersChangedAt", 
-          e."NameChangedAt", 
-          e."MainServiceFKChangedAt", 
-          e."LocalIdentifierChangedAt", 
-          e."LocationIdChangedAt", 
-          e."Address1ChangedAt", 
-          e."Address2ChangedAt", 
-          e."Address3ChangedAt", 
-          e."TownChangedAt", 
-          e."CountyChangedAt", 
-          e."PostcodeChangedAt",
-          (
-            SELECT MAX(GREATEST(
-                updated, 
-                "NameOrIdChangedAt", 
-                "ContractChangedAt", 
-                "MainJobFKChangedAt", 
-                "ApprovedMentalHealthWorkerChangedAt", 
-                "MainJobStartDateChangedAt", 
-                "OtherJobsChangedAt", 
-                "NationalInsuranceNumberChangedAt", 
-                "DateOfBirthChangedAt", 
-                "PostcodeChangedAt", 
-                "DisabilityChangedAt", 
-                "GenderChangedAt", 
-                "EthnicityFKChangedAt", 
-                "NationalityChangedAt", 
-                "CountryOfBirthChangedAt", 
-                "RecruitedFromChangedAt", 
-                "BritishCitizenshipChangedAt", 
-                "YearArrivedChangedAt", 
-                "SocialCareStartDateChangedAt", 
-                "DaysSickChangedAt", 
-                "ZeroHoursContractChangedAt", 
-                "WeeklyHoursAverageChangedAt", 
-                "WeeklyHoursContractedChangedAt", 
-                "AnnualHourlyPayChangedAt", 
-                "CareCertificateChangedAt", 
-                "ApprenticeshipTrainingChangedAt", 
-                "QualificationInSocialCareChangedAt", 
-                "SocialCareQualificationFKChangedAt", 
-                "OtherQualificationsChangedAt", 
-                "HighestQualificationFKChangedAt", 
-                "CompletedChangedAt", 
-                "RegisteredNurseChangedAt", 
-                "NurseSpecialismFKChangedAt", 
-                "LocalIdentifierChangedAt", 
-                "EstablishmentFkChangedAt", 
-                "FluJabChangedAt", 
-                "NameOrIdSavedAt", 
-                "ContractSavedAt", 
-                "MainJobFKSavedAt", 
-                "ApprovedMentalHealthWorkerSavedAt", 
-                "MainJobStartDateSavedAt", 
-                "OtherJobsSavedAt", 
-                "NationalInsuranceNumberSavedAt", 
-                "DateOfBirthSavedAt", 
-                "PostcodeSavedAt", 
-                "DisabilitySavedAt", 
-                "GenderSavedAt", 
-                "EthnicityFKSavedAt", 
-                "NationalitySavedAt", 
-                "CountryOfBirthSavedAt", 
-                "RecruitedFromSavedAt", 
-                "BritishCitizenshipSavedAt", 
-                "YearArrivedSavedAt", 
-                "SocialCareStartDateSavedAt", 
-                "DaysSickSavedAt", 
-                "ZeroHoursContractSavedAt", 
-                "WeeklyHoursAverageSavedAt", 
-                "WeeklyHoursContractedSavedAt", 
-                "AnnualHourlyPaySavedAt", 
-                "CareCertificateSavedAt", 
-                "ApprenticeshipTrainingSavedAt", 
-                "QualificationInSocialCareSavedAt", 
-                "SocialCareQualificationFKSavedAt", 
-                "OtherQualificationsSavedAt", 
-                "HighestQualificationFKSavedAt", 
-                "CompletedSavedAt", 
-                "RegisteredNurseSavedAt", 
-                "NurseSpecialismFKSavedAt", 
-                "LocalIdentifierSavedAt", 
-                "EstablishmentFkSavedAt", 
-                "FluJabSavedAt"
-            ))
-            FROM "Worker"
-            WHERE "EstablishmentFK" = e."EstablishmentID"
-                AND "Archived" = false
-          )
-      ), 'DD/MM/YYYY') mupddate,
-      TO_CHAR(GREATEST((
-                  CASE 
-                      WHEN e.updated < GREATEST(e.updated, (
-                                  SELECT MAX(updated)
-                                  FROM "Worker"
-                                  WHERE "EstablishmentFK" = e."EstablishmentID"
-                                      AND "Archived" = false
-                                  ))
-                          THEN e.updated
-                      ELSE NULL
-                      END
-                  ), (
-                  SELECT MAX(updated)
-                  FROM "Worker"
-                  WHERE "EstablishmentFK" = e."EstablishmentID"
-                      AND "Archived" = false
-                      AND updated < GREATEST(e.updated, (
-                              SELECT MAX(updated)
-                              FROM "Worker"
-                              WHERE "EstablishmentFK" = e."EstablishmentID"
-                                  AND "Archived" = false
-                              ))
-                  )), 'DD/MM/YYYY') previous_mupddate,
+      TO_CHAR(
+		GREATEST(
+	  	  (
+		    SELECT date_trunc('day', "When") "day"
+		    FROM "EstablishmentAudit"
+			WHERE "EstablishmentFK" = e."EstablishmentID"
+			GROUP BY 1
+			ORDER BY 1 DESC
+			LIMIT 1
+		  ),
+		  (
+		  	SELECT date_trunc('day', "When") "day"
+			FROM "WorkerAudit"
+			WHERE "WorkerFK" IN (
+			  SELECT "ID"
+			  FROM "Worker"
+			  WHERE "EstablishmentFK" = e."EstablishmentID"
+			)
+			GROUP BY 1
+			ORDER BY 1 DESC
+			LIMIT 1
+		  )
+	  ), 'DD/MM/YYYY') mupddate,
+      TO_CHAR(
+		GREATEST(
+	  	  (
+		    SELECT date_trunc('day', "When") "day"
+		    FROM "EstablishmentAudit"
+			WHERE "EstablishmentFK" = e."EstablishmentID"
+			GROUP BY 1
+			ORDER BY 1 DESC
+			LIMIT 1
+			OFFSET 1
+		  ),
+		  (
+		  	SELECT date_trunc('day', "When") "day"
+			FROM "WorkerAudit"
+			WHERE "WorkerFK" IN (
+			  SELECT "ID"
+			  FROM "Worker"
+			  WHERE "EstablishmentFK" = e."EstablishmentID"
+			)
+			GROUP BY 1
+			ORDER BY 1 DESC
+			LIMIT 1
+			OFFSET 1
+		  )
+	  ), 'DD/MM/YYYY') previous_mupddate,
       CASE 
           WHEN "DataSource" = 'Bulk'
               THEN 1
