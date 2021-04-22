@@ -2,3 +2,5 @@ node_modules/
 output/
 .eslintcache
 .DS_Store
+
+config/localhost.yaml
