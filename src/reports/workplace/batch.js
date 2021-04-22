@@ -121,7 +121,7 @@ const findWorkplacesByBatch = (batchNum) =>
             FROM "EstablishmentAudit"
             WHERE "EstablishmentFK" = e."EstablishmentID"
             AND "EventType" = 'changed'
-            AND "When" >= NOW() - INTERVAL '1 month'
+            AND "When" >= b."RunDate" - INTERVAL '1 month'
             GROUP BY changeDate
             union
             SELECT DISTINCT changedate FROM (
@@ -129,7 +129,7 @@ const findWorkplacesByBatch = (batchNum) =>
                 FROM cqc."WorkerAudit" a
                 JOIN cqc."Worker" w ON a."WorkerFK" = w."ID"
                 AND a."EventType" = 'changed'
-                AND a."When" >= NOW() - INTERVAL '1 month'
+                AND a."When" >= b."RunDate" - INTERVAL '1 month'
                 WHERE w."EstablishmentFK" = e."EstablishmentID"
                 AND w."Archived" = false
             ) as wrkAudit
@@ -139,7 +139,7 @@ const findWorkplacesByBatch = (batchNum) =>
             FROM "EstablishmentAudit"
             WHERE "EstablishmentFK" = e."EstablishmentID"
             AND "EventType" = 'changed'
-            AND "When" >= NOW() - INTERVAL '1 year'
+            AND "When" >= b."RunDate" - INTERVAL '1 year'
             GROUP BY changeDate
             union
             SELECT DISTINCT changedate FROM (
@@ -147,7 +147,7 @@ const findWorkplacesByBatch = (batchNum) =>
                 FROM cqc."WorkerAudit" a
                 JOIN cqc."Worker" w ON a."WorkerFK" = w."ID"
                 AND a."EventType" = 'changed'
-                AND a."When" >= NOW() - INTERVAL '1 year'
+                AND a."When" >= b."RunDate" - INTERVAL '1 year'
                 WHERE w."EstablishmentFK" = e."EstablishmentID"
                 AND w."Archived" = false
             ) as wrkAudit
