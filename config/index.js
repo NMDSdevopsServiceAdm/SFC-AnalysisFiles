@@ -1,6 +1,5 @@
 var convict = require('convict');
 const AWSSecrets = require('../aws/secrets');
-const AppConfig = require('./appConfig');
 const fs = require('fs');
 const yaml = require('js-yaml');
 
@@ -87,12 +86,7 @@ if (config.get('aws.secrets.use')) {
     config.set('encryption.private', AWSSecrets.encryptionPrivate());
     config.set('encryption.public', AWSSecrets.encryptionPublic());
     config.set('encryption.passphrase', AWSSecrets.encryptionPassphrase());
-    AppConfig.ready = true;
-    AppConfig.emit(AppConfig.READY_EVENT);
   });
-} else {
-  // emit something here
-  AppConfig.ready = true;
 }
 
 module.exports = config;
