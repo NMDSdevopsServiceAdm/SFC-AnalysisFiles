@@ -13,7 +13,6 @@ const initialiseSecrets = async (region, wallet) => {
       .getSecretValue({ SecretId: wallet })
       .promise()
       .then((mySecretsValue) => {
-        console.log('Got secrets from AWS');
         return mySecretsValue;
       })
       .catch((error) => {
@@ -23,7 +22,6 @@ const initialiseSecrets = async (region, wallet) => {
 
     console.log('Checking Secret');
     if (typeof mySecretsValue.SecretString !== 'undefined') {
-      console.log('Got Secrets');
       const mySecrets = JSON.parse(mySecretsValue.SecretString);
 
       if (typeof mySecrets == 'undefined') {
