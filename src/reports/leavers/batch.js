@@ -1,4 +1,5 @@
 const db = require('../../db');
+const config = require('../../../config/index');
 
 const populateBatch = async (numInBatch) => {
   await db.raw(
@@ -630,7 +631,7 @@ const findLeaversByBatch = (batchNum) =>
        TO_CHAR("MainJobStartDateValue",'DD/MM/YYYY') strtdate,
        TO_CHAR("MainJobStartDateChangedAt",'DD/MM/YYYY') strtdate_changedate,
        TO_CHAR("MainJobStartDateSavedAt",'DD/MM/YYYY') strtdate_savedate,
-       EXTRACT(YEAR FROM AGE((SELECT MAX("When") FROM "WorkerAudit" WHERE "EventType" = 'deleted' AND "WorkerFK" =  w."ID" LIMIT 1), "DateOfBirthValue")) age,
+       EXTRACT(YEAR FROM AGE((SELECT MAX("When") FROM "WorkerAudit" WHERE "EventType" = 'deleted' AND "WorkerFK" =  w."ID" LIMIT 1), pgp_pub_decrypt(dearmor("DateOfBirthEncryptedValue") :: bytea, dearmor(convert_from(decode(:private,'base64'),'UTF8')), :passphrase) :: DATE)) age,
        TO_CHAR("DateOfBirthChangedAt",'DD/MM/YYYY') age_changedate,
        TO_CHAR("DateOfBirthSavedAt",'DD/MM/YYYY') age_savedate,
        CASE "GenderValue" WHEN 'Male' THEN 1 WHEN 'Female' THEN 2 WHEN 'Don''t know' THEN 3 WHEN 'Other' THEN 4 ELSE -1 END gender,
@@ -2327,6 +2328,7 @@ FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND w."Archived" = true
 JOIN "Afr3BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
     `,
+      { private: config.get('encryption.private'), passphrase: config.get('encryption.passphrase') },
     )
     .stream();
 
