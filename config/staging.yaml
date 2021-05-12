@@ -2,4 +2,4 @@ aws:
   region: eu-west-1
   secrets:
     use: true
-    wallet: prod/api
+    wallet: staging/api
