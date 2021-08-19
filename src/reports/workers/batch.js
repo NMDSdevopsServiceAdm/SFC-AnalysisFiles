@@ -2089,7 +2089,7 @@ const findWorkersByBatch = (batchNum) =>
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 54 LIMIT 1) ql142year,
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 44 LIMIT 1) THEN 1 ELSE 0 END ql143achq,
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 44 LIMIT 1) ql143year,
-       CASE WHEN EXISTS (SELECT 1 FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 136 LIMIT 1) THEN 1 ELSE 0 END ql144achq,
+       CASE WHEN EXISTS (SELECT 1 FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 136 LIMIT 1) THEN 1 ELSE 0 END ql144achq,
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 136 LIMIT 1) ql144year,
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 127 LIMIT 1) THEN 1 ELSE 0 END ql301app,
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 127 LIMIT 1) ql301year,
