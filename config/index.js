@@ -29,23 +29,23 @@ var config = convict({
     default: '',
     env: 'NODE_ENV',
   },
-  encryption: {
-    private: {
-      doc: 'encryption private key',
-      default: '',
-      env: 'ENCRYPTION_PRIVATE_KEY',
-    },
-    public: {
-      doc: 'encryption public key',
-      default: '',
-      env: 'ENCRYPTION_PUBLIC_KEY',
-    },
-    passphrase: {
-      doc: 'encryption passphrase key',
-      default: '',
-      env: 'ENCRYPTION_PASSPHRASE',
-    },
-  },
+  // encryption: {
+  //   private: {
+  //     doc: 'encryption private key',
+  //     default: '',
+  //     env: 'ENCRYPTION_PRIVATE_KEY',
+  //   },
+  //   public: {
+  //     doc: 'encryption public key',
+  //     default: '',
+  //     env: 'ENCRYPTION_PUBLIC_KEY',
+  //   },
+  //   passphrase: {
+  //     doc: 'encryption passphrase key',
+  //     default: '',
+  //     env: 'ENCRYPTION_PASSPHRASE',
+  //   },
+  // },
   aws: {
     region: {
       doc: 'AWS region',
