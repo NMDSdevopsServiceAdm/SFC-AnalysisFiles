@@ -82,7 +82,7 @@ const findWorkersByBatch = (batchNum) =>
        CASE WHEN e."IsParent" THEN e."EstablishmentID" ELSE CASE WHEN e."ParentID" IS NOT NULL THEN e."ParentID" ELSE e."EstablishmentID" END END orgid,
        e."NmdsID" nmdsid,
        w."ID" workerid,
-       UPPER(MD5(REPLACE(pgp_pub_decrypt(dearmor(w."NationalInsuranceNumberEncryptedValue") :: bytea, dearmor(convert_from(decode(:private,'base64'),'UTF8')), :passphrase) ,' ','') || TO_CHAR(pgp_pub_decrypt(dearmor(w."DateOfBirthEncryptedValue") :: bytea, dearmor(convert_from(decode(:private,'base64'),'UTF8')), :passphrase)::date, 'YYYYMMDD'))) wrkglbid,
+       UPPER(MD5(REPLACE("NationalInsuranceNumberValue",' ','') || TO_CHAR("DateOfBirthValue", 'YYYYMMDD'))) wrkglbid,
        1 wkplacestat,
        TO_CHAR(w."created",'DD/MM/YYYY') createddate,
        TO_CHAR(GREATEST(
@@ -642,7 +642,7 @@ const findWorkersByBatch = (batchNum) =>
        TO_CHAR("MainJobStartDateValue",'DD/MM/YYYY') strtdate,
        TO_CHAR("MainJobStartDateChangedAt",'DD/MM/YYYY') strtdate_changedate,
        TO_CHAR("MainJobStartDateSavedAt",'DD/MM/YYYY') strtdate_savedate,
-       EXTRACT(YEAR FROM AGE(pgp_pub_decrypt(dearmor(w."DateOfBirthEncryptedValue") :: bytea, dearmor(convert_from(decode(:private,'base64'),'UTF8')), :passphrase)::date)) age,
+       EXTRACT(YEAR FROM AGE("DateOfBirthValue")) age,
        TO_CHAR("DateOfBirthChangedAt",'DD/MM/YYYY') age_changedate,
        TO_CHAR("DateOfBirthSavedAt",'DD/MM/YYYY') age_savedate,
        CASE "GenderValue" WHEN 'Male' THEN 1 WHEN 'Female' THEN 2 WHEN 'Don''t know' THEN 3 WHEN 'Other' THEN 4 ELSE -1 END gender,
@@ -1606,7 +1606,7 @@ const findWorkersByBatch = (batchNum) =>
        CASE "SocialCareStartDateValue" WHEN 'Yes' THEN "SocialCareStartDateYear" WHEN 'No' THEN -2 ELSE  -1 END startsec,
        TO_CHAR("SocialCareStartDateChangedAt",'DD/MM/YYYY') startsec_changedate,
        TO_CHAR("SocialCareStartDateSavedAt",'DD/MM/YYYY') startsec_savedate,
-       CASE "SocialCareStartDateValue" WHEN 'Yes' THEN  "SocialCareStartDateYear" - extract( year FROM pgp_pub_decrypt(dearmor(w."DateOfBirthEncryptedValue") :: bytea, dearmor(convert_from(decode(:private,'base64'),'UTF8')), :passphrase)::date)  WHEN 'No' THEN -2 ELSE  -1 END startage,
+       CASE "SocialCareStartDateValue" WHEN 'Yes' THEN "SocialCareStartDateYear" - extract( year FROM "DateOfBirthValue") WHEN 'No' THEN -2 ELSE -1 END startage,
        CASE "DaysSickValue" WHEN 'Yes' THEN "DaysSickDays" WHEN 'No' THEN -2 ELSE  -1 END dayssick,
        TO_CHAR("DaysSickChangedAt",'DD/MM/YYYY') dayssick_changedate,
        TO_CHAR("DaysSickSavedAt",'DD/MM/YYYY') dayssick_savedate,
@@ -2089,6 +2089,8 @@ const findWorkersByBatch = (batchNum) =>
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 54 LIMIT 1) ql142year,
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 44 LIMIT 1) THEN 1 ELSE 0 END ql143achq,
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 44 LIMIT 1) ql143year,
+       CASE WHEN EXISTS (SELECT 1 FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 136 LIMIT 1) THEN 1 ELSE 0 END ql144achq,
+       (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 136 LIMIT 1) ql144year,
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 127 LIMIT 1) THEN 1 ELSE 0 END ql301app,
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 127 LIMIT 1) ql301year,
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 121 LIMIT 1) THEN 1 ELSE 0 END ql302app,
@@ -2401,7 +2403,6 @@ FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND e."Archived" = false AND w."Archived" = false
 JOIN "Afr2BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
     `,
-      { private: config.get('encryption.private'), passphrase: config.get('encryption.passphrase') },
     )
     .stream();
 
