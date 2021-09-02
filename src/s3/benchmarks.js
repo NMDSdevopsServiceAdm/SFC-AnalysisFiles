@@ -1,20 +1,13 @@
 const AWS = require('aws-sdk');
-AWS.config.update({ region: 'eu-west-2' });
+const config = require('../../config');
 
-const s3 = new AWS.S3();
+async function getBenchmarksFiles() {
 
-s3.listBuckets(function(err, data) {
-  if (err) {
-    console.log("Error", err);
-  } else {
-    console.log('Success', data.Buckets);
-  }
-});
+  const s3 = new AWS.S3();
+  const params = { Bucket: config.get('s3.benchmarksBucket') };
 
-s3.listObjects({ Bucket: 'sfc-benchmark-upload' }, function(err, data) {
-  if (err) {
-    console.log("Error", err);
-  } else {
-    console.log("Success", data);
-  }
-});
+  const files = await s3.listObjects(params).promise();
+  return files.Contents;
+}
+
+module.exports = { getBenchmarksFiles };

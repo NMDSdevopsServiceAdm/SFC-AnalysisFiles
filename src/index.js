@@ -7,6 +7,10 @@ const scheduler = new Bree({
       name: 'generate_analysis_files',
       cron: config.get('cron'),
     },
+    {
+      name: 'update_benchmarks',
+      cron: config.get('cronBenchmarks'),
+    },
   ],
 });
 

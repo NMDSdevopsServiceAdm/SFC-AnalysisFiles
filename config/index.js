@@ -18,11 +18,21 @@ var config = convict({
       default: 'sfcreports',
       env: 'REPORTS_S3_BUCKET',
     },
+    benchmarksBucket: {
+      doc: 'Bucket with latest benchmarks files',
+      default: 'sfc-benchmark-upload-dev',
+      env: 'BENCHMARKS_S3_BUCKET',
+    },
   },
   cron: {
     doc: 'When it should run',
     default: '0 0 1,15 * *',
     env: 'CRON',
+  },
+  cronBenchmarks: {
+    doc: 'When benchmarks update should run',
+    default: '0 0 * * *',
+    env: 'CRON_BENCHMARKS',
   },
   environment: {
     doc: 'Which environment is this?',
