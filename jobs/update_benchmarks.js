@@ -20,6 +20,7 @@ const downloadAllFilesFromS3 = async (benchmarksFiles) => {
   console.log('downloading from s3')
   const bucket = config.get('s3.benchmarksBucket');
 
+  const reportsObj = {}
   await Promise.all(benchmarksFiles.map(async (file) => {
     const params = {
       Bucket: bucket,
@@ -27,11 +28,27 @@ const downloadAllFilesFromS3 = async (benchmarksFiles) => {
     };
 
     const downloadedReport = await s3.getObject(params).promise();
-    const path = `${reportDir}/${file.Key}`;
-
-    fs.writeFileSync(path, downloadedReport.Body.toString());
+    reportsObj[file.Key] = downloadedReport.Body.toString()
   }));
+  return reportsObj;
 }
+
+// const downloadAllFilesFromS3 = async (benchmarksFiles) => {
+//   console.log('downloading from s3')
+//   const bucket = config.get('s3.benchmarksBucket');
+
+//   await Promise.all(benchmarksFiles.map(async (file) => {
+//     const params = {
+//       Bucket: bucket,
+//       Key: file.Key
+//     };
+
+//     const downloadedReport = await s3.getObject(params).promise();
+//     const path = `${reportDir}/${file.Key}`;
+
+//     fs.writeFileSync(path, downloadedReport.Body.toString());
+//   }));
+// }
 
 const teardown = async () => {
   console.log('Removing directory');
@@ -43,10 +60,12 @@ const run = async () => {
   
   if (updatedSinceYesterday(benchmarksFiles)) {
     await setup();
-    await downloadAllFilesFromS3(benchmarksFiles);
+    const reports = await downloadAllFilesFromS3(benchmarksFiles);
+    await updateBenchmarksDbTables(reports);
+    // await downloadAllFilesFromS3(benchmarksFiles);
     // await updateBenchmarksDbTables();
     console.log(`${dayjs()}: Files successfully updated`);
-    await teardown();
+    // await teardown();
     return;
   } else {
     console.log(`${dayjs()}: Files not updated since ${dayjs().subtract(1, 'day')}`)

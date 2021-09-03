@@ -8,7 +8,7 @@ var config = convict({
     url: {
       doc: 'Database URL',
       format: '*',
-      default: null,
+      default: 'postgres://sfcadmin:unknown@localhost:5432/sfcdevdb',
       env: 'DATABASE_URL',
     },
   },
