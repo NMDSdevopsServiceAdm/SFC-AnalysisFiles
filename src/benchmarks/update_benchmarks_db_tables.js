@@ -52,7 +52,7 @@ const updateBenchmarksDbTables = async (reports) => {
 
   await Promise.all(benchmarksPay.map(async benchmark => {
     setNullValues(benchmark);
-    
+
     await transaction('BenchmarksPay').withSchema('cqc').insert({
       "CssrID": benchmark['Local authority'],
       "EstablishmentFK": benchmark['Establishment ID'],
