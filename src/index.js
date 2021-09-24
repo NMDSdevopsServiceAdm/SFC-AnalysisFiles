@@ -9,8 +9,7 @@ const scheduler = new Bree({
     },
     {
       name: 'update_benchmarks',
-      interval: '1m',
-      // cron: config.get('cronBenchmarks'),
+      cron: config.get('cronBenchmarks'),
     },
   ],
 });

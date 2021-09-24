@@ -1,25 +1,32 @@
 const db = require('../db');
-const config = require('../../config');
-const { promisify } = require('util');
-const fs = require('fs');
-const stream = require('stream');
-const pipeline = promisify(stream.pipeline);
-const copyFrom = require('pg-copy-streams').from;
-const csv = require('csv-parser');
 const neatCsv = require('neat-csv');
+
+const setNullValues = (benchmark) => (
+  Object.keys(benchmark).map(key => (
+    benchmark[key] = benchmark[key] === '' ? null : benchmark[key])
+  )
+);
 
 const updateBenchmarksDbTables = async (reports) => {
   const transaction = await db.transaction();
+  
   const benchmarks = await neatCsv(reports['Benchmarks.csv']);
-
+  const benchmarksPay = await neatCsv(reports['BenchmarksPay.csv']);
+  const benchmarksTurnover = await neatCsv(reports['BenchmarksTurnover.csv']);
   const benchmarksSickness = await neatCsv(reports['BenchmarksSickness.csv']);
   const benchmarksQualifications = await neatCsv(reports['BenchmarksQuals.csv']);
+
+  const filesArr = [benchmarks, benchmarksPay, benchmarksTurnover, benchmarksSickness, benchmarksQualifications];
   
-  const setNullValues = (benchmark) => Object.keys(benchmark).map(key => benchmark[key] = benchmark[key] === '' ? null : benchmark[key]);
+  if (filesArr.some((file) => file.length == 0)) {
+    throw new Error('One or more of the files has no rows');
+  }
+
+  await transaction('Benchmarks').truncate();
   
   await Promise.all(benchmarks.map(async benchmark => {
     setNullValues(benchmark);
-
+    
     await transaction('Benchmarks').withSchema('cqc').insert({
       "CssrID": benchmark['LA'],
       "MainServiceFK": benchmark['Main service'],
@@ -48,7 +55,8 @@ const updateBenchmarksDbTables = async (reports) => {
     })
   }));
 
-  const benchmarksPay = await neatCsv(reports['BenchmarksPay.csv']);
+  
+  await transaction('BenchmarksPay').truncate();
 
   await Promise.all(benchmarksPay.map(async benchmark => {
     setNullValues(benchmark);
@@ -61,174 +69,44 @@ const updateBenchmarksDbTables = async (reports) => {
     });
   }));
 
-  // const benchmarksTurnover = await neatCsv(reports['BenchmarksTurnover.csv']);
+  await transaction('BenchmarksTurnover').truncate();
 
-  // await Promise.all(benchmarksTurnover.map(async benchmark => {
-  //   Object.keys(benchmark).map(key => {
-  //     return benchmark[key] = benchmark[key] === '' ? null : benchmark[key];
-  //   });
+  await Promise.all(benchmarksTurnover.map(async benchmark => {
+    setNullValues(benchmark);
 
-  //   await transaction('Benchmarks').withSchema('cqc').insert({
-  //     "CssrID": benchmark['LA'],
-  //     "MainServiceFK": benchmark['Main service'],
-  //     "EstablishmentFK": benchmark['Pay'],
-  //     "Pay": benchmark['Pay'],
-      
-  //   })
-  // }));
+    await transaction('BenchmarksTurnover').withSchema('cqc').insert({
+      "CssrID": benchmark['Local authority'],
+      "MainServiceFK": benchmark['Main service'],
+      "EstablishmentFK": benchmark['Establishment ID'],
+      "Turnover": benchmark['Turnover'],
+    })
+  }));
 
-  // const benchmarksFileStream = fs.createReadStream('./benchmarkFiles/Benchmarks.csv');
-  // const benchmarksPayFileStream = fs.createReadStream('./benchmarkFiles/BenchmarksPay.csv');
-  // const benchmarksTurnoverFileStream = fs.createReadStream('./benchmarkFiles/BenchmarksTurnover.csv');
-  // const benchmarksQualsFileStream = fs.createReadStream('./benchmarkFiles/BenchmarksQuals.csv');
-  // const benchmarksSicknessFileStream = fs.createReadStream('./benchmarkFiles/BenchmarksSickness.csv');
+  await transaction('BenchmarksSickness').truncate();
 
-  // await db.transaction(async (trx) => {
-  //   const client = trx.trxClient
-  //   await trx.raw(
-  //     `TRUNCATE cqc."Benchmarks", cqc."BenchmarksPay", cqc."BenchmarksTurnover", cqc."BenchmarksQualifications", cqc."BenchmarksSickness";`
-  //   );
- 
-  //   await pipeline(
-  //     benchmarksFileStream,
-  //     db.query(copyFrom(`COPY cqc."Benchmarks" ("CssrID", "MainServiceFK", "Pay", "Sickness", "Turnover", "Qualifications", "Workplaces", "Staff", "PayWorkplaces", "PayStaff", "SicknessWorkplaces", "SicknessStaff", "QualificationsWorkplaces", "QualificationsStaff", "TurnoverWorkplaces", "TurnoverStaff", "PayGoodCQC", "PayLowTurnover", "SicknessGoodCQC", "SicknessLowTurnover", "QualificationsGoodCQC", "QualificationsLowTurnover", "TurnoverGoodCQC", "TurnoverLowTurnover") FROM STDIN WITH (FORMAT csv)`)).transacting(trx)
-  //   )
-    
-  //   // await pipeline(
-    //   benchmarksPayFileStream,
-    //   db.query(copyFrom(`COPY cqc."BenchmarksPay.csv" ("CssrID", "MainServiceFK", "EstablishmentFK", "Pay") FROM STDIN WITH (FORMAT csv)`)).transacting(trx)
-    // )
+  await Promise.all(benchmarksSickness.map(async benchmark => {
+    setNullValues(benchmark);
 
-    // await pipeline(
-    //   benchmarksTurnoverFileStream,
-    //   db.query(copyFrom(`COPY cqc."BenchmarksTurnover" ("CssrID", "MainServiceFK", "EstablishmentFK", "Turnover") FROM STDIN WITH (FORMAT csv)`)).transacting(trx)
-    // )
-    // await pipeline(
-    //   benchmarksQualsFileStream,
-    //   db.query(copyFrom(`COPY cqc."BenchmarksQuals.csv" ("CssrID", "MainServiceFK", "EstablishmentFK", "Qualifications") FROM STDIN WITH (FORMAT csv)`)).transacting(trx)
-    // )
-    // await pipeline(
-    //   benchmarksSicknessFileStream,
-    //   db.query(copyFrom(`COPY cqc."BenchmarksSickness.csv" ("CssrID", "MainServiceFK", "EstablishmentFK", "Sickness") FROM STDIN WITH (FORMAT csv)`)).transacting(trx)
-    // )
-    
-    // await trx.raw(
-    //   `
-    //     INSERT INTO cqc."DataImports" ("Type", "Date") VALUES ('Benchmarks', current_timestamp);
-        
-    //     SELECT
-    //       COUNT(0)
-    //     FROM
-    //       cqc."Benchmarks";
-        
-    //       SELECT
-    //       COUNT(0)
-    //     FROM
-    //       cqc."BenchmarksPay";
-        
-    //       SELECT
-    //       COUNT(0)
-    //     FROM
-    //       cqc."BenchmarksTurnover";
-        
-    //       SELECT
-    //       COUNT(0)
-    //     FROM
-    //       cqc."BenchmarksQualifications";
-        
-    //       SELECT
-    //       COUNT(0)
-    //     FROM
-    //       cqc."BenchmarksSickness";
-        
-    //     DO
-    //     $$
-    //     BEGIN
-    //       IF (SELECT COUNT(0) FROM cqc."Benchmarks") = 0 THEN
-    //         RAISE EXCEPTION 'CANT HAVE NO ROWS IN BENCHMARKS';
-    //       END IF;
-    //       IF (SELECT COUNT(0) FROM cqc."BenchmarksPay") = 0 THEN
-    //         RAISE EXCEPTION 'CANT HAVE NO ROWS IN PAY';
-    //       END IF;
-    //       IF (SELECT COUNT(0) FROM cqc."BenchmarksTurnover") = 0 THEN
-    //         RAISE EXCEPTION 'CANT HAVE NO ROWS IN TURNOVER';
-    //       END IF;
-    //       IF (SELECT COUNT(0) FROM cqc."BenchmarksQualifications") = 0 THEN
-    //         RAISE EXCEPTION 'CANT HAVE NO ROWS IN QUALS';
-    //       END IF;
-    //       IF (SELECT COUNT(0) FROM cqc."BenchmarksSickness") = 0 THEN
-    //         RAISE EXCEPTION 'CANT HAVE NO ROWS IN SICKNESS';
-    //       END IF;
-    //     END;
-    //     $$ LANGUAGE plpgsql;
-    //   `
-    // )
-    // const stringStream = stream.Readable.from(stringContainingCsvData);
-    // await copyToTable(tx, 'table_name', stringStream);
-  // });
-  // await db.raw(
-  //   `
-  //     BEGIN TRANSACTION;
+    await transaction('BenchmarksSickness').withSchema('cqc').insert({
+      "CssrID": benchmark['Local authority'],
+      "MainServiceFK": benchmark['Main service'],
+      "EstablishmentFK": benchmark['Establishment ID'],
+      "Sickness": benchmark['Sickness'],
+    })
+  }));
 
-  //     TRUNCATE cqc."Benchmarks", cqc."BenchmarksPay", cqc."BenchmarksTurnover", cqc."BenchmarksQualifications", cqc."BenchmarksSickness";
-      
-  //     copy cqc."Benchmarks" ("CssrID", "MainServiceFK", "Pay", "Sickness", "Turnover", "Qualifications", "Workplaces", "Staff", "PayWorkplaces", "PayStaff", "SicknessWorkplaces", "SicknessStaff", "QualificationsWorkplaces", "QualificationsStaff", "TurnoverWorkplaces", "TurnoverStaff", "PayGoodCQC", "PayLowTurnover", "SicknessGoodCQC", "SicknessLowTurnover", "QualificationsGoodCQC", "QualificationsLowTurnover", "TurnoverGoodCQC", "TurnoverLowTurnover") FROM (${reports['Benchmarks.csv']}) WITH (FORMAT csv, ENCODING 'UTF8', HEADER);
-  //     copy cqc."BenchmarksPay" ("CssrID", "MainServiceFK", "EstablishmentFK", "Pay") FROM (${reports['BenchmarksPay.csv']}) WITH (FORMAT csv, ENCODING 'UTF8', HEADER);
-  //     copy cqc."BenchmarksTurnover" ("CssrID", "MainServiceFK", "EstablishmentFK", "Turnover") FROM (${reports['BenchmarksTurnover.csv']}) WITH (FORMAT csv, ENCODING 'UTF8', HEADER);
-  //     copy cqc."BenchmarksQualifications" ("CssrID", "MainServiceFK", "EstablishmentFK", "Qualifications") FROM (${reports['BenchmarksQuals.csv']}) WITH (FORMAT csv, ENCODING 'UTF8', HEADER);
-  //     copy cqc."BenchmarksSickness" ("CssrID", "MainServiceFK", "EstablishmentFK", "Sickness") FROM (${reports['BenchmarksSickness.csv']}) WITH (FORMAT csv, ENCODING 'UTF8', HEADER);
-      
-  //     INSERT INTO cqc."DataImports" ("Type", "Date") VALUES ('Benchmarks', current_timestamp);
-      
-  //     SELECT
-  //       COUNT(0)
-  //     FROM
-  //       cqc."Benchmarks";
-      
-  //       SELECT
-  //       COUNT(0)
-  //     FROM
-  //       cqc."BenchmarksPay";
-      
-  //       SELECT
-  //       COUNT(0)
-  //     FROM
-  //       cqc."BenchmarksTurnover";
-      
-  //       SELECT
-  //       COUNT(0)
-  //     FROM
-  //       cqc."BenchmarksQualifications";
-      
-  //       SELECT
-  //       COUNT(0)
-  //     FROM
-  //       cqc."BenchmarksSickness";
-      
-  //     DO
-  //     $$
-  //     BEGIN
-  //       IF (SELECT COUNT(0) FROM cqc."Benchmarks") = 0 THEN
-  //         RAISE EXCEPTION 'CANT HAVE NO ROWS IN BENCHMARKS';
-  //       END IF;
-  //       IF (SELECT COUNT(0) FROM cqc."BenchmarksPay") = 0 THEN
-  //         RAISE EXCEPTION 'CANT HAVE NO ROWS IN PAY';
-  //       END IF;
-  //       IF (SELECT COUNT(0) FROM cqc."BenchmarksTurnover") = 0 THEN
-  //         RAISE EXCEPTION 'CANT HAVE NO ROWS IN TURNOVER';
-  //       END IF;
-  //       IF (SELECT COUNT(0) FROM cqc."BenchmarksQualifications") = 0 THEN
-  //         RAISE EXCEPTION 'CANT HAVE NO ROWS IN QUALS';
-  //       END IF;
-  //       IF (SELECT COUNT(0) FROM cqc."BenchmarksSickness") = 0 THEN
-  //         RAISE EXCEPTION 'CANT HAVE NO ROWS IN SICKNESS';
-  //       END IF;
-  //     END;
-  //     $$ LANGUAGE plpgsql;
-  
-  //     END TRANSACTION;
-  //   `,
-  // );
+  await transaction('BenchmarksQualifications').truncate();
+
+  await Promise.all(benchmarksQualifications.map(async benchmark => {
+    setNullValues(benchmark);
+
+    await transaction('BenchmarksQualifications').withSchema('cqc').insert({
+      "CssrID": benchmark['Local authority'],
+      "MainServiceFK": benchmark['Main service'],
+      "EstablishmentFK": benchmark['Establishment ID'],
+      "Qualifications": benchmark['Quals'],
+    })
+  }));
 };
 
 module.exports = { updateBenchmarksDbTables };
