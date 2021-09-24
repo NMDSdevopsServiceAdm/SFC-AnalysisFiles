@@ -39,6 +39,22 @@ var config = convict({
     default: '',
     env: 'NODE_ENV',
   },
+  slack: {
+    url: {
+      doc: 'The slack notification endpoint',
+      format: 'url',
+      default: 'unknown', // note - bug in notify - must provide a default value for it to use env var
+      env: 'SLACK_URL',
+    },
+    level: {
+      doc: 'The level of notifications to be sent to Slack: 0 - disabled, 1-error, 2-warning, 3-info, 5 - trace',
+      format: function check(val) {
+        if (![0, 1, 2, 3, 5].includes(val)) throw new TypeError('Slack level must be one of 0, 1, 2, 3 or 5');
+      },
+      env: 'SLACK_LEVEL',
+      default: 0,
+    },
+  },
   aws: {
     region: {
       doc: 'AWS region',

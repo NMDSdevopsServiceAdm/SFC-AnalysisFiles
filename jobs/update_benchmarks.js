@@ -5,6 +5,7 @@ const fs = require('fs');
 const config = require('../config');
 const { getBenchmarksFiles } = require('../src/s3/benchmarks');
 const { updateBenchmarksDbTables } = require('../src/benchmarks/update_benchmarks_db_tables');
+const slack = require('../../slack/slack-logger');
 
 const reportDir = './benchmarkFiles';
 const s3 = new AWS.S3();
@@ -33,45 +34,21 @@ const downloadAllFilesFromS3 = async (benchmarksFiles) => {
   return reportsObj;
 }
 
-// const downloadAllFilesFromS3 = async (benchmarksFiles) => {
-//   console.log('downloading from s3')
-//   const bucket = config.get('s3.benchmarksBucket');
-
-//   await Promise.all(benchmarksFiles.map(async (file) => {
-//     const params = {
-//       Bucket: bucket,
-//       Key: file.Key
-//     };
-
-//     const downloadedReport = await s3.getObject(params).promise();
-//     const path = `${reportDir}/${file.Key}`;
-
-//     fs.writeFileSync(path, downloadedReport.Body.toString());
-//   }));
-// }
-
-const teardown = async () => {
-  console.log('Removing directory');
-  await exec(`rm -rf ${reportDir}`);
-}
-
-const run = async () => {
+const updateBenchmarks = async () => {
   const benchmarksFiles = await getBenchmarksFiles();
   
   if (updatedSinceYesterday(benchmarksFiles)) {
     await setup();
     const reports = await downloadAllFilesFromS3(benchmarksFiles);
     await updateBenchmarksDbTables(reports);
-    // await downloadAllFilesFromS3(benchmarksFiles);
-    // await updateBenchmarksDbTables();
+
     console.log(`${dayjs()}: Files successfully updated`);
-    // await teardown();
+    
     return;
   } else {
     console.log(`${dayjs()}: Files not updated since ${dayjs().subtract(1, 'day')}`)
     return;
   }
-
 };
 
 const updatedSinceYesterday = (files) => {
@@ -80,10 +57,31 @@ const updatedSinceYesterday = (files) => {
   });
 }
 
+const sendSlackBenchmarksUpdatedMessage = () => {
+  slack.info();
+} 
+const sendSlackBenchmarksErrorMessage = () => {
+  slack.error();
+} 
+
+// Reference function for slack notifications
+// const run = async () => {
+//   try {
+//     feedbackMsg = ''
+//     slack.info('Feedback', JSON.stringify(feedbackMsg, null, 2));
+//   } catch (error) {
+//     slack.error()
+//   }
+// }
+
 (async () => {
-  run()
-    .then(() => process.exit(0))
+  updateBenchmarks()
+    .then(() => {
+      sendSlackBenchmarksUpdatedMessage();
+      process.exit(0);
+    })
     .catch(err => {
+      sendSlackBenchmarksErrorMessage();
       console.error(err);
       process.exit(1);
     });
