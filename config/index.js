@@ -4,12 +4,66 @@ const fs = require('fs');
 const yaml = require('js-yaml');
 
 var config = convict({
+  log: {
+    sequelize: {
+      doc: 'Whether to log sequelize SQL statements',
+      format: 'Boolean',
+      default: false
+    }
+  },
   db: {
     url: {
       doc: 'Database URL',
       format: '*',
       default: null,
       env: 'DATABASE_URL',
+    },
+    host: {
+      doc: 'Database host name/IP',
+      format: String,
+      default: 'localhost',
+      env: 'DB_HOST'
+    },
+    port: {
+      doc: 'Database port',
+      format: 'port',
+      default: 5432,
+      env: 'DB_PORT'
+    },
+    database: {
+      doc: 'Database name',
+      format: String,
+      default: 'sfcdevdb',
+      env: 'DB_NAME'
+    },
+    username: {
+      doc: 'Database username',
+      format: String,
+      default: 'sfcadmin',
+      env: 'DB_USER'
+    },
+    password: {
+      doc: 'Database username',
+      format: '*',
+      default: 'unknown',
+      env: 'DB_PASS'
+    },
+    dialect: {
+      doc: 'Database dialect (sequelize)',
+      format: String,
+      default: 'postgres'
+    },
+    ssl: {
+      doc: 'Use SSL?',
+      format: 'Boolean',
+      default: false
+    },
+    client_ssl: {
+      status: {
+        doc: 'Client SSL enabled or not',
+        format: 'Boolean',
+        default: false
+      },
     },
   },
   s3: {
