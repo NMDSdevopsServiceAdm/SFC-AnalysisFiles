@@ -7,7 +7,7 @@ const url = 'https://api.cqc.org.uk/public/v1';
 
 axiosRetry(axios, { retries: 3 });
 
-const changes = async () => {
+const run = async () => {
   console.log('Looking for latest run');
   const log = await models.cqclog.findAll({
     limit: 1,
@@ -28,11 +28,6 @@ const changes = async () => {
 
   await updateComplete(locations, endDate);
   models.sequelize.close();
-
-  return {
-    status: 200,
-    body: 'Call Successful'
-  };
 }
 
 // Get a list of all the CQC Location ID's that jhave changed between 2 timestamps
@@ -77,12 +72,7 @@ const updateLocation = async (location) => {
     } else {
       await deleteLocation(location);
     }
-
     updateStatus(location, 'success');
-    return {
-      status: 200,
-      body: 'Call Successful',
-    };
   } catch (error) {
     console.log(error);
     if (error.response.data.message && error.response.data.message.indexOf('No Locations found') > -1) {
@@ -91,7 +81,6 @@ const updateLocation = async (location) => {
     } else {
       updateStatus(location, `failed: ${error.message}`);
     }
-    return error.message;
   }
 };
 
@@ -107,20 +96,12 @@ const updateComplete = async (locations, endDate) => {
   console.log('Update complete');
   console.log('Checking to see failure status');
 
-  let completionCount = 0;
-  let failed = false;
-
-  locations.forEach((location) => {
-    if (location.status !== '') {
-      completionCount++;
-    }
-    if (location.status !== 'success') {
-      failed = true;
-    }
+  const failedLocations = locations.filter((location) => {
+    return location.status != 'success'
   });
+  const failed = failedLocations.length ? true : false;
 
-  console.log('Checked ' + completionCount);
-  if (failed || completionCount !== locations.length) {
+  if (failed) {
     console.log('One or more updates failed');
     await models.cqclog.create({
       success: false,
@@ -140,14 +121,6 @@ const updateComplete = async (locations, endDate) => {
 const updateStatus = (location, status) => {
   location.status = status;
 }
-
-const run = async () => {
-  try {
-    return await changes();
-  } catch (error) {
-    return  error.message;
-  }
-};
 
 (async () => {
   run()
