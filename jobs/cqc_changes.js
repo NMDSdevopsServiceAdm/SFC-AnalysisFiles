@@ -1,6 +1,7 @@
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
 const models = require('./models/index');
+const { pRateLimit } = require('p-ratelimit');
 
 //CQC Endpoint
 const url = 'https://api.cqc.org.uk/public/v1';
@@ -23,7 +24,7 @@ const run = async () => {
 
   const locations = await getChangedIds(startDate, endDate);
   await Promise.all(locations.map(async (location) => {
-    await updateLocation(location);
+    return await limit(() => updateLocation(location));
   }));
 
   await updateComplete(locations, endDate);
@@ -121,6 +122,11 @@ const updateComplete = async (locations, endDate) => {
 const updateStatus = (location, status) => {
   location.status = status;
 }
+
+const limit = pRateLimit({
+      interval: 1000,
+      rate: 15,
+});
 
 (async () => {
   run()
