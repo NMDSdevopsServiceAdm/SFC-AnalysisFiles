@@ -78,6 +78,11 @@ var config = convict({
     default: '0 0 1,15 * *',
     env: 'CRON',
   },
+  cronCqcChanges: {
+    doc: 'When CQC locations update should run',
+    default: '0 0 * * *',
+    env: 'CRON_CQC_CHANGES',
+  },
   environment: {
     doc: 'Which environment is this?',
     default: '',
