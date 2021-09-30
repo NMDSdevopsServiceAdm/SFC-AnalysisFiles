@@ -52,5 +52,14 @@ module.exports = (sequelize, DataTypes) => {
     // associations can be defined here
   };
   location.removeAttribute('id');
+
+  location.deleteLocation = async function(locationid) {
+    return await this.destroy({
+      where: {
+        locationid,
+      },
+    })
+  }
+
   return location;
 };

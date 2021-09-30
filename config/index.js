@@ -108,6 +108,10 @@ var config = convict({
       },
     },
   },
+  cqcApiUrl: {
+    doc: 'The API endpoint for CQC',
+    default: 'https://api.cqc.org.uk/public/v1',
+  }
 });
 // Load environment dependent configuration
 var env = config.get('environment');

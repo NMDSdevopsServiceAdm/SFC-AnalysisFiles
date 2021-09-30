@@ -15,6 +15,22 @@ module.exports = (sequelize, DataTypes) => {
     // associations can be defined here
   };
 
+  cqclog.findLatestRun = async function() {
+    return await this.findOne({
+      where: {
+        success: true
+      },
+      order: [ [ 'createdat', 'DESC' ]]
+    });
+  }
+
+  cqclog.createRecord = async function(success, endDate) {
+    return await this.create({
+      success,
+      message: success ? 'Call Successful' : 'Failed',
+      lastUpdatedAt: success ? endDate : undefined
+    });
+  }
   
   return cqclog;
 };
