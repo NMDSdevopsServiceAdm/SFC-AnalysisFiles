@@ -31,11 +31,11 @@ const updateLocation = async (location) => {
       }
       updateStatus(location, 'success');
     } catch (error) {
-      console.log(error);
       if (error.response.data.message && error.response.data.message.indexOf('No Locations found') > -1) {
         await models.location.deleteLocation(location.locationId);
         updateStatus(location, 'success');
       } else {
+        console.log(error);
         updateStatus(location, `failed: ${error.message}`);
       }
     }

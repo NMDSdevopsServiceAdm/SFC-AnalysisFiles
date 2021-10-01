@@ -1,4 +1,4 @@
-const { run } = require('../src/cqc_changes/index')
+const { run } = require('../src/cqc_changes/index');
 
 (async () => {
   run()
