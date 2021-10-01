@@ -61,5 +61,19 @@ module.exports = (sequelize, DataTypes) => {
     })
   }
 
+  location.updateLocation = async function(location) {
+    return await this.upsert({
+      locationid: location.data.locationId,
+      locationname: location.data.name,
+      addressline1: location.data.postalAddressLine1,
+      addressline2: location.data.postalAddressLine2,
+      towncity: location.data.postalAddressTownCity,
+      county: location.data.postalAddressCounty,
+      postalcode: location.data.postalCode,
+      mainservice:
+        location.data.gacServiceTypes.length > 0 ? location.data.gacServiceTypes[0].name : null,
+    });
+  }
+
   return location;
 };
