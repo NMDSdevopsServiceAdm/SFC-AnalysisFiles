@@ -30,7 +30,7 @@ const updateComplete = async (locations, startDate, endDate) => {
       `Successfully updated ${locations.length} locations between ` +
       `${startDateToDate.getDate()}/${startDateToDate.getMonth() + 1}/${startDateToDate.getFullYear()} and ` +
       `${endDateToDate.getDate()}/${endDateToDate.getMonth() + 1}/${endDateToDate.getFullYear()}. ` +
-      `Finished at ${finishDate.getHours()}:${finishDate.getMinutes()}` 
+      `Finished at ${finishDate.getHours()}:${(finishDate.getMinutes() < 10? '0' : '') + finishDate.getMinutes()}` 
     )
     await models.cqclog.createRecord(true, endDate);
   }
