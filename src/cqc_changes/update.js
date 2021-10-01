@@ -3,6 +3,7 @@ const axiosRetry = require('axios-retry');
 
 const config = require('../../config/index');
 const models = require('../models/index');
+const slack = require('../utils/slack/slack-logger');
 
 axiosRetry(axios, { retries: 3 });
 
@@ -31,6 +32,10 @@ const updateLocation = async (location) => {
       }
       updateStatus(location, 'success');
     } catch (error) {
+      await slack.error(
+        'CQC changes', 
+        `${error}`
+      );
       if (error.response.data.message && error.response.data.message.indexOf('No Locations found') > -1) {
         await models.location.deleteLocation(location.locationId);
         updateStatus(location, 'success');

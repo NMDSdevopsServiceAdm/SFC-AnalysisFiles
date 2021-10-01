@@ -1,5 +1,3 @@
-// Slack is a great tool for comms. But not just between people. Applications can interact with Slack too.
-// Slack application integration allows not just for messaging, but well formatted messaging
 const config = require('../../../config/index');
 const axios = require('axios');
 
@@ -9,10 +7,8 @@ const SLACK_INFO = 3;
 const SLACK_WARN = 2;
 const SLACK_ERROR = 1;
 
-// posts the given "Slack formatted" message
 const postToSlack = async (slackWebHookUrl, slackMsg) => {
   try {
-    console.log('Trying now');
     await axios.post(
       slackWebHookUrl,
       slackMsg, // the data
@@ -22,9 +18,7 @@ const postToSlack = async (slackWebHookUrl, slackMsg) => {
         },
       },
     );
-    console.log('Finished!')
   } catch (err) {
-    // silently discard errors
     console.error('Failed to post to Slack: ', err);
   }
 };
@@ -38,9 +32,8 @@ const logToSlack = async (level, slackMsg) => {
   if (slackWebHookUrl === 'unknown') return;
 
   if (level <= ENV_LOG_LEVEL) {
-    console.log('Posting to slack: ', slackWebHookUrl);
+    console.log('Posting to slack');
     await postToSlack(slackWebHookUrl, slackMsg);
-    console.log('Did it!');
   }
 };
 
@@ -61,7 +54,7 @@ exports.info = async (title, msg) => {
 
 exports.warn = async (title, msg) => {
   await logToSlack(SLACK_WARN, {
-    text: `WARNING`,
+    text: 'WARNING',
     username: 'markdownbot',
     markdwn: true,
     attachments: [
@@ -76,7 +69,7 @@ exports.warn = async (title, msg) => {
 
 exports.error = async (title, msg) => {
   await logToSlack(SLACK_ERROR, {
-    text: `ERROR`,
+    text: 'ERROR',
     username: 'markdownbot',
     markdwn: true,
     attachments: [
@@ -91,7 +84,7 @@ exports.error = async (title, msg) => {
 
 exports.trace = async (title, msg) => {
   await logToSlack(SLACK_TRACE, {
-    text: `TRACE`,
+    text: 'TRACE',
     username: 'markdownbot',
     markdwn: true,
     attachments: [

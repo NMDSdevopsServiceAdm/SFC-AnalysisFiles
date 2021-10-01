@@ -16,6 +16,10 @@ const updateComplete = async (locations, startDate, endDate) => {
   
     if (failed) {
       console.log('One or more updates failed');
+      await slack.error(
+        'CQC changes', 
+        'One or more updates failed'
+      );
       await models.cqclog.create(false);
       return;
     }
@@ -26,7 +30,7 @@ const updateComplete = async (locations, startDate, endDate) => {
       `Successfully updated ${locations.length} locations between ` +
       `${startDateToDate.getDate()}/${startDateToDate.getMonth() + 1}/${startDateToDate.getFullYear()} and ` +
       `${endDateToDate.getDate()}/${endDateToDate.getMonth() + 1}/${endDateToDate.getFullYear()}. ` +
-      `Finished at ${finishDate.getHours()}:${finishDate.getMinutes()}.` 
+      `Finished at ${finishDate.getHours()}:${finishDate.getMinutes()}` 
     )
     await models.cqclog.createRecord(true, endDate);
   }
