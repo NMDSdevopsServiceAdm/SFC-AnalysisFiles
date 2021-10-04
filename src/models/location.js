@@ -48,9 +48,7 @@ module.exports = (sequelize, DataTypes) => {
     updatedAt: 'updatedat',
     freezeTableName: true
   });
-  location.associate = function(models) {
-    // associations can be defined here
-  };
+
   location.removeAttribute('id');
 
   location.deleteLocation = async function(locationid) {

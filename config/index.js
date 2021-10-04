@@ -17,55 +17,19 @@ var config = convict({
     url: {
       doc: 'Database URL',
       format: '*',
-      default: null,
+      default: 'postgres://sfcadmin:unknown@localhost:5432/sfcdevdb',
       env: 'DATABASE_URL',
     },
-    host: {
-      doc: 'Database host name/IP',
+    name: {
+      doc: 'Service name',
       format: String,
       default: 'localhost',
-      env: 'DB_HOST'
-    },
-    port: {
-      doc: 'Database port',
-      format: 'port',
-      default: 5432,
-      env: 'DB_PORT'
-    },
-    database: {
-      doc: 'Database name',
-      format: String,
-      default: 'sfcdevdb',
-      env: 'DB_NAME'
-    },
-    username: {
-      doc: 'Database username',
-      format: String,
-      default: 'sfcadmin',
-      env: 'DB_USER'
-    },
-    password: {
-      doc: 'Database username',
-      format: '*',
-      default: 'unknown',
-      env: 'DB_PASS'
+      env: 'SERVICE_NAME'
     },
     dialect: {
       doc: 'Database dialect (sequelize)',
       format: String,
       default: 'postgres'
-    },
-    ssl: {
-      doc: 'Use SSL?',
-      format: 'Boolean',
-      default: false
-    },
-    client_ssl: {
-      status: {
-        doc: 'Client SSL enabled or not',
-        format: 'Boolean',
-        default: false
-      },
     },
   },
   s3: {

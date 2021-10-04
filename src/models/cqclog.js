@@ -11,9 +11,6 @@ module.exports = (sequelize, DataTypes) => {
     updatedAt: false,
     freezeTableName: true
   });
-  cqclog.associate = function(models) {
-    // associations can be defined here
-  };
 
   cqclog.findLatestRun = async function() {
     return await this.findOne({

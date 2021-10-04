@@ -16,6 +16,7 @@
     "axios-retry": "^3.2.0",
     "bluebird": "^3.7.2",
     "bree": "^3.3.0",
+    "cfenv": "^1.2.4",
     "convict": "^6.0.0",
     "convict-format-with-validator": "^6.2.0",
     "dayjs": "^1.9.1",
