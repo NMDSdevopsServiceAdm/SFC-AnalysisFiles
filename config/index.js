@@ -3,13 +3,33 @@ const AWSSecrets = require('../aws/secrets');
 const fs = require('fs');
 const yaml = require('js-yaml');
 
+convict.addFormat(require('convict-format-with-validator').url);
+
 var config = convict({
+  log: {
+    sequelize: {
+      doc: 'Whether to log sequelize SQL statements',
+      format: 'Boolean',
+      default: false
+    }
+  },
   db: {
     url: {
       doc: 'Database URL',
       format: '*',
-      default: null,
+      default: 'postgres://sfcadmin:unknown@localhost:5432/sfcdevdb',
       env: 'DATABASE_URL',
+    },
+    name: {
+      doc: 'Service name',
+      format: String,
+      default: 'localhost',
+      env: 'SERVICE_NAME'
+    },
+    dialect: {
+      doc: 'Database dialect (sequelize)',
+      format: String,
+      default: 'postgres'
     },
   },
   s3: {
@@ -23,6 +43,11 @@ var config = convict({
     doc: 'When it should run',
     default: '0 0 1,15 * *',
     env: 'CRON',
+  },
+  cronCqcChanges: {
+    doc: 'When CQC locations update should run',
+    default: '0 0 * * *',
+    env: 'CRON_CQC_CHANGES',
   },
   environment: {
     doc: 'Which environment is this?',
@@ -47,6 +72,26 @@ var config = convict({
         format: String,
         default: 'bob',
       },
+    },
+  },
+  cqcApiUrl: {
+    doc: 'The API endpoint for CQC',
+    default: 'https://api.cqc.org.uk/public/v1',
+  },
+  slack: {
+    url: {
+      doc: 'The slack notification endpoint',
+      format: 'url',
+      default: 'unknown', // note - bug in notify - must provide a default value for it to use env var
+      env: 'SLACK_URL',
+    },
+    level: {
+      doc: 'The level of notifications to be sent to Slack: 0 - disabled, 1-error, 2-warning, 3-info, 5 - trace',
+      format: function check(val) {
+        if (![0, 1, 2, 3, 5].includes(val)) throw new TypeError('Slack level must be one of 0, 1, 2, 3 or 5');
+      },
+      env: 'SLACK_LEVEL',
+      default: 3,
     },
   },
 });
