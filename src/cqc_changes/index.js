@@ -13,8 +13,7 @@ const run = async () => {
         rate: 15,
     });
   
-    // const startDate = log ? log.dataValues.lastUpdatedAt : null;
-    const startDate = '2021-09-30T11:10:43Z';
+    const startDate = log ? log.dataValues.lastUpdatedAt : null;
     const endDate = new Date().toISOString().split('.')[0]+'Z';
     console.log('Was last run on ' + startDate);
   
