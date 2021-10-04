@@ -10,7 +10,7 @@ const run = async () => {
     
     const limit = pRateLimit({
         interval: 1000,
-        rate: 15,
+        rate: 10,
     });
   
     const startDate = log ? log.dataValues.lastUpdatedAt : null;
@@ -18,8 +18,12 @@ const run = async () => {
     console.log('Was last run on ' + startDate);
   
     const locations = await getChangedIds(startDate, endDate);
+    let runCount = 0;
     await Promise.all(locations.map(async (location) => {
-      return await limit(() => updateLocation(location));
+      return await limit(() => {
+        runCount++;
+        return updateLocation(location, runCount);
+      });
     }));
   
     await updateComplete(locations, startDate, endDate);

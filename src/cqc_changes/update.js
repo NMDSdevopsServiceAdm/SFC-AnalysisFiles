@@ -9,14 +9,13 @@ axiosRetry(axios, { retries: 3 });
 
 const cqcEndpoint = config.get('cqcApiUrl')
 
-const updateLocation = async (location) => {
+const updateLocation = async (location, runCount) => {
     try {
-      console.log('Getting information about ' + location.locationId + ' from CQC');
+      if (runCount % 100 === 0) console.log(`Updated ${runCount} locations`);
       const individualLocation = await axios.get(cqcEndpoint + '/locations/' + location.locationId);
 
       if (!individualLocation.data.deregistrationDate) {
         // not deregistered so must exist
-        console.log('Updating/inserting information into database');
         await models.location.updateLocation(individualLocation);
       } else {
         await models.location.deleteLocation(location.locationId);
