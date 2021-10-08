@@ -1,5 +1,5 @@
 applications:
-  - name: sfcreports-preprod
+  - name: sfcreports
     memory: 8G
     disk_quota: 4GB
     instances: 1

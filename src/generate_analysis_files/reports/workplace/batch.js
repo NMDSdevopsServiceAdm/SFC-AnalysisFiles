@@ -161,54 +161,35 @@ const findWorkplacesByBatch = (batchNum) =>
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "Archived" = false
       ) workerupdate,
-      TO_CHAR(
-		GREATEST(
-	  	  (
-		    SELECT date_trunc('day', "When") "day"
-		    FROM "EstablishmentAudit"
-			WHERE "EstablishmentFK" = e."EstablishmentID"
-			GROUP BY 1
-			ORDER BY 1 DESC
-			LIMIT 1
-		  ),
-		  (
-		  	SELECT date_trunc('day', "When") "day"
-			FROM "WorkerAudit"
-			WHERE "WorkerFK" IN (
-			  SELECT "ID"
-			  FROM "Worker"
-			  WHERE "EstablishmentFK" = e."EstablishmentID"
-			)
-			GROUP BY 1
-			ORDER BY 1 DESC
-			LIMIT 1
-		  )
-	  ), 'DD/MM/YYYY') mupddate,
-      TO_CHAR(
-		GREATEST(
-	  	  (
-		    SELECT date_trunc('day', "When") "day"
-		    FROM "EstablishmentAudit"
-			WHERE "EstablishmentFK" = e."EstablishmentID"
-			GROUP BY 1
-			ORDER BY 1 DESC
-			LIMIT 1
-			OFFSET 1
-		  ),
-		  (
-		  	SELECT date_trunc('day', "When") "day"
-			FROM "WorkerAudit"
-			WHERE "WorkerFK" IN (
-			  SELECT "ID"
-			  FROM "Worker"
-			  WHERE "EstablishmentFK" = e."EstablishmentID"
-			)
-			GROUP BY 1
-			ORDER BY 1 DESC
-			LIMIT 1
-			OFFSET 1
-		  )
-	  ), 'DD/MM/YYYY') previous_mupddate,
+     TO_CHAR(GREATEST(e.updated, (
+                  SELECT MAX(updated)
+                  FROM "Worker"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "Archived" = false
+                  )), 'DD/MM/YYYY') mupddate,
+      TO_CHAR(GREATEST((
+        CASE 
+            WHEN e.updated < GREATEST(e.updated, (
+                        SELECT MAX(updated)
+                        FROM "Worker"
+                        WHERE "EstablishmentFK" = e."EstablishmentID"
+                            AND "Archived" = false
+                        ))
+                THEN e.updated
+            ELSE NULL
+            END
+        ), (
+        SELECT MAX(updated)
+        FROM "Worker"
+        WHERE "EstablishmentFK" = e."EstablishmentID"
+            AND "Archived" = false
+            AND updated < GREATEST(e.updated, (
+                    SELECT MAX(updated)
+                    FROM "Worker"
+                    WHERE "EstablishmentFK" = e."EstablishmentID"
+                        AND "Archived" = false
+                    ))
+        )), 'DD/MM/YYYY') previous_mupddate,
       CASE 
           WHEN "DataSource" = 'Bulk'
               THEN 1

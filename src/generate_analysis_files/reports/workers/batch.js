@@ -1,5 +1,5 @@
 const db = require('../../db');
-const config = require('../../../config/index');
+
 const populateBatch = async (numInBatch) => {
   await db.raw(
     `
