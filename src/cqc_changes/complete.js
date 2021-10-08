@@ -1,5 +1,6 @@
 const models = require('../models/index');
 const slack = require('../utils/slack/slack-logger');
+const config =  require('../../config/index');
 
 const updateComplete = async (locations, startDate, endDate) => {
     console.log('Update complete');
@@ -15,10 +16,10 @@ const updateComplete = async (locations, startDate, endDate) => {
     const failed = failedLocations.length ? true : false;
   
     if (failed) {
-      console.log('One or more updates failed');
+      console.log(`${failedLocations.length} updates failed`);
       await slack.error(
-        'CQC changes', 
-        'One or more updates failed'
+        `${config.get('db.name')} - CQC changes`, 
+        `${failedLocations.length} updates failed`
       );
       await models.cqclog.create(false);
       return;
@@ -26,7 +27,7 @@ const updateComplete = async (locations, startDate, endDate) => {
   
     console.log('All went successfully');
     await slack.info(
-      'CQC changes', 
+      `${config.get('db.name')} - CQC changes`, 
       `Successfully updated ${locations.length} locations between ` +
       `${startDateToDate.getDate()}/${startDateToDate.getMonth() + 1}/${startDateToDate.getFullYear()} and ` +
       `${endDateToDate.getDate()}/${endDateToDate.getMonth() + 1}/${endDateToDate.getFullYear()}. ` +
