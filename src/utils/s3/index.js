@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-const config = require('../../config');
+const config = require('../../../config');
 
 const uploadFile = async (fileName, body) => {
   console.log('Uploading to S3');

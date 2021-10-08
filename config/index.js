@@ -10,8 +10,8 @@ var config = convict({
     sequelize: {
       doc: 'Whether to log sequelize SQL statements',
       format: 'Boolean',
-      default: false
-    }
+      default: false,
+    },
   },
   db: {
     url: {
@@ -24,12 +24,12 @@ var config = convict({
       doc: 'Service name',
       format: String,
       default: 'localhost',
-      env: 'SERVICE_NAME'
+      env: 'SERVICE_NAME',
     },
     dialect: {
       doc: 'Database dialect (sequelize)',
       format: String,
-      default: 'postgres'
+      default: 'postgres',
     },
   },
   s3: {
@@ -111,9 +111,9 @@ if (config.get('aws.secrets.use')) {
   AWSSecrets.initialiseSecrets(config.get('aws.region'), config.get('aws.secrets.wallet')).then(() => {
     // DB rebind
     console.log('Setting AWS details');
-    config.set('encryption.private', AWSSecrets.encryptionPrivate());
-    config.set('encryption.public', AWSSecrets.encryptionPublic());
-    config.set('encryption.passphrase', AWSSecrets.encryptionPassphrase());
+    // config.set('encryption.private', AWSSecrets.encryptionPrivate());
+    // config.set('encryption.public', AWSSecrets.encryptionPublic());
+    // config.set('encryption.passphrase', AWSSecrets.encryptionPassphrase());
   });
 }
 
