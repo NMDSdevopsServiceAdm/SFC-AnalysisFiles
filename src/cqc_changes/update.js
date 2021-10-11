@@ -5,13 +5,16 @@ const config = require('../../config/index');
 const models = require('../models/index');
 const slack = require('../utils/slack/slack-logger');
 
-axiosRetry(axios, { retries: 3 });
+axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
 const cqcEndpoint = config.get('cqcApiUrl')
 
-const updateLocation = async (location, runCount) => {
+const updateLocation = async (location, runCount, rateLimitExceededLocations, retrying) => {
     try {
-      if (runCount % 100 === 0) console.log(`Updated ${runCount} locations`);
+      if (retrying || (runCount % 100 === 0)) {
+        console.log(`Updated ${runCount} locations`);
+      }
+
       const individualLocation = await axios.get(cqcEndpoint + '/locations/' + location.locationId);
 
       if (!individualLocation.data.deregistrationDate) {
@@ -26,10 +29,13 @@ const updateLocation = async (location, runCount) => {
       if (error.response.data.message && error.response.data.message.indexOf('No Locations found') > -1) {
         await models.location.deleteLocation(location.locationId);
         updateStatus(location, 'success');
+      } else if (error.response.status === 429) {
+        console.log('Adding location to rateLimitExceededLocations array');
+        rateLimitExceededLocations.push(location);
       } else {
         console.log(error);
         await slack.error(
-          'CQC changes', 
+          `${config.get('db.name')} - CQC changes`, 
           `${error}`
         );
         updateStatus(location, `failed: ${error.message}`);
@@ -38,6 +44,7 @@ const updateLocation = async (location, runCount) => {
   };
 
   const updateStatus = (location, status) => {
+    // updates status regardless of whether in locations array or rateLimitExceededLocations array
     location.status = status;
   }
 

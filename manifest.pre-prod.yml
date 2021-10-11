@@ -6,4 +6,6 @@ applications:
     buildpack: https://github.com/cloudfoundry/nodejs-buildpack.git#v1.7.31
     services:
       - sfcuatdb02
+    env:
+      SERVICE_NAME: sfcuatdb02
 stack: cflinuxfs3

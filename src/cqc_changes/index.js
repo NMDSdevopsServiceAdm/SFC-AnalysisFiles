@@ -19,12 +19,21 @@ const run = async () => {
   
     const locations = await getChangedIds(startDate, endDate);
     let runCount = 0;
+    const rateLimitExceededLocations = [];
     await Promise.all(locations.map(async (location) => {
       return await limit(() => {
         runCount++;
-        return updateLocation(location, runCount);
+        return updateLocation(location, runCount, rateLimitExceededLocations, false);
       });
     }));
+
+    let retries = 0;
+    console.log(`Retrying ${rateLimitExceededLocations.length} rate limited locations`);
+    while (rateLimitExceededLocations.length > 0) {
+      retries++;
+      await updateLocation(rateLimitExceededLocations[0], retries, rateLimitExceededLocations, true);
+      rateLimitExceededLocations.shift();
+    }
   
     await updateComplete(locations, startDate, endDate);
     models.sequelize.close();

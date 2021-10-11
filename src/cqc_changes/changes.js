@@ -1,9 +1,8 @@
 const axios = require('axios');
 const axiosRetry = require('axios-retry');
 const config = require('../../config/index')
-const { performance } = require('perf_hooks');
 
-axiosRetry(axios, { retries: 3 });
+axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
 const cqcEndpoint = config.get('cqcApiUrl')
 

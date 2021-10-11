@@ -7,10 +7,10 @@ const scheduler = new Bree({
       name: 'generate_analysis_files',
       cron: config.get('cron'),
     },
-    // {
-    //   name: 'cqc_changes',
-    //   cron: config.get('cronCqcChanges'),
-    // },
+    {
+      name: 'cqc_changes',
+      cron: config.get('cronCqcChanges'),
+    },
   ],
 });
 
