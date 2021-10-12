@@ -1,88 +1,89 @@
 const db = require('../../db');
-const config = require('../../../config/index');
+
 const populateBatch = async (numInBatch) => {
   await db.raw(
     `
-     CREATE OR REPLACE FUNCTION create_batch_4_worker(p_no_of_workers integer) RETURNS VOID AS $$
-     DECLARE
-        current_status INT := 1;
-        no_of_batch_created INT := 0;
-     BEGIN
-        LOOP
-           current_status := (SELECT COUNT(1) FROM "Afr2BatchiSkAi0mo" WHERE "BatchNo" IS NULL);
-           IF current_status <> 0 THEN
-              no_of_batch_created := no_of_batch_created + 1;
-           END IF;
-     
-           EXIT WHEN current_status = 0;
-     
-           UPDATE "Afr2BatchiSkAi0mo"
-           SET    "BatchNo" = (SELECT MAX(COALESCE("BatchNo",0)) + 1 FROM "Afr2BatchiSkAi0mo")
-           WHERE  "RunningTotal" <= p_no_of_workers
-           AND    "BatchNo" IS NULL;
-     
-           UPDATE "Afr2BatchiSkAi0mo"
-           SET    "RunningTotal" = "RunningTotal" - p_no_of_workers
-           WHERE  "BatchNo" IS NULL;
-        END LOOP;
-     
-        RAISE NOTICE 'Created: [ % ] batch.', (SELECT COUNT(DISTINCT "BatchNo") FROM "Afr2BatchiSkAi0mo");
-     END;
-     $$ LANGUAGE plpgsql;
-         `,
+       CREATE OR REPLACE FUNCTION create_batch_4_leavers(p_no_of_workers integer) RETURNS VOID AS $$
+       DECLARE
+         current_status INT := 1;
+         no_of_batch_created INT := 0;
+       BEGIN
+         LOOP
+             current_status := (SELECT COUNT(1) FROM "Afr3BatchiSkAi0mo" WHERE "BatchNo" IS NULL);
+             IF current_status <> 0 THEN
+               no_of_batch_created := no_of_batch_created + 1;
+             END IF;
+ 
+             EXIT WHEN current_status = 0;
+ 
+             UPDATE "Afr3BatchiSkAi0mo"
+             SET    "BatchNo" = (SELECT MAX(COALESCE("BatchNo",0)) + 1 FROM "Afr3BatchiSkAi0mo")
+             WHERE  "RunningTotal" <= p_no_of_workers
+             AND    "BatchNo" IS NULL;
+ 
+             UPDATE "Afr3BatchiSkAi0mo"
+             SET    "RunningTotal" = "RunningTotal" - p_no_of_workers
+             WHERE  "BatchNo" IS NULL;
+         END LOOP;
+ 
+         RAISE NOTICE 'Created: [ % ] batch.', (SELECT COUNT(DISTINCT "BatchNo") FROM "Afr3BatchiSkAi0mo");
+       END;
+       $$ LANGUAGE plpgsql;
+     `,
   );
 
-  await db.raw('SELECT create_batch_4_worker(?);', [numInBatch]);
+  await db.raw('SELECT create_batch_4_leavers(?);', [numInBatch]);
 };
 
 const createBatches = async (runDate, numInBatch = 20000) => {
-  await db.schema.dropTableIfExists('Afr2BatchiSkAi0mo');
+  await db.schema.dropTableIfExists('Afr3BatchiSkAi0mo');
 
   await db.raw(
     `
-    CREATE TABLE "Afr2BatchiSkAi0mo" AS
-    SELECT "EstablishmentID",
-           "NoOfWorkers",
-           SUM("NoOfWorkers") OVER (ORDER BY "NoOfWorkers" ASC, "EstablishmentID" ASC) "RunningTotal",
-           NULL::INT "BatchNo",
-           TO_DATE(?,'DD-MM-YYYY')::DATE AS "RunDate"
-    FROM   (
-              SELECT e."EstablishmentID",COUNT(1) "NoOfWorkers"
-              FROM   "Establishment" e JOIN "Worker" w ON
-                     e."EstablishmentID" = w."EstablishmentFK" AND
-                     e."Archived" = w."Archived" AND
-                     e."Archived" = false AND
-                     e."Status" IS NULL
-              GROUP  BY 1
-           ) x;
+    CREATE TABLE "Afr3BatchiSkAi0mo" AS
+SELECT "EstablishmentID",
+       "NoOfWorkers",
+       SUM("NoOfWorkers") OVER (ORDER BY "NoOfWorkers" ASC, "EstablishmentID" ASC) "RunningTotal",
+       NULL::INT "BatchNo",
+       TO_DATE(?, 'DD-MM-YYYY')::DATE AS "RunDate"
+FROM   (
+          SELECT e."EstablishmentID",COUNT(1) "NoOfWorkers"
+          FROM   "Establishment" e JOIN "Worker" w ON
+                 e."EstablishmentID" = w."EstablishmentFK" AND
+                 w."Archived" = true AND
+                 e."Status" IS NULL
+          GROUP  BY 1
+       ) x;
       `,
     [runDate],
   );
 
-  await db.raw('CREATE INDEX "Afr2BatchiSkAi0mo_idx" ON "Afr2BatchiSkAi0mo"("BatchNo");');
+  await db.raw('CREATE INDEX "Afr3BatchiSkAi0mo_idx" ON "Afr3BatchiSkAi0mo"("BatchNo");');
 
   await populateBatch(numInBatch);
 };
 
 const dropBatch = async () => {
-  await db.schema.dropTableIfExists('Afr2BatchiSkAi0mo');
+  await db.schema.dropTableIfExists('Afr3BatchiSkAi0mo');
 };
 
-const getBatches = async () => db.select('BatchNo').from('Afr2BatchiSkAi0mo').groupBy(1).orderBy(1);
+const getBatches = async () => db.select('BatchNo').from('Afr3BatchiSkAi0mo').groupBy(1).orderBy(1);
 
-const findWorkersByBatch = (batchNum) =>
+const findLeaversByBatch = (batchNum) =>
   db
     .raw(
       `
     SELECT 'M' || DATE_PART('year',(b."RunDate" - INTERVAL '1 day')) || LPAD(DATE_PART('month',(b."RunDate" - INTERVAL '1 day'))::TEXT,2,'0') period,
+        TO_CHAR((SELECT MAX("When") FROM "WorkerAudit" WHERE "EventType" = 'deleted' AND "WorkerFK" =  w."ID" LIMIT 1),'DD/MM/YYYY') deletedate,
+       (SELECT "Reason" FROM "WorkerLeaveReasons" WHERE "ID" = w."LeaveReasonFK" LIMIT 1)  reason,
+       w."LeaveReasonOther" reasonOther,
        e."EstablishmentID" establishmentid,
-       e."TribalID" tribalid,
-       w."TribalID" tribalid_worker,
+       w."TribalID" tribalid,
        e."ParentID" parentid,
        CASE WHEN e."IsParent" THEN e."EstablishmentID" ELSE CASE WHEN e."ParentID" IS NOT NULL THEN e."ParentID" ELSE e."EstablishmentID" END END orgid,
        e."NmdsID" nmdsid,
        w."ID" workerid,
-       UPPER(MD5(REPLACE("NationalInsuranceNumberValue",' ','') || TO_CHAR("DateOfBirthValue", 'YYYYMMDD'))) wrkglbid,
+       -- UPPER(MD5(REPLACE("NationalInsuranceNumberValue",' ','') || TO_CHAR("DateOfBirthValue", 'YYYYMMDD'))) wrkglbid,
        1 wkplacestat,
        TO_CHAR(w."created",'DD/MM/YYYY') createddate,
        TO_CHAR(GREATEST(
@@ -120,14 +121,7 @@ const findWorkersByBatch = (batchNum) =>
           w."NurseSpecialismFKChangedAt",
           w."LocalIdentifierChangedAt",
           w."EstablishmentFkChangedAt",
-          w."FluJabChangedAt",
-          (
-             SELECT MAX(updated) FROM "WorkerQualifications" WHERE "WorkerFK" = w."ID"
-          ),
-          (
-             SELECT MAX(updated) FROM "WorkerTraining" WHERE "WorkerFK" = w."ID"
-          )
-          ),'DD/MM/YYYY') updateddate,
+          w."FluJabChangedAt"),'DD/MM/YYYY') updateddate,
        TO_CHAR(GREATEST(
           w."NameOrIdSavedAt",
           w."ContractSavedAt",
@@ -163,13 +157,7 @@ const findWorkersByBatch = (batchNum) =>
           w."NurseSpecialismFKSavedAt",
           w."LocalIdentifierSavedAt",
           w."EstablishmentFkSavedAt",
-          w."FluJabSavedAt",
-          (
-             SELECT MAX(updated) FROM "WorkerQualifications" WHERE "WorkerFK" = w."ID"
-          ),
-          (
-             SELECT MAX(updated) FROM "WorkerTraining" WHERE "WorkerFK" = w."ID"
-          )),'DD/MM/YYYY') savedate,
+          w."FluJabSavedAt"),'DD/MM/YYYY') savedate,
        CASE e."ShareDataWithCQC" WHEN true THEN 1 ELSE 0 END cqcpermission,
        CASE e."ShareDataWithLA" WHEN true THEN 1 ELSE 0 END lapermission,
        CASE WHEN e."IsRegulated" is true THEN 2 ELSE 0 END regtype,
@@ -787,7 +775,6 @@ const findWorkersByBatch = (batchNum) =>
                           WHEN 'South Korean' THEN 410
                           WHEN 'Kuwaiti' THEN 414
                           WHEN 'Kyrgyz' THEN 417
-                          WHEN 'Lao' THEN 418
                           WHEN 'Lebanese' THEN 422
                           WHEN 'Mosotho' THEN 426
                           WHEN 'Latvian' THEN 428
@@ -806,6 +793,7 @@ const findWorkersByBatch = (batchNum) =>
                           WHEN 'Martiniquais' THEN 474
                           WHEN 'Mauritanian' THEN 478
                           WHEN 'Mauritian' THEN 480
+                          WHEN 'Lao' THEN 481
                           WHEN 'Mexican' THEN 484
                           WHEN 'Monegasque' THEN 492
                           WHEN 'Mongolian' THEN 496
@@ -896,7 +884,7 @@ const findWorkersByBatch = (batchNum) =>
                           WHEN 'Samoan' THEN 882
                           WHEN 'Yemeni' THEN 887
                           WHEN 'Zambian' THEN 894
-                          WHEN 'Kosovan' THEN 995
+                          WHEN 'Kosovon' THEN 995
                           WHEN 'Workers nationality unknown' THEN 998
                        END
                 FROM   "Nationality"
@@ -996,7 +984,7 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Gabon' THEN 266
                          WHEN 'Georgia' THEN 268
                          WHEN 'Gambia' THEN 270
-                         WHEN 'Palestinian Territory Occupied' THEN 275
+                         WHEN 'Palestine, State of' THEN 275
                          WHEN 'Germany' THEN 276
                          WHEN 'Ghana' THEN 288
                          WHEN 'Gibraltar' THEN 292
@@ -1033,13 +1021,12 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Korea Republic of' THEN 410
                          WHEN 'Kuwait' THEN 414
                          WHEN 'Kyrgyzstan' THEN 417
-                         WHEN 'Lao' THEN 418
-                         WHEN 'Lao People''s Democratic People' THEN 418
+                         WHEN 'Laos' THEN 418
                          WHEN 'Lebanon' THEN 422
                          WHEN 'Lesotho' THEN 426
                          WHEN 'Latvia' THEN 428
                          WHEN 'Liberia' THEN 430
-                         WHEN 'Libyan Arab Jamahiriya' THEN 434
+                         WHEN 'Libya' THEN 434
                          WHEN 'Liechtenstein' THEN 438
                          WHEN 'Lithuania' THEN 440
                          WHEN 'Luxembourg' THEN 442
@@ -1050,10 +1037,8 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Maldives' THEN 462
                          WHEN 'Mali' THEN 466
                          WHEN 'Malta' THEN 470
-                         WHEN 'Martinique' THEN  474
                          WHEN 'Mauritania' THEN 478
                          WHEN 'Mauritius' THEN 480
-                         WHEN 'Laos' THEN 481
                          WHEN 'Mexico' THEN 484
                          WHEN 'Monaco' THEN 492
                          WHEN 'Mongolia' THEN 496
@@ -1068,10 +1053,8 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Nepal' THEN 524
                          WHEN 'Netherlands' THEN 528
                          WHEN 'Curacao (Formerly Netherlands Antilles)' THEN 531
-                         WHEN 'Curacao' THEN 531
                          WHEN 'Aruba' THEN 533
                          WHEN 'Sint Maarten (Dutch part)' THEN 534
-                         WHEN 'Sint Maarten' THEN 534
                          WHEN 'Bonaire, Sint Eustatius and Saba' THEN 535
                          WHEN 'New Caledonia' THEN 540
                          WHEN 'Vanuatu' THEN 548
@@ -1105,7 +1088,7 @@ const findWorkersByBatch = (batchNum) =>
                          WHEN 'Russian Federation' THEN 643
                          WHEN 'Rwanda' THEN 646
                          WHEN 'Saint Barthelemy' THEN 652
-                         WHEN 'Saint Helena' THEN 654
+                         WHEN 'St Helena Ascension and Tristan da Cunha' THEN 654
                          WHEN 'Saint Kitts and Nevis' THEN 659
                          WHEN 'Anguilla' THEN 660
                          WHEN 'Saint Lucia' THEN 662
@@ -1606,7 +1589,6 @@ const findWorkersByBatch = (batchNum) =>
        CASE "SocialCareStartDateValue" WHEN 'Yes' THEN "SocialCareStartDateYear" WHEN 'No' THEN -2 ELSE  -1 END startsec,
        TO_CHAR("SocialCareStartDateChangedAt",'DD/MM/YYYY') startsec_changedate,
        TO_CHAR("SocialCareStartDateSavedAt",'DD/MM/YYYY') startsec_savedate,
-       CASE "SocialCareStartDateValue" WHEN 'Yes' THEN "SocialCareStartDateYear" - extract( year FROM "DateOfBirthValue") WHEN 'No' THEN -2 ELSE -1 END startage,
        CASE "DaysSickValue" WHEN 'Yes' THEN "DaysSickDays" WHEN 'No' THEN -2 ELSE  -1 END dayssick,
        TO_CHAR("DaysSickChangedAt",'DD/MM/YYYY') dayssick_changedate,
        TO_CHAR("DaysSickSavedAt",'DD/MM/YYYY') dayssick_savedate,
@@ -2089,8 +2071,6 @@ const findWorkersByBatch = (batchNum) =>
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 54 LIMIT 1) ql142year,
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 44 LIMIT 1) THEN 1 ELSE 0 END ql143achq,
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 44 LIMIT 1) ql143year,
-       CASE WHEN EXISTS (SELECT 1 FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 136 LIMIT 1) THEN 1 ELSE 0 END ql144achq,
-       (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 136 LIMIT 1) ql144year,
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 127 LIMIT 1) THEN 1 ELSE 0 END ql301app,
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 127 LIMIT 1) ql301year,
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 121 LIMIT 1) THEN 1 ELSE 0 END ql302app,
@@ -2342,66 +2322,10 @@ const findWorkersByBatch = (batchNum) =>
        COALESCE((SELECT total_training FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 34 LIMIT 1), 0) tr40count,
        COALESCE((SELECT total_accredited_yes FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 34 LIMIT 1), 0) tr40ac,
        COALESCE((SELECT total_accredited_no FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 34 LIMIT 1), 0) tr40nac,
-       COALESCE((SELECT total_accredited_unknown FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 34 LIMIT 1), 0) tr40dn,
-       CASE "FluJabValue" WHEN 'No' THEN 2 WHEN 'Yes' THEN 1 WHEN 'Don''t know' THEN -2 ELSE -1 END FluJab2020,
-       TO_CHAR("FluJabChangedAt",'DD/MM/YYYY') FluJab2020_changedate,
-       TO_CHAR("FluJabSavedAt",'DD/MM/YYYY') FluJab2020_savedate,
-       CASE 
-          WHEN w."DataSource" = 'Bulk'
-              THEN 1
-          ELSE 0
-       END derivedfrom_hasbulkuploaded,
-       (SELECT "ChangeEvents"::json->'current'->'rate' as rate
-         FROM "WorkerAudit"
-         WHERE "WorkerFK" = w."ID"
-         AND "EventType" = 'changed' 
-         AND "PropertyName" = 'AnnualHourlyPay'
-         ORDER BY "When" DESC
-         LIMIT 1 
-       ) previous_pay,
-       (
-          SELECT 
-            CASE ("ChangeEvents"::json->'current'->>'jobId') 
-               WHEN '26' THEN 1
-               WHEN '15' THEN 2
-               WHEN '13' THEN 3
-               WHEN '22' THEN 4
-               WHEN '28' THEN 5
-               WHEN '27' THEN 6
-               WHEN '25' THEN 7
-               WHEN '10' THEN 8
-               WHEN '11' THEN 9
-               WHEN '12' THEN 10
-               WHEN '3' THEN 11
-               WHEN '18' THEN 15
-               WHEN '23' THEN 16
-               WHEN '4' THEN 17
-               WHEN '29' THEN 22
-               WHEN '20' THEN 23
-               WHEN '14' THEN 24
-               WHEN '2' THEN 25
-               WHEN '5' THEN 26
-               WHEN '21' THEN 27
-               WHEN '1' THEN 34
-               WHEN '24' THEN 35
-               WHEN '19' THEN 36
-               WHEN '17' THEN 37
-               WHEN '16' THEN 38
-               WHEN '7' THEN 39
-               WHEN '8' THEN 40
-               WHEN '9' THEN 41
-               WHEN '6' THEN 42
-            END
-         FROM "WorkerAudit"
-         WHERE "WorkerFK" = w."ID"
-         AND "EventType" = 'changed' 
-         AND "PropertyName" = 'MainJob'
-         ORDER BY "When" DESC
-         LIMIT 1
-       ) previous_mainjrid
+       COALESCE((SELECT total_accredited_unknown FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 34 LIMIT 1), 0) tr40dn
 FROM   "Establishment" e
-JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND e."Archived" = false AND w."Archived" = false
-JOIN "Afr2BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
+JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND w."Archived" = true
+JOIN "Afr3BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
     `,
     )
     .stream();
@@ -2410,5 +2334,5 @@ module.exports = {
   createBatches,
   dropBatch,
   getBatches,
-  findWorkersByBatch,
+  findLeaversByBatch,
 };

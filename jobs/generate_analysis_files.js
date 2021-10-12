@@ -6,11 +6,11 @@ const relativeTime = require('dayjs/plugin/relativeTime');
 const humanizeDuration = require('humanize-duration');
 dayjs.extend(relativeTime);
 
-const generateWorkplaceReport = require('../src/reports/workplace');
-const generateWorkersReport = require('../src/reports/workers');
-const generateLeaversReport = require('../src/reports/leavers');
-const { refreshViews } = require('../src/reports/views');
-const { uploadFile } = require('../src/s3');
+const generateWorkplaceReport = require('../src/generate_analysis_files/reports/workplace');
+const generateWorkersReport = require('../src/generate_analysis_files/reports/workers');
+const generateLeaversReport = require('../src/generate_analysis_files/reports/leavers');
+const { refreshViews } = require('../src/generate_analysis_files/reports/views');
+const { uploadFile } = require('../src/utils/s3');
 
 const reportDir = './output';
 

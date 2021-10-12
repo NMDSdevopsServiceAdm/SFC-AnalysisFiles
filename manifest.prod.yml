@@ -1,9 +1,11 @@
 applications:
-  - name: sfcreports-preprod
+  - name: sfcreports-prod
     memory: 8G
     disk_quota: 4GB
     instances: 1
     buildpack: https://github.com/cloudfoundry/nodejs-buildpack.git#v1.7.31
     services:
       - sfcuatdb01
+    env:
+      SERVICE_NAME: sfcuatdb01
 stack: cflinuxfs3
