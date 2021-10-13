@@ -52,7 +52,7 @@ The jobs and the schedule that they run on can be found in `src/index.js`
 # Running as a task
 
 ```
-cf run-task sfcreports-staging "node --max-old-space-size=8192 jobs/generate_analysis_files.js" --name run-analysis-files -m 8G -k 4G
+cf run-task sfcreports-staging -c "node --max-old-space-size=8192 jobs/generate_analysis_files.js" --name run-analysis-files -m 8G -k 4G
 ```
 
 # Deployment

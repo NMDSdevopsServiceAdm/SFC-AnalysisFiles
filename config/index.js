@@ -38,11 +38,21 @@ var config = convict({
       default: 'sfcreports',
       env: 'REPORTS_S3_BUCKET',
     },
+    benchmarksBucket: {
+      doc: 'Bucket with latest benchmarks files',
+      default: 'sfc-benchmark-upload-dev',
+      env: 'BENCHMARKS_S3_BUCKET',
+    },
   },
   cron: {
     doc: 'When it should run',
     default: '0 0 1,15 * *',
     env: 'CRON',
+  },
+  cronBenchmarks: {
+    doc: 'When benchmarks update should run',
+    default: '0 0 * * *',
+    env: 'CRON_BENCHMARKS',
   },
   cronCqcChanges: {
     doc: 'When CQC locations update should run',
@@ -84,6 +94,12 @@ var config = convict({
       format: 'url',
       default: 'unknown', // note - bug in notify - must provide a default value for it to use env var
       env: 'SLACK_URL',
+    },
+    benchmarksUrl: {
+      doc: 'update benchmarks slack notification endpoint',
+      format: 'url',
+      default: 'unknown',
+      env: 'SLACK_BENCHMARKS_URL',
     },
     level: {
       doc: 'The level of notifications to be sent to Slack: 0 - disabled, 1-error, 2-warning, 3-info, 5 - trace',
