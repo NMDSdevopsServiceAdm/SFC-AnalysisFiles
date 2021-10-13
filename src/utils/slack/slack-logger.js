@@ -24,10 +24,10 @@ const postToSlack = async (slackWebHookUrl, slackMsg) => {
 };
 
 // check current Slack log level and only then, post to slack
-const logToSlack = async (level, slackMsg) => {
+const logToSlack = async (level, slackMsg, slackUrlConfig) => {
   // default to logging errors only; 0 disables logging
   const ENV_LOG_LEVEL = config.get('slack.level');
-  const slackWebHookUrl = config.get('slack.url');
+  const slackWebHookUrl = config.get(slackUrlConfig);
 
   if (slackWebHookUrl === 'unknown') return;
 
@@ -37,49 +37,61 @@ const logToSlack = async (level, slackMsg) => {
   }
 };
 
-exports.info = async (title, msg) => {
-  await logToSlack(SLACK_INFO, {
-    text: 'INFO',
-    username: 'markdownbot',
-    markdwn: true,
-    attachments: [
-      {
-        color: 'good',
-        title,
-        text: msg,
-      },
-    ],
-  });
+exports.info = async (title, msg, slackUrlConfig = 'slack.url') => {
+  await logToSlack(
+    SLACK_INFO, 
+    {
+      text: 'INFO',
+      username: 'markdownbot',
+      markdwn: true,
+      attachments: [
+        {
+          color: 'good',
+          title,
+          text: msg,
+        },
+      ],
+    },
+    slackUrlConfig
+  );
 };
 
-exports.warn = async (title, msg) => {
-  await logToSlack(SLACK_WARN, {
-    text: 'WARNING',
-    username: 'markdownbot',
-    markdwn: true,
-    attachments: [
-      {
-        color: 'warning',
-        title,
-        text: msg,
-      },
-    ],
-  });
+exports.warn = async (title, msg, slackUrlConfig = 'slack.url') => {
+  await logToSlack(
+    SLACK_WARN, 
+    {
+      text: 'WARNING',
+      username: 'markdownbot',
+      markdwn: true,
+      attachments: [
+        {
+          color: 'warning',
+          title,
+          text: msg,
+        },
+      ],
+    }, 
+    slackUrlConfig
+  );
 };
 
-exports.error = async (title, msg) => {
-  await logToSlack(SLACK_ERROR, {
-    text: 'ERROR',
-    username: 'markdownbot',
-    markdwn: true,
-    attachments: [
-      {
-        color: 'danger',
-        title,
-        text: msg,
-      },
-    ],
-  });
+exports.error = async (title, msg, slackUrlConfig = 'slack.url') => {
+  await logToSlack(
+    SLACK_ERROR, 
+    {
+      text: 'ERROR',
+      username: 'markdownbot',
+      markdwn: true,
+      attachments: [
+        {
+          color: 'danger',
+          title,
+          text: msg,
+        },
+      ],
+    },
+    slackUrlConfig
+  );
 };
 
 exports.trace = async (title, msg) => {

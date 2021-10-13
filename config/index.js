@@ -54,7 +54,6 @@ var config = convict({
     default: '0 0 * * *',
     env: 'CRON_BENCHMARKS',
   },
-  
   cronCqcChanges: {
     doc: 'When CQC locations update should run',
     default: '0 0 * * *',
@@ -64,22 +63,6 @@ var config = convict({
     doc: 'Which environment is this?',
     default: '',
     env: 'NODE_ENV',
-  },
-  slack: {
-    url: {
-      doc: 'The slack notification endpoint',
-      format: 'url',
-      default: 'unknown', // note - bug in notify - must provide a default value for it to use env var
-      env: 'SLACK_URL',
-    },
-    level: {
-      doc: 'The level of notifications to be sent to Slack: 0 - disabled, 1-error, 2-warning, 3-info, 5 - trace',
-      format: function check(val) {
-        if (![0, 1, 2, 3, 5].includes(val)) throw new TypeError('Slack level must be one of 0, 1, 2, 3 or 5');
-      },
-      env: 'SLACK_LEVEL',
-      default: 0,
-    },
   },
   aws: {
     region: {
@@ -111,6 +94,12 @@ var config = convict({
       format: 'url',
       default: 'unknown', // note - bug in notify - must provide a default value for it to use env var
       env: 'SLACK_URL',
+    },
+    benchmarksUrl: {
+      doc: 'update benchmarks slack notification endpoint',
+      format: 'url',
+      default: 'unknown',
+      env: 'SLACK_BENCHMARKS_URL',
     },
     level: {
       doc: 'The level of notifications to be sent to Slack: 0 - disabled, 1-error, 2-warning, 3-info, 5 - trace',

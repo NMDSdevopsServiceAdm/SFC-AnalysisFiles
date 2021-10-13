@@ -1,4 +1,4 @@
-const db = require('../db');
+const db = require('../generate_analysis_files/db');
 const neatCsv = require('neat-csv');
 
 const setNullValues = (benchmark) => (
@@ -8,6 +8,7 @@ const setNullValues = (benchmark) => (
 );
 
 const updateBenchmarksDbTables = async (reports) => {
+  console.log('Begin update Benchmarks Db Tables');
   const transaction = await db.transaction();
   
   const benchmarks = await neatCsv(reports['Benchmarks.csv']);
@@ -107,6 +108,8 @@ const updateBenchmarksDbTables = async (reports) => {
       "Qualifications": benchmark['Quals'],
     })
   }));
+
+  console.log("Complete Benchmarks tables update");
 };
 
 module.exports = { updateBenchmarksDbTables };
