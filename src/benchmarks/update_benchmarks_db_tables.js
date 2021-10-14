@@ -15,7 +15,7 @@ const updateBenchmarksDbTables = async (reports) => {
   const benchmarksPay = await neatCsv(reports['BenchmarksPay.csv']);
   const benchmarksTurnover = await neatCsv(reports['BenchmarksTurnover.csv']);
   const benchmarksSickness = await neatCsv(reports['BenchmarksSickness.csv']);
-  const benchmarksQualifications = await neatCsv(reports['BenchmarksQuals.csv']);
+  const benchmarksQualifications = await neatCsv(reports['BenchmarksQualifications.csv']);
 
   const filesArr = [benchmarks, benchmarksPay, benchmarksTurnover, benchmarksSickness, benchmarksQualifications];
   
@@ -25,91 +25,102 @@ const updateBenchmarksDbTables = async (reports) => {
 
   await transaction('Benchmarks').truncate();
   
+  const benchmarksHeadings = Object.keys(benchmarks[0]);
+
   await Promise.all(benchmarks.map(async benchmark => {
     setNullValues(benchmark);
-    
+
     await transaction('Benchmarks').withSchema('cqc').insert({
-      "CssrID": benchmark['LA'],
-      "MainServiceFK": benchmark['Main service'],
-      "Pay": benchmark['Pay'],
-      "Sickness": benchmark['Sickness'],
-      "Turnover": benchmark['Turnover'],
-      "Qualifications": benchmark['Qualifications'],
-      "Workplaces": benchmark['Workplaces'],
-      "Staff": benchmark['Staff'],
-      "PayWorkplaces": benchmark['PayWorkplaces'],
-      "PayStaff": benchmark['PayStaff'],
-      "SicknessWorkplaces": benchmark['SicknessWorkplaces'],
-      "SicknessStaff": benchmark['SicknessStaff'],
-      "QualificationsWorkplaces": benchmark['QualsWorkplaces'],
-      "QualificationsStaff": benchmark['QualsStaff'],
-      "TurnoverWorkplaces": benchmark['TurnoverWorkplaces'],
-      "TurnoverStaff": benchmark['TurnoverStaff'],
-      "PayGoodCQC": benchmark['PayGoodCQC'],
-      "PayLowTurnover": benchmark['PayLowTurnover'],
-      "SicknessGoodCQC": benchmark['SicknessGoodCQC'],
-      "SicknessLowTurnover": benchmark['SicknessLowTurnover'],
-      "QualificationsGoodCQC": benchmark['QualificationsGoodCQC'],
-      "QualificationsLowTurnover": benchmark['QualificationsLowTurnover'],
-      "TurnoverGoodCQC": benchmark['TurnoverGoodCQC'],
-      "TurnoverLowTurnover": benchmark['TurnoverLowTurnover']
+      "CssrID": benchmark[benchmarksHeadings[0]],
+      "MainServiceFK": benchmark[benchmarksHeadings[1]],
+      "Pay": benchmark[benchmarksHeadings[2]],
+      "Sickness": benchmark[benchmarksHeadings[3]],
+      "Turnover": benchmark[benchmarksHeadings[4]],
+      "Qualifications": benchmark[benchmarksHeadings[5]],
+      "Workplaces": benchmark[benchmarksHeadings[6]],
+      "Staff": benchmark[benchmarksHeadings[7]],
+      "PayWorkplaces": benchmark[benchmarksHeadings[8]],
+      "PayStaff": benchmark[benchmarksHeadings[9]],
+      "SicknessWorkplaces": benchmark[benchmarksHeadings[10]],
+      "SicknessStaff": benchmark[benchmarksHeadings[11]],
+      "QualificationsWorkplaces": benchmark[benchmarksHeadings[12]],
+      "QualificationsStaff": benchmark[benchmarksHeadings[13]],
+      "TurnoverWorkplaces": benchmark[benchmarksHeadings[14]],
+      "TurnoverStaff": benchmark[benchmarksHeadings[15]],
+      "PayGoodCQC": benchmark[benchmarksHeadings[16]],
+      "PayLowTurnover": benchmark[benchmarksHeadings[17]],
+      "SicknessGoodCQC": benchmark[benchmarksHeadings[18]],
+      "SicknessLowTurnover": benchmark[benchmarksHeadings[19]],
+      "QualificationsGoodCQC": benchmark[benchmarksHeadings[20]],
+      "QualificationsLowTurnover": benchmark[benchmarksHeadings[21]],
+      "TurnoverGoodCQC": benchmark[benchmarksHeadings[22]],
+      "TurnoverLowTurnover": benchmark[benchmarksHeadings[23]]
     })
   }));
 
   
   await transaction('BenchmarksPay').truncate();
 
+  const benchmarksPayHeadings = Object.keys(benchmarksPay[0]);
+
   await Promise.all(benchmarksPay.map(async benchmark => {
     setNullValues(benchmark);
 
     await transaction('BenchmarksPay').withSchema('cqc').insert({
-      "CssrID": benchmark['Local authority'],
-      "EstablishmentFK": benchmark['Establishment ID'],
-      "MainServiceFK": benchmark['Main service'],
-      "Pay": benchmark['Pay'],
+      "CssrID": benchmark[benchmarksPayHeadings[0]],
+      "MainServiceFK": benchmark[benchmarksPayHeadings[1]],
+      "EstablishmentFK": benchmark[benchmarksPayHeadings[2]],
+      "Pay": benchmark[benchmarksPayHeadings[3]],
     });
   }));
 
   await transaction('BenchmarksTurnover').truncate();
+    
+  const benchmarksTurnoverHeadings = Object.keys(benchmarksTurnover[0]);
 
   await Promise.all(benchmarksTurnover.map(async benchmark => {
     setNullValues(benchmark);
 
     await transaction('BenchmarksTurnover').withSchema('cqc').insert({
-      "CssrID": benchmark['Local authority'],
-      "MainServiceFK": benchmark['Main service'],
-      "EstablishmentFK": benchmark['Establishment ID'],
-      "Turnover": benchmark['Turnover'],
+      "CssrID": benchmark[benchmarksTurnoverHeadings[0]],
+      "MainServiceFK": benchmark[benchmarksTurnoverHeadings[1]],
+      "EstablishmentFK": benchmark[benchmarksTurnoverHeadings[2]],
+      "Turnover": benchmark[benchmarksTurnoverHeadings[3]],
     })
   }));
 
   await transaction('BenchmarksSickness').truncate();
 
+    
+  const benchmarksSicknessHeadings = Object.keys(benchmarksSickness[0]);
+
   await Promise.all(benchmarksSickness.map(async benchmark => {
     setNullValues(benchmark);
 
     await transaction('BenchmarksSickness').withSchema('cqc').insert({
-      "CssrID": benchmark['Local authority'],
-      "MainServiceFK": benchmark['Main service'],
-      "EstablishmentFK": benchmark['Establishment ID'],
-      "Sickness": benchmark['Sickness'],
+      "CssrID": benchmark[benchmarksSicknessHeadings[0]],
+      "MainServiceFK": benchmark[benchmarksSicknessHeadings[1]],
+      "EstablishmentFK": benchmark[benchmarksSicknessHeadings[2]],
+      "Sickness": benchmark[benchmarksSicknessHeadings[3]],
     })
   }));
 
   await transaction('BenchmarksQualifications').truncate();
 
+  const benchmarksQualificationsHeadings = Object.keys(benchmarksQualifications[0]);
+
   await Promise.all(benchmarksQualifications.map(async benchmark => {
     setNullValues(benchmark);
 
     await transaction('BenchmarksQualifications').withSchema('cqc').insert({
-      "CssrID": benchmark['Local authority'],
-      "MainServiceFK": benchmark['Main service'],
-      "EstablishmentFK": benchmark['Establishment ID'],
-      "Qualifications": benchmark['Quals'],
+      "CssrID": benchmark[benchmarksQualificationsHeadings[0]],
+      "MainServiceFK": benchmark[benchmarksQualificationsHeadings[1]],
+      "EstablishmentFK": benchmark[benchmarksQualificationsHeadings[2]],
+      "Qualifications": benchmark[benchmarksQualificationsHeadings[3]],
     })
   }));
 
-  console.log("Complete Benchmarks tables update");
+  console.log("Completed Benchmarks tables update");
 };
 
 module.exports = { updateBenchmarksDbTables };
