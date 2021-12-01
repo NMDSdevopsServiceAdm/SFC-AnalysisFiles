@@ -8,4 +8,5 @@ applications:
       - sfcstaging-db
     env:
       SERVICE_NAME: sfcstaging-db
+      NODE_ENV: staging
 stack: cflinuxfs3

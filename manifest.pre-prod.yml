@@ -8,4 +8,5 @@ applications:
       - sfcuatdb02
     env:
       SERVICE_NAME: sfcuatdb02
+      NODE_ENV: preproduction
 stack: cflinuxfs3
