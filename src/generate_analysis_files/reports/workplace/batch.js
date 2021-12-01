@@ -222,12 +222,16 @@ const findWorkplacesByBatch = (batchNum) =>
       CASE "ShareDataWithCQC"
           WHEN true
               THEN 1
-          ELSE 0
+          WHEN false
+              THEN 0
+          ELSE -1
           END cqcpermission,
       CASE "ShareDataWithLA"
           WHEN true
               THEN 1
-          ELSE 0
+          WHEN false
+              THEN 0
+          ELSE -1
           END lapermission,
       CASE 
           WHEN "IsRegulated" IS true
