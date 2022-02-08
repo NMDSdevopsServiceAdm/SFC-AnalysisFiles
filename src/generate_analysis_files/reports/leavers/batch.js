@@ -1562,7 +1562,27 @@ const findLeaversByBatch = (batchNum) =>
                 (cqcref.pcodedata.postcode = w."PostcodeValue") 
                 AND ("LocalCustodianCode" = cqcref.pcodedata.local_custodian_code)) LIMIT 1), -1) homelauthid,
        'na' homeparliamentaryconstituency,
-       (select (point(e."Longitude",e."Latitude") <@> point(w."Longitude",w."Latitude")) as "distwrkk") distwrkk,
+       (
+          select (
+            (
+               SELECT 
+                  point(epcd."longitude",epcd."latitude")
+               FROM 
+                  cqcref.postcodes AS epcd 
+               WHERE 
+                  e."PostCode" = epcd."postcode"
+            )
+            <@> 
+            (
+               SELECT 
+                  point(wpcd."longitude",wpcd."latitude" )
+               FROM 
+                  cqcref.postcodes AS wpcd 
+               WHERE 
+                  w."PostcodeValue" = wpcd."postcode"
+            )
+         )
+       ) distwrkk,
        CASE
           WHEN "RecruitedFromValue" IS NULL THEN -1
           WHEN "RecruitedFromValue" = 'No' THEN 225
