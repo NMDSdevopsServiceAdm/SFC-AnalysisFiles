@@ -1587,7 +1587,37 @@ const findWorkersByBatch = (batchNum) =>
                FROM 
                   cqcref.postcodes AS epcd 
                WHERE 
-                  e."PostCode" = epcd."postcode"
+                  (
+                     SELECT 
+                        CASE 
+                           WHEN 
+                              LENGTH(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g'))) = 6 
+                           THEN  
+                              SUBSTRING(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g')), 0, 4) 
+                              ||
+                              ' '
+                              ||
+                              SUBSTRING(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g')), 4)
+                           WHEN 
+                              LENGTH(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g'))) = 7
+                           THEN  
+                              SUBSTRING(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g')), 0, 5) 
+                              ||
+                              ' '
+                              ||
+                              SUBSTRING(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g')), 5) 
+                           WHEN 
+                              LENGTH(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g'))) = 5
+                           THEN  
+                              SUBSTRING(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g')), 0, 3) 
+                              ||
+                              ' '
+                              ||
+                              SUBSTRING(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g')), 3) 
+                           ELSE null
+                        END
+                  ) = epcd."postcode"
+                  LIMIT 1
             )
             <@> 
             (
@@ -1596,7 +1626,37 @@ const findWorkersByBatch = (batchNum) =>
                FROM 
                   cqcref.postcodes AS wpcd 
                WHERE 
-                  w."PostcodeValue" = wpcd."postcode"
+                  (
+                     SELECT 
+                        CASE 
+                           WHEN 
+                              LENGTH(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g'))) = 6 
+                           THEN  
+                              SUBSTRING(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g')), 0, 4) 
+                              ||
+                              ' '
+                              ||
+                              SUBSTRING(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g')), 4)
+                           WHEN 
+                              LENGTH(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g'))) = 7
+                           THEN  
+                              SUBSTRING(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g')), 0, 5) 
+                              ||
+                              ' '
+                              ||
+                              SUBSTRING(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g')), 5) 
+                           WHEN 
+                              LENGTH(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g'))) = 5
+                           THEN  
+                              SUBSTRING(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g')), 0, 3) 
+                              ||
+                              ' '
+                              ||
+                              SUBSTRING(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g')), 3) 
+                           ELSE null
+                        END
+                  ) = wpcd."postcode"
+                  LIMIT 1
             )
          )
        ) distwrkk,

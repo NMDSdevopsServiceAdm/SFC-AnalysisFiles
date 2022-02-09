@@ -1562,7 +1562,87 @@ const findLeaversByBatch = (batchNum) =>
                 (cqcref.pcodedata.postcode = w."PostcodeValue") 
                 AND ("LocalCustodianCode" = cqcref.pcodedata.local_custodian_code)) LIMIT 1), -1) homelauthid,
        'na' homeparliamentaryconstituency,
-       (select (point(e."Longitude",e."Latitude") <@> point(w."Longitude",w."Latitude")) as "distwrkk") distwrkk,
+       (
+          select (
+            (
+               SELECT 
+                  point(epcd."longitude",epcd."latitude")
+               FROM 
+                  cqcref.postcodes AS epcd 
+               WHERE 
+                  (
+                     SELECT 
+                        CASE 
+                           WHEN 
+                              LENGTH(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g'))) = 6 
+                           THEN  
+                              SUBSTRING(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g')), 0, 4) 
+                              ||
+                              ' '
+                              ||
+                              SUBSTRING(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g')), 4)
+                           WHEN 
+                              LENGTH(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g'))) = 7
+                           THEN  
+                              SUBSTRING(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g')), 0, 5) 
+                              ||
+                              ' '
+                              ||
+                              SUBSTRING(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g')), 5) 
+                           WHEN 
+                              LENGTH(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g'))) = 5
+                           THEN  
+                              SUBSTRING(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g')), 0, 3) 
+                              ||
+                              ' '
+                              ||
+                              SUBSTRING(UPPER(REGEXP_REPLACE(e."PostCode", '[^0-9a-zA-Z]', '', 'g')), 3) 
+                           ELSE null
+                        END
+                  ) = epcd."postcode"
+                  LIMIT 1
+            )
+            <@> 
+            (
+               SELECT 
+                  point(wpcd."longitude",wpcd."latitude" )
+               FROM 
+                  cqcref.postcodes AS wpcd 
+               WHERE 
+                  (
+                     SELECT 
+                        CASE 
+                           WHEN 
+                              LENGTH(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g'))) = 6 
+                           THEN  
+                              SUBSTRING(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g')), 0, 4) 
+                              ||
+                              ' '
+                              ||
+                              SUBSTRING(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g')), 4)
+                           WHEN 
+                              LENGTH(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g'))) = 7
+                           THEN  
+                              SUBSTRING(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g')), 0, 5) 
+                              ||
+                              ' '
+                              ||
+                              SUBSTRING(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g')), 5) 
+                           WHEN 
+                              LENGTH(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g'))) = 5
+                           THEN  
+                              SUBSTRING(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g')), 0, 3) 
+                              ||
+                              ' '
+                              ||
+                              SUBSTRING(UPPER(REGEXP_REPLACE(w."PostcodeValue", '[^0-9a-zA-Z]', '', 'g')), 3) 
+                           ELSE null
+                        END
+                  ) = wpcd."postcode"
+                  LIMIT 1
+            )
+         )
+       ) distwrkk,
        CASE
           WHEN "RecruitedFromValue" IS NULL THEN -1
           WHEN "RecruitedFromValue" = 'No' THEN 225
