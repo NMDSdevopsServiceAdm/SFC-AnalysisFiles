@@ -39,40 +39,23 @@ const initialiseSecrets = async (region, wallet) => {
   }
 };
 
+const getSecret = (secretName) => {
+  if (myLocalSecrets === null) throw new Error('Unknown secrets');
+  if (!myLocalSecrets[secretName]) throw new Error(`Unknown ${secretName} secret`);
+
+  return myLocalSecrets[secretName];
+}
+
 const encryptionPrivate = () => {
-  if (myLocalSecrets !== null) {
-    if (!myLocalSecrets.ENCRYPTION_PRIVATE_KEY) {
-      throw new Error('Unknown ENCRYPTION_PRIVATE_KEY secret');
-    } else {
-      return myLocalSecrets.ENCRYPTION_PRIVATE_KEY;
-    }
-  } else {
-    throw new Error('Unknown secrets');
-  }
+  return getSecret('ENCRYPTION_PRIVATE_KEY');
 };
 
 const encryptionPublic = () => {
-  if (myLocalSecrets !== null) {
-    if (!myLocalSecrets.ENCRYPTION_PUBLIC_KEY) {
-      throw new Error('Unknown ENCRYPTION_PUBLIC_KEY secret');
-    } else {
-      return myLocalSecrets.ENCRYPTION_PUBLIC_KEY;
-    }
-  } else {
-    throw new Error('Unknown secrets');
-  }
+  return getSecret('ENCRYPTION_PUBLIC_KEY');
 };
 
 const encryptionPassphrase = () => {
-  if (myLocalSecrets !== null) {
-    if (!myLocalSecrets.ENCRYPTION_PASSPHRASE) {
-      throw new Error('Unknown ENCRYPTION_PASSPHRASE secret');
-    } else {
-      return myLocalSecrets.ENCRYPTION_PASSPHRASE;
-    }
-  } else {
-    throw new Error('Unknown secrets');
-  }
+  return getSecret('ENCRYPTION_PASSPHRASE');
 };
 
 module.exports = {
