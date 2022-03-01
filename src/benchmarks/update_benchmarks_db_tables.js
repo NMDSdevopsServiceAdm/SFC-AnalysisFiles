@@ -66,11 +66,11 @@ const updateBenchmarksDbTables = async (reports) => {
     setNullValues(benchmark);
 
     await transaction('BenchmarksPay').withSchema('cqc').insert({
-      "CssrID": +benchmark[benchmarksPayHeadings[0]],
-      "MainServiceFK": +benchmark[benchmarksPayHeadings[1]],
-      "EstablishmentFK": +benchmark[benchmarksPayHeadings[2]],
-      "Pay": +benchmark[benchmarksPayHeadings[3]],
-    }).returning('EstablishmentFK');
+      "CssrID": benchmark[benchmarksPayHeadings[0]],
+      "MainServiceFK": benchmark[benchmarksPayHeadings[1]],
+      "EstablishmentFK": benchmark[benchmarksPayHeadings[2]],
+      "Pay": benchmark[benchmarksPayHeadings[3]],
+    })
   }));
 
 
