@@ -122,7 +122,7 @@ const updateBenchmarksDbTables = async (reports) => {
   }));
 
   await transaction.commit();
-  console.log("Completed Benchmarks tables update");
+  console.log('Completed Benchmarks tables update');
 };
 
 module.exports = { updateBenchmarksDbTables };
