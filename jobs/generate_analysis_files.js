@@ -59,7 +59,6 @@ const uploadReportsToDataEngineering = async (workplaceFilePath, workerFilePath,
   await uploadFileToDataEngineering(getFileKey('workplace'), fs.readFileSync(workplaceFilePath));
   await uploadFileToDataEngineering(getFileKey('worker'), fs.readFileSync(workerFilePath));
   await uploadFileToDataEngineering(getFileKey('leaver'), fs.readFileSync(leaverFilePath));
-
 };
 
 const getFileKey = (fileType) => {
