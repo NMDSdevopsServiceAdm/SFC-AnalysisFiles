@@ -59,6 +59,18 @@ var config = convict({
     default: '0 0 * * *',
     env: 'CRON_CQC_CHANGES',
   },
+  dataEngineering: {
+    accessKey: {
+      doc: 'Access key for data engineering AWS',
+      default: 'bob',
+      env: 'DATA_ENGINEERING_ACCESS_KEY',
+    },
+    secretKey: {
+      doc: 'Secret key for data engineering AWS',
+      default: 'bob',
+      env: 'DATA_ENGINEERING_SECRET_KEY',
+    },
+  },
   environment: {
     doc: 'Which environment is this?',
     default: '',
@@ -130,6 +142,8 @@ if (config.get('aws.secrets.use')) {
     // config.set('encryption.private', AWSSecrets.encryptionPrivate());
     // config.set('encryption.public', AWSSecrets.encryptionPublic());
     // config.set('encryption.passphrase', AWSSecrets.encryptionPassphrase());
+    config.set('dataEngineering.accessKey', AWSSecrets.dataEngineeringAccessKey());
+    config.set('dataEngineering.secretKey', AWSSecrets.dataEngineeringSecretKey());
   });
 }
 

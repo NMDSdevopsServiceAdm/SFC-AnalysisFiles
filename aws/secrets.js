@@ -32,6 +32,8 @@ const initialiseSecrets = async (region, wallet) => {
         ENCRYPTION_PRIVATE_KEY: mySecrets.ENCRYPTION_PRIVATE_KEY,
         ENCRYPTION_PUBLIC_KEY: mySecrets.ENCRYPTION_PUBLIC_KEY,
         ENCRYPTION_PASSPHRASE: mySecrets.ENCRYPTION_PASSPHRASE,
+        DATA_ENGINEERING_ACCESS_KEY: mySecrets.DATA_ENGINEERING_ACCESS_KEY,
+        DATA_ENGINEERING_SECRET_KEY: mySecrets.DATA_ENGINEERING_SECRET_KEY,
       };
     }
   } catch (err) {
@@ -58,9 +60,19 @@ const encryptionPassphrase = () => {
   return getSecret('ENCRYPTION_PASSPHRASE');
 };
 
+const dataEngineeringAccessKey = () => {
+  return getSecret('DATA_ENGINEERING_ACCESS_KEY');
+};
+
+const dataEngineeringSecretKey = () => {
+  return getSecret('DATA_ENGINEERING_SECRET_KEY');
+};
+
 module.exports = {
   initialiseSecrets,
   encryptionPassphrase,
   encryptionPublic,
   encryptionPrivate,
+  dataEngineeringAccessKey,
+  dataEngineeringSecretKey,
 };
