@@ -50,11 +50,7 @@ const run = async () => {
     await uploadReportsToDataEngineering(workplaceFilePath, workerFilePath, leaverFilePath);
   }
   
-  const finishTime = dayjs();
-  console.log(`Finish: ${finishTime.format('DD-MM-YYYY HH:mm:ss')}`);
-
-  const duration = startTime.diff(finishTime);
-  console.log(`Duration: ${humanizeDuration(duration)}`);
+  logCompletionTimes(startTime);
 };
 
 const uploadReportsToDataEngineering = async (workplaceFilePath, workerFilePath, leaverFilePath) => {
@@ -69,6 +65,14 @@ const getFileKey = (fileType) => {
 }
 
 const inProductionEnvironment = () => config.get('environment') === 'production';
+
+const logCompletionTimes = (startTime) => {
+  const finishTime = dayjs();
+  console.log(`Finish: ${finishTime.format('DD-MM-YYYY HH:mm:ss')}`);
+
+  const duration = startTime.diff(finishTime);
+  console.log(`Duration: ${humanizeDuration(duration)}`);
+}
 
 (async () => {
   run()
