@@ -57,7 +57,6 @@ const updateBenchmarksDbTables = async (reports) => {
       "TurnoverLowTurnover": benchmark[benchmarksHeadings[23]]
     })
   }));
-
   
   await transaction('BenchmarksPay').truncate();
 
@@ -71,8 +70,10 @@ const updateBenchmarksDbTables = async (reports) => {
       "MainServiceFK": benchmark[benchmarksPayHeadings[1]],
       "EstablishmentFK": benchmark[benchmarksPayHeadings[2]],
       "Pay": benchmark[benchmarksPayHeadings[3]],
-    });
+    })
   }));
+
+
 
   await transaction('BenchmarksTurnover').truncate();
     
@@ -120,7 +121,8 @@ const updateBenchmarksDbTables = async (reports) => {
     })
   }));
 
-  console.log("Completed Benchmarks tables update");
+  await transaction.commit();
+  console.log('Completed Benchmarks tables update');
 };
 
 module.exports = { updateBenchmarksDbTables };
