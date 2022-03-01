@@ -30,7 +30,7 @@ const run = async () => {
 
   await zipAndUploadReports();
 
-  if (inProductionEnvironment()) {
+  if (config.get('dataEngineering.uploadToDataEngineering')) {
     await uploadReportsToDataEngineering(workplaceFilePath, workerFilePath, leaverFilePath);
   }
   
@@ -63,8 +63,6 @@ const getFileKey = (fileType) => {
   const now = dayjs();
   return `domain=ASCWDS/dataset=${fileType}/version=${version}/year=${now.format('YYYY')}/month=${now.format('MM')}/day=${now.format('DD')}/import_date=${now.format('YYYYMMDD')}/${fileType}.csv`;
 }
-
-const inProductionEnvironment = () => config.get('environment') === 'production';
 
 const logCompletionTimes = (startTime) => {
   const finishTime = dayjs();
