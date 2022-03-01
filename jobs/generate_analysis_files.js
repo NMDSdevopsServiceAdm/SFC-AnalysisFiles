@@ -12,6 +12,7 @@ const generateLeaversReport = require('../src/generate_analysis_files/reports/le
 const { refreshViews } = require('../src/generate_analysis_files/reports/views');
 const { uploadFile, uploadFileToDataEngineering } = require('../src/utils/s3');
 const version = require('../package.json').version;
+const config = require('../config');
 
 const reportDir = './output';
 
@@ -45,8 +46,10 @@ const run = async () => {
 
   await zipAndUploadReports();
 
-  await uploadReportsToDataEngineering(workplaceFilePath, workerFilePath, leaverFilePath);
-
+  if (inProductionEnvironment()) {
+    await uploadReportsToDataEngineering(workplaceFilePath, workerFilePath, leaverFilePath);
+  }
+  
   const finishTime = dayjs();
   console.log(`Finish: ${finishTime.format('DD-MM-YYYY HH:mm:ss')}`);
 
@@ -64,6 +67,8 @@ const getFileKey = (fileType) => {
   const now = dayjs();
   return `domain=ASCWDS/dataset=${fileType}/version=${version}/year=${now.format('YYYY')}/month=${now.format('MM')}/day=${now.format('DD')}/import_date=${now.format('YYYYMMDD')}/${fileType}.csv`;
 }
+
+const inProductionEnvironment = () => config.get('environment') === 'production';
 
 (async () => {
   run()
