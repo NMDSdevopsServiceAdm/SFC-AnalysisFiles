@@ -16,22 +16,6 @@ const config = require('../config');
 
 const reportDir = './output';
 
-const setup = async () => {
-  console.log(`Refreshing ${reportDir} directory`);
-
-  await exec(`rm -rf ${reportDir}`);
-  await exec(`mkdir ${reportDir}`);
-};
-
-const zipAndUploadReports = async () => {
-  const now = dayjs();
-  const zipName = `${now.format('YYYY-MM-DD-HH-mm-ss')}_analysis_files.zip`;
-
-  await exec(`cd ${reportDir} && zip -r ${zipName} *.csv`);
-
-  return uploadFile(zipName, fs.readFileSync(`${reportDir}/${zipName}`));
-};
-
 const run = async () => {
   const startTime = dayjs();
   console.log(`Start: ${startTime.format('DD-MM-YYYY HH:mm:ss')}`);
@@ -51,6 +35,22 @@ const run = async () => {
   }
   
   logCompletionTimes(startTime);
+};
+
+const setup = async () => {
+  console.log(`Refreshing ${reportDir} directory`);
+
+  await exec(`rm -rf ${reportDir}`);
+  await exec(`mkdir ${reportDir}`);
+};
+
+const zipAndUploadReports = async () => {
+  const now = dayjs();
+  const zipName = `${now.format('YYYY-MM-DD-HH-mm-ss')}_analysis_files.zip`;
+
+  await exec(`cd ${reportDir} && zip -r ${zipName} *.csv`);
+
+  return uploadFile(zipName, fs.readFileSync(`${reportDir}/${zipName}`));
 };
 
 const uploadReportsToDataEngineering = async (workplaceFilePath, workerFilePath, leaverFilePath) => {
