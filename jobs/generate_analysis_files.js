@@ -11,6 +11,7 @@ const generateWorkersReport = require('../src/generate_analysis_files/reports/wo
 const generateLeaversReport = require('../src/generate_analysis_files/reports/leavers');
 const { refreshViews } = require('../src/generate_analysis_files/reports/views');
 const { uploadFile, uploadFileToDataEngineering } = require('../src/utils/s3');
+const version = require('../package.json').version;
 
 const reportDir = './output';
 
@@ -42,8 +43,6 @@ const run = async () => {
   const workerFilePath = await generateWorkersReport(runDate, reportDir);
   const leaverFilePath = await generateLeaversReport(runDate, reportDir);
 
-  await generateLeaversReport(runDate, reportDir);
-
   await zipAndUploadReports();
 
   await uploadReportsToDataEngineering(workplaceFilePath, workerFilePath, leaverFilePath);
@@ -63,7 +62,7 @@ const uploadReportsToDataEngineering = async (workplaceFilePath, workerFilePath,
 
 const getFileKey = (fileType) => {
   const now = dayjs();
-  return `domain=ASCWDS/dataset=${fileType}/version=0.0.1/year=${now.format('YYYY')}/month=${now.format('MM')}/day=${now.format('DD')}/import_date=${now.format('YYYYMMDD')}/${fileType}.csv`;
+  return `domain=ASCWDS/dataset=${fileType}/version=${version}/year=${now.format('YYYY')}/month=${now.format('MM')}/day=${now.format('DD')}/import_date=${now.format('YYYYMMDD')}/${fileType}.csv`;
 }
 
 (async () => {
