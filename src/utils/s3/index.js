@@ -21,12 +21,16 @@ const uploadFile = async (fileName, body) => {
 };
 
 const uploadFileToDataEngineering = async (fileKey, body) => {
-  console.log('Uploading to S3');
+  console.log('Uploading to data engineering S3');
 
-  const s3 = new AWS.S3();
+  const s3 = new AWS.S3({
+    accessKeyId: config.get('dataEngineering.accessKey'),
+    secretAccessKey: config.get('dataEngineering.secretKey'),
+  });
+
   const params = {
-    Bucket: config.get('s3.bucket'),
-    Key: `${config.get('environment')}/${fileKey}`,
+    Bucket: config.get('s3.dataEngineeringBucket'),
+    Key: fileKey,
     Body: body,
   };
 

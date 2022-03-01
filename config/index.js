@@ -43,6 +43,11 @@ var config = convict({
       default: 'sfc-benchmark-upload-dev',
       env: 'BENCHMARKS_S3_BUCKET',
     },
+    dataEngineeringBucket: {
+      doc: 'Data engineering bucket for analysis reports',
+      default: 'sfc-data-engineering-raw',
+      env: 'DATA_ENGINEERING_S3_BUCKET',
+    },
   },
   cron: {
     doc: 'When it should run',
