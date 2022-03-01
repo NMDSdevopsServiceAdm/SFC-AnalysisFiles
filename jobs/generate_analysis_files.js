@@ -40,11 +40,13 @@ const run = async () => {
   const runDate = dayjs().format('DD-MM-YYYY');
   const workplaceFilePath = await generateWorkplaceReport(runDate, reportDir);
   const workerFilePath = await generateWorkersReport(runDate, reportDir);
+  const leaverFilePath = await generateLeaversReport(runDate, reportDir);
+
   await generateLeaversReport(runDate, reportDir);
 
   await zipAndUploadReports();
 
-  await uploadReportsToDataEngineering(workplaceFilePath, workerFilePath);
+  await uploadReportsToDataEngineering(workplaceFilePath, workerFilePath, leaverFilePath);
 
   const finishTime = dayjs();
   console.log(`Finish: ${finishTime.format('DD-MM-YYYY HH:mm:ss')}`);
@@ -53,9 +55,11 @@ const run = async () => {
   console.log(`Duration: ${humanizeDuration(duration)}`);
 };
 
-const uploadReportsToDataEngineering = async (workplaceFilePath, workerFilePath) => {
+const uploadReportsToDataEngineering = async (workplaceFilePath, workerFilePath, leaverFilePath) => {
   await uploadFileToDataEngineering(getFileKey('workplace'), fs.readFileSync(workplaceFilePath));
   await uploadFileToDataEngineering(getFileKey('worker'), fs.readFileSync(workerFilePath));
+  await uploadFileToDataEngineering(getFileKey('leaver'), fs.readFileSync(leaverFilePath));
+
 };
 
 const getFileKey = (fileType) => {
