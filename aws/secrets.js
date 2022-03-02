@@ -48,25 +48,11 @@ const getSecret = (secretName) => {
   return myLocalSecrets[secretName];
 }
 
-const encryptionPrivate = () => {
-  return getSecret('ENCRYPTION_PRIVATE_KEY');
-};
-
-const encryptionPublic = () => {
-  return getSecret('ENCRYPTION_PUBLIC_KEY');
-};
-
-const encryptionPassphrase = () => {
-  return getSecret('ENCRYPTION_PASSPHRASE');
-};
-
-const dataEngineeringAccessKey = () => {
-  return getSecret('DATA_ENGINEERING_ACCESS_KEY');
-};
-
-const dataEngineeringSecretKey = () => {
-  return getSecret('DATA_ENGINEERING_SECRET_KEY');
-};
+const encryptionPrivate = () => getSecret('ENCRYPTION_PRIVATE_KEY');
+const encryptionPublic = () => getSecret('ENCRYPTION_PUBLIC_KEY');
+const encryptionPassphrase = () => getSecret('ENCRYPTION_PASSPHRASE');
+const dataEngineeringAccessKey = () => getSecret('DATA_ENGINEERING_ACCESS_KEY');
+const dataEngineeringSecretKey = () => getSecret('DATA_ENGINEERING_SECRET_KEY');
 
 module.exports = {
   initialiseSecrets,
