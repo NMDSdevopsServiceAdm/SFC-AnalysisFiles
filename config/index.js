@@ -43,6 +43,11 @@ var config = convict({
       default: 'sfc-benchmark-upload-dev',
       env: 'BENCHMARKS_S3_BUCKET',
     },
+    dataEngineeringBucket: {
+      doc: 'Data engineering bucket for analysis reports',
+      default: 'sfc-data-engineering-raw',
+      env: 'DATA_ENGINEERING_S3_BUCKET',
+    },
   },
   cron: {
     doc: 'When it should run',
@@ -58,6 +63,23 @@ var config = convict({
     doc: 'When CQC locations update should run',
     default: '0 0 * * *',
     env: 'CRON_CQC_CHANGES',
+  },
+  dataEngineering: {
+    accessKey: {
+      doc: 'Access key for data engineering AWS',
+      default: 'bob',
+      env: 'DATA_ENGINEERING_ACCESS_KEY',
+    },
+    secretKey: {
+      doc: 'Secret key for data engineering AWS',
+      default: 'bob',
+      env: 'DATA_ENGINEERING_SECRET_KEY',
+    },
+    uploadToDataEngineering: {
+      doc: 'Whether to upload reports to data engineering AWS',
+      format: 'Boolean',
+      default: false,
+    },
   },
   environment: {
     doc: 'Which environment is this?',
@@ -125,11 +147,15 @@ config.validate({ allowed: 'strict' });
 if (config.get('aws.secrets.use')) {
   console.log('Using AWS Secrets');
   AWSSecrets.initialiseSecrets(config.get('aws.region'), config.get('aws.secrets.wallet')).then(() => {
-    // DB rebind
     console.log('Setting AWS details');
     // config.set('encryption.private', AWSSecrets.encryptionPrivate());
     // config.set('encryption.public', AWSSecrets.encryptionPublic());
     // config.set('encryption.passphrase', AWSSecrets.encryptionPassphrase());
+    
+    if (config.get('dataEngineering.uploadToDataEngineering')) {
+      config.set('dataEngineering.accessKey', AWSSecrets.dataEngineeringAccessKey());
+      config.set('dataEngineering.secretKey', AWSSecrets.dataEngineeringSecretKey());
+    }
   });
 }
 

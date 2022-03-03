@@ -20,6 +20,30 @@ const uploadFile = async (fileName, body) => {
     .promise();
 };
 
+const uploadFileToDataEngineering = async (fileKey, body) => {
+  console.log('Uploading to data engineering S3');
+
+  const s3 = new AWS.S3({
+    accessKeyId: config.get('dataEngineering.accessKey'),
+    secretAccessKey: config.get('dataEngineering.secretKey'),
+  });
+
+  const params = {
+    Bucket: config.get('s3.dataEngineeringBucket'),
+    Key: fileKey,
+    Body: body,
+  };
+
+  return s3
+    .upload(params, (err) => {
+      if (err) {
+        throw err;
+      }
+    })
+    .promise();
+};
+
 module.exports = {
   uploadFile,
+  uploadFileToDataEngineering,
 };

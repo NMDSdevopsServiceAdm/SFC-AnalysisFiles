@@ -32,6 +32,8 @@ const initialiseSecrets = async (region, wallet) => {
         ENCRYPTION_PRIVATE_KEY: mySecrets.ENCRYPTION_PRIVATE_KEY,
         ENCRYPTION_PUBLIC_KEY: mySecrets.ENCRYPTION_PUBLIC_KEY,
         ENCRYPTION_PASSPHRASE: mySecrets.ENCRYPTION_PASSPHRASE,
+        DATA_ENGINEERING_ACCESS_KEY: mySecrets.DATA_ENGINEERING_ACCESS_KEY,
+        DATA_ENGINEERING_SECRET_KEY: mySecrets.DATA_ENGINEERING_SECRET_KEY,
       };
     }
   } catch (err) {
@@ -39,45 +41,24 @@ const initialiseSecrets = async (region, wallet) => {
   }
 };
 
-const encryptionPrivate = () => {
-  if (myLocalSecrets !== null) {
-    if (!myLocalSecrets.ENCRYPTION_PRIVATE_KEY) {
-      throw new Error('Unknown ENCRYPTION_PRIVATE_KEY secret');
-    } else {
-      return myLocalSecrets.ENCRYPTION_PRIVATE_KEY;
-    }
-  } else {
-    throw new Error('Unknown secrets');
-  }
-};
+const getSecret = (secretName) => {
+  if (myLocalSecrets === null) throw new Error('Unknown secrets');
+  if (!myLocalSecrets[secretName]) throw new Error(`Unknown ${secretName} secret`);
 
-const encryptionPublic = () => {
-  if (myLocalSecrets !== null) {
-    if (!myLocalSecrets.ENCRYPTION_PUBLIC_KEY) {
-      throw new Error('Unknown ENCRYPTION_PUBLIC_KEY secret');
-    } else {
-      return myLocalSecrets.ENCRYPTION_PUBLIC_KEY;
-    }
-  } else {
-    throw new Error('Unknown secrets');
-  }
-};
+  return myLocalSecrets[secretName];
+}
 
-const encryptionPassphrase = () => {
-  if (myLocalSecrets !== null) {
-    if (!myLocalSecrets.ENCRYPTION_PASSPHRASE) {
-      throw new Error('Unknown ENCRYPTION_PASSPHRASE secret');
-    } else {
-      return myLocalSecrets.ENCRYPTION_PASSPHRASE;
-    }
-  } else {
-    throw new Error('Unknown secrets');
-  }
-};
+const encryptionPrivate = () => getSecret('ENCRYPTION_PRIVATE_KEY');
+const encryptionPublic = () => getSecret('ENCRYPTION_PUBLIC_KEY');
+const encryptionPassphrase = () => getSecret('ENCRYPTION_PASSPHRASE');
+const dataEngineeringAccessKey = () => getSecret('DATA_ENGINEERING_ACCESS_KEY');
+const dataEngineeringSecretKey = () => getSecret('DATA_ENGINEERING_SECRET_KEY');
 
 module.exports = {
   initialiseSecrets,
   encryptionPassphrase,
   encryptionPublic,
   encryptionPrivate,
+  dataEngineeringAccessKey,
+  dataEngineeringSecretKey,
 };

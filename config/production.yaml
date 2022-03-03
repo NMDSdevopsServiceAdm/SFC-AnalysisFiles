@@ -3,3 +3,5 @@ aws:
   secrets:
     use: true
     wallet: prod/api
+dataEngineering:
+  uploadToDataEngineering: true

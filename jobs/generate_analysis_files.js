@@ -10,9 +10,32 @@ const generateWorkplaceReport = require('../src/generate_analysis_files/reports/
 const generateWorkersReport = require('../src/generate_analysis_files/reports/workers');
 const generateLeaversReport = require('../src/generate_analysis_files/reports/leavers');
 const { refreshViews } = require('../src/generate_analysis_files/reports/views');
-const { uploadFile } = require('../src/utils/s3');
+const { uploadFile, uploadFileToDataEngineering } = require('../src/utils/s3');
+const version = require('../package.json').version;
+const config = require('../config');
 
 const reportDir = './output';
+
+const run = async () => {
+  const startTime = dayjs();
+  console.log(`Start: ${startTime.format('DD-MM-YYYY HH:mm:ss')}`);
+
+  await setup();
+  await refreshViews();
+
+  const runDate = dayjs().format('DD-MM-YYYY');
+  const workplaceFilePath = await generateWorkplaceReport(runDate, reportDir);
+  const workerFilePath = await generateWorkersReport(runDate, reportDir);
+  const leaverFilePath = await generateLeaversReport(runDate, reportDir);
+
+  await zipAndUploadReports();
+
+  if (config.get('dataEngineering.uploadToDataEngineering')) {
+    await uploadReportsToDataEngineering(workplaceFilePath, workerFilePath, leaverFilePath);
+  }
+  
+  logCompletionTimes(startTime);
+};
 
 const setup = async () => {
   console.log(`Refreshing ${reportDir} directory`);
@@ -30,26 +53,24 @@ const zipAndUploadReports = async () => {
   return uploadFile(zipName, fs.readFileSync(`${reportDir}/${zipName}`));
 };
 
-const run = async () => {
-  const startTime = dayjs();
-  console.log(`Start: ${startTime.format('DD-MM-YYYY HH:mm:ss')}`);
+const uploadReportsToDataEngineering = async (workplaceFilePath, workerFilePath, leaverFilePath) => {
+  await uploadFileToDataEngineering(getFileKey('workplace'), fs.readFileSync(workplaceFilePath));
+  await uploadFileToDataEngineering(getFileKey('worker'), fs.readFileSync(workerFilePath));
+  await uploadFileToDataEngineering(getFileKey('leaver'), fs.readFileSync(leaverFilePath));
+};
 
-  await setup();
-  await refreshViews();
+const getFileKey = (fileType) => {
+  const now = dayjs();
+  return `domain=ASCWDS/dataset=${fileType}/version=${version}/year=${now.format('YYYY')}/month=${now.format('MM')}/day=${now.format('DD')}/import_date=${now.format('YYYYMMDD')}/${fileType}.csv`;
+}
 
-  const runDate = dayjs().format('DD-MM-YYYY');
-  await generateWorkplaceReport(runDate, reportDir);
-  await generateWorkersReport(runDate, reportDir);
-  await generateLeaversReport(runDate, reportDir);
-
-  await zipAndUploadReports();
-
+const logCompletionTimes = (startTime) => {
   const finishTime = dayjs();
   console.log(`Finish: ${finishTime.format('DD-MM-YYYY HH:mm:ss')}`);
 
   const duration = startTime.diff(finishTime);
   console.log(`Duration: ${humanizeDuration(duration)}`);
-};
+}
 
 (async () => {
   run()

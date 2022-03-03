@@ -35,5 +35,8 @@ module.exports = async (runDate, reportDir) => {
 
   await after();
 
-  await concatFiles(files, `${reportDir}/${runDate}_workplaces_report.csv`);
+  const filePath = `${reportDir}/${runDate}_workplaces_report.csv`;
+  await concatFiles(files, filePath);
+  
+  return filePath;
 };
