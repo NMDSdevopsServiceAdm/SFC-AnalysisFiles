@@ -5494,7 +5494,22 @@ const findWorkplacesByBatch = (batchNum) =>
                   )
               THEN 1
           ELSE 0
-          END hasmandatorytraining
+          END hasmandatorytraining,
+    CASE 
+        WHEN ((SELECT GREATEST(e.updated, (
+            SELECT MAX(updated) FROM "Worker"
+                WHERE "EstablishmentFK" = e."EstablishmentID" AND "Archived" = false
+                )) < NOW() - interval '2 years')
+            AND ((
+            SELECT MAX(l."LastLoggedIn) FROM cqc."User" u 
+                LEFT JOIN cqc."Login" l
+                ON u."RegistrationID" = l."RegistrationID"
+                WHERE e."EstablishmentID" = u."EstablishmentID"
+                ) > NOW() - interval '2 years')
+        )
+        THEN 0
+        ELSE 1
+        END logindatepurge    
     FROM "Establishment" e
     JOIN "Afr1BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID"
       AND b."BatchNo" = ?`,
