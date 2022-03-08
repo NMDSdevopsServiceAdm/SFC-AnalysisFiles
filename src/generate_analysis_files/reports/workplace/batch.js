@@ -1163,6 +1163,22 @@ const findWorkplacesByBatch = (batchNum) =>
           ) mainstid,
       TO_CHAR("MainServiceFKChangedAt", 'DD/MM/YYYY') mainstid_changedate,
       TO_CHAR("MainServiceFKSavedAt", 'DD/MM/YYYY') mainstid_savedate,
+      CASE 
+        WHEN ((SELECT GREATEST(e.updated, (
+            SELECT MAX(updated) FROM "Worker"
+                WHERE "EstablishmentFK" = e."EstablishmentID" AND "Archived" = false
+                )) < current_date - interval '2 years')
+            AND ((
+            SELECT MAX(l."LastLoggedIn") 
+                FROM "User" u 
+                LEFT JOIN "Login" l
+                ON u."RegistrationID" = l."RegistrationID"
+                WHERE e."EstablishmentID" = u."EstablishmentID"
+                ) > current_date - interval '2 years')
+        )
+        THEN 0
+        ELSE 1
+      END login_date_purge, 
       -- jr28
       CASE 
           WHEN EXISTS (
