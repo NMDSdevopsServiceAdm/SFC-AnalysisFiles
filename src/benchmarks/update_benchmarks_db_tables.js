@@ -121,7 +121,13 @@ const updateBenchmarksDbTables = async (reports) => {
     })
   }));
 
+  await transaction('DataImports').withSchema('cqc').insert({
+    "Type": 'Benchmarks',
+    "Date": new Date(), 
+  });
+
   await transaction.commit();
+
   console.log('Completed Benchmarks tables update');
 };
 
