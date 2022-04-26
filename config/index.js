@@ -51,7 +51,7 @@ var config = convict({
   },
   cron: {
     doc: 'When it should run',
-    default: '0 0 1,15 * *',
+    default: '0 0 1,8,15,23 * *',
     env: 'CRON',
   },
   cronBenchmarks: {
