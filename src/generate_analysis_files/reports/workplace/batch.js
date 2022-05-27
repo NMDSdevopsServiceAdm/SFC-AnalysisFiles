@@ -1179,6 +1179,37 @@ const findWorkplacesByBatch = (batchNum) =>
         THEN 0
         ELSE 1
       END login_date_purge, 
+      
+      CASE
+         WHEN ("MainServiceFKValue" IN (20, 24, 25)
+          AND "IsRegulated" = true )
+           THEN (
+                    SELECT TO_CHAR(MAX("ViewedTime"),'DD/MM/YYYY' )   FROM "cqc"."BenchmarksViewed" "lvB"
+                     WHERE "lvB"."EstablishmentID" =   e."EstablishmentID"
+                )
+          Else '0'
+        END lastviewedbenchmarks,
+
+      CASE
+        WHEN ("MainServiceFKValue" IN (20, 24, 25)
+            AND "IsRegulated" = true )
+             THEN (
+                       SELECT count("ID") FROM "cqc"."BenchmarksViewed"  "lvB"
+                         WHERE "lvB"."ViewedTime" > current_date - interval '1 month'  and  "lvB"."EstablishmentID" =   e."EstablishmentID"
+                  ) 
+            ELSE 0
+        END benchmarkscount_month,
+
+      CASE
+	    WHEN ("MainServiceFKValue" IN (20, 24, 25)
+		  AND "IsRegulated" = true )
+		   THEN (
+                   SELECT count("ID") FROM "cqc"."BenchmarksViewed"  "lvB"
+                       WHERE "lvB"."ViewedTime" > current_date - interval '12 months'    and  "lvB"."EstablishmentID" =  e."EstablishmentID"
+              ) 
+		  ELSE 0
+		END benchmarkscount_year,
+
       -- jr28
       CASE 
           WHEN EXISTS (
