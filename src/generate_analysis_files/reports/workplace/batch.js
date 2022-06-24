@@ -1210,6 +1210,50 @@ const findWorkplacesByBatch = (batchNum) =>
 		  ELSE 0
 		END benchmarkscount_year,
 
+
+      CASE	
+        WHEN  "MoneySpentOnAdvertisingInTheLastFourWeeks" ='Don''t know'
+          THEN '-1' 
+        WHEN  "MoneySpentOnAdvertisingInTheLastFourWeeks"= 'None'
+          THEN '0'
+         ELSE(
+              SELECT   '£' || "MoneySpentOnAdvertisingInTheLastFourWeeks" FROM cqc."Establishment" 	WHERE "EstablishmentID" = e."EstablishmentID"     
+             )
+        END Advertising_costs
+
+      CASE	
+        WHEN  "PeopleInterviewedInTheLastFourWeeks" ='Don''t know'
+          THEN '-1'
+	    WHEN  "PeopleInterviewedInTheLastFourWeeks"= 'None'
+          THEN '0'
+	  
+	     ELSE(
+		      SELECT "PeopleInterviewedInTheLastFourWeeks" FROM cqc."Establishment" WHERE "EstablishmentID" =  e."EstablishmentID"       
+ 	         )
+        END Number_interviewed
+
+      CASE	
+        WHEN  "DoNewStartersRepeatMandatoryTrainingFromPreviousEmployment" = 'Yes, always'
+           THEN 1
+	    WHEN  "DoNewStartersRepeatMandatoryTrainingFromPreviousEmployment"= 'Yes, very often'
+          THEN 2
+		WHEN  "DoNewStartersRepeatMandatoryTrainingFromPreviousEmployment"= 'Yes, but not very often'
+          THEN 3
+		WHEN  "DoNewStartersRepeatMandatoryTrainingFromPreviousEmployment"= 'No, never'
+          THEN 4
+        END Repeat_training_accepted
+
+      CASE	
+        WHEN  "WouldYouAcceptCareCertificatesFromPreviousEmployment" = 'Yes, always'
+           THEN 1
+        WHEN  "WouldYouAcceptCareCertificatesFromPreviousEmployment"= 'Yes, very often'
+           THEN 2
+        WHEN  "WouldYouAcceptCareCertificatesFromPreviousEmployment"= 'Yes, but not very often'
+           THEN 3 
+        WHEN  "WouldYouAcceptCareCertificatesFromPreviousEmployment"= 'No, never'
+           THEN 4
+        END Care_Cert_accepted
+
       -- jr28
       CASE 
           WHEN EXISTS (
