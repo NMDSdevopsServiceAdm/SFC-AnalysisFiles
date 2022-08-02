@@ -1252,8 +1252,55 @@ const findWorkplacesByBatch = (batchNum) =>
         WHEN  "WouldYouAcceptCareCertificatesFromPreviousEmployment"= 'No, never'
            THEN 4
         END Care_Cert_accepted
+    
+    -- jr28
 
-      -- jr28
+      CASE
+        WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" IS NULL
+          THEN NULL
+        WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" ='Don''t know'
+          THEN -1
+        WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" ='Yes'
+          THEN 1' 
+	    WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" ='No'
+          THEN 2	  
+        END HAS_CWLoyaltyBonus,
+      
+      CASE
+        WHEN "CareWorkersCashLoyaltyForFirstTwoYears" ~* '^\\d+$'
+          THEN SELECT   '£' || "CareWorkersCashLoyaltyForFirstTwoYears" FROM cqc."Establishment" WHERE "EstablishmentID" = e."EstablishmentID"
+        END CWLoyaltyBonusAMOUNT
+
+      CASE	
+        WHEN  "SickPay" = 'Yes'
+           THEN 1
+	    WHEN  "SickPay"= 'No'
+          THEN 2
+		WHEN  "SickPay"= 'Don''t know'
+          THEN -1
+		WHEN  "SickPay" IS NULL
+          THEN NULL
+        END CWEnhancedSickPay,
+
+      CASE	
+        WHEN  "PensionContribution" = 'Yes'
+           THEN 1
+	    WHEN  "PensionContribution"= 'No'
+          THEN 2
+		WHEN  "PensionContribution"= 'Don''t know'
+          THEN -1
+		WHEN  "PensionContribution" IS NULL
+          THEN NULL
+        END CWEnhancedPension,
+     
+      CASE	
+        WHEN  "CareWorkersLeaveDaysPerYear" IS NULL
+          THEN NULL
+        ELSE(
+            SELECT "CareWorkersLeaveDaysPerYear" FROM cqc."Establishment" WHERE "EstablishmentID" =  e."EstablishmentID"       
+            )
+        END CWAnnual_leave,
+
       CASE 
           WHEN EXISTS (
                   SELECT 1
