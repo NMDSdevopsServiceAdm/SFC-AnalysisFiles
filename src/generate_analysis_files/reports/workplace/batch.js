@@ -1253,7 +1253,7 @@ const findWorkplacesByBatch = (batchNum) =>
            THEN 4
         END Care_Cert_accepted
     
-    -- jr28
+   
 
       CASE
         WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" IS NULL
@@ -1301,6 +1301,8 @@ const findWorkplacesByBatch = (batchNum) =>
             )
         END CWAnnual_leave,
 
+
+      -- jr28
       CASE 
           WHEN EXISTS (
                   SELECT 1
