@@ -1209,40 +1209,40 @@ const findWorkplacesByBatch = (batchNum) =>
               ) 
 		  ELSE 0
 		END benchmarkscount_year,
-      
-      CASE	
+
+      CASE  
         WHEN  "MoneySpentOnAdvertisingInTheLastFourWeeks" ='Don''t know'
           THEN '-1' 
         WHEN  "MoneySpentOnAdvertisingInTheLastFourWeeks"= 'None'
           THEN '0'
          ELSE(
-              SELECT   '£' || "MoneySpentOnAdvertisingInTheLastFourWeeks" FROM cqc."Establishment" 	WHERE "EstablishmentID" = e."EstablishmentID"     
+              SELECT   '£' || "MoneySpentOnAdvertisingInTheLastFourWeeks" FROM cqc."Establishment"  WHERE     "EstablishmentID" = e."EstablishmentID"           
              )
-        END Advertising_costs
+        END Advertising_costs,
 
-      CASE	
-        WHEN  "PeopleInterviewedInTheLastFourWeeks" ='Don''t know'
+     CASE  
+       WHEN  "PeopleInterviewedInTheLastFourWeeks" ='Don''t know'
           THEN '-1'
-	    WHEN  "PeopleInterviewedInTheLastFourWeeks"= 'None'
+        WHEN  "PeopleInterviewedInTheLastFourWeeks"= 'None'
           THEN '0'
-	  
-	     ELSE(
-		      SELECT "PeopleInterviewedInTheLastFourWeeks" FROM cqc."Establishment" WHERE "EstablishmentID" =  e."EstablishmentID"       
- 	         )
-        END Number_interviewed
+      
+         ELSE(
+              SELECT "PeopleInterviewedInTheLastFourWeeks" FROM cqc."Establishment" WHERE "EstablishmentID" =  e."EstablishmentID"       
+             )
+        END Number_interviewed,
 
-      CASE	
+      CASE  
         WHEN  "DoNewStartersRepeatMandatoryTrainingFromPreviousEmployment" = 'Yes, always'
            THEN 1
-	    WHEN  "DoNewStartersRepeatMandatoryTrainingFromPreviousEmployment"= 'Yes, very often'
+        WHEN  "DoNewStartersRepeatMandatoryTrainingFromPreviousEmployment"= 'Yes, very often'
           THEN 2
-		WHEN  "DoNewStartersRepeatMandatoryTrainingFromPreviousEmployment"= 'Yes, but not very often'
+        WHEN  "DoNewStartersRepeatMandatoryTrainingFromPreviousEmployment"= 'Yes, but not very often'
           THEN 3
-		WHEN  "DoNewStartersRepeatMandatoryTrainingFromPreviousEmployment"= 'No, never'
+        WHEN  "DoNewStartersRepeatMandatoryTrainingFromPreviousEmployment"= 'No, never'
           THEN 4
-        END Repeat_training_accepted
+        END Repeat_training_accepted,
 
-      CASE	
+      CASE  
         WHEN  "WouldYouAcceptCareCertificatesFromPreviousEmployment" = 'Yes, always'
            THEN 1
         WHEN  "WouldYouAcceptCareCertificatesFromPreviousEmployment"= 'Yes, very often'
@@ -1251,56 +1251,54 @@ const findWorkplacesByBatch = (batchNum) =>
            THEN 3 
         WHEN  "WouldYouAcceptCareCertificatesFromPreviousEmployment"= 'No, never'
            THEN 4
-        END Care_Cert_accepted
-    
-   
+        END Care_Cert_accepted,
 
-      CASE
-        WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" IS NULL
-          THEN NULL
-        WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" ='Don''t know'
-          THEN -1
-        WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" ='Yes'
-          THEN 1' 
-	    WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" ='No'
-          THEN 2	  
+     CASE
+        WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" IS NULL  
+           THEN NULL
+         WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" = 'Don''t know'
+           THEN -1
+        WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" = 'Yes'
+           THEN 1 
+        WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" = 'No'
+           THEN 2
         END HAS_CWLoyaltyBonus,
-      
-      CASE
-        WHEN "CareWorkersCashLoyaltyForFirstTwoYears" ~* '^\\d+$'
-          THEN SELECT   '£' || "CareWorkersCashLoyaltyForFirstTwoYears" FROM cqc."Establishment" WHERE "EstablishmentID" = e."EstablishmentID"
-        END CWLoyaltyBonusAMOUNT
 
-      CASE	
+     CASE
+        WHEN "CareWorkersCashLoyaltyForFirstTwoYears" ~ '^[0-9\.]+$'
+          THEN ( SELECT   '£' || "CareWorkersCashLoyaltyForFirstTwoYears" FROM cqc."Establishment" WHERE "EstablishmentID" =  e."EstablishmentID" )
+		
+        END CWLoyaltyBonusAMOUNT,
+		
+     CASE  
         WHEN  "SickPay" = 'Yes'
            THEN 1
-	    WHEN  "SickPay"= 'No'
+        WHEN  "SickPay"= 'No'
           THEN 2
-		WHEN  "SickPay"= 'Don''t know'
+        WHEN  "SickPay"= 'Don''t know'
           THEN -1
-		WHEN  "SickPay" IS NULL
+        WHEN  "SickPay" IS NULL
           THEN NULL
         END CWEnhancedSickPay,
 
-      CASE	
+      CASE  
         WHEN  "PensionContribution" = 'Yes'
            THEN 1
-	    WHEN  "PensionContribution"= 'No'
+        WHEN  "PensionContribution"= 'No'
           THEN 2
-		WHEN  "PensionContribution"= 'Don''t know'
+        WHEN  "PensionContribution"= 'Don''t know'
           THEN -1
-		WHEN  "PensionContribution" IS NULL
+        WHEN  "PensionContribution" IS NULL
           THEN NULL
         END CWEnhancedPension,
-     
-      CASE	
+
+        CASE  
         WHEN  "CareWorkersLeaveDaysPerYear" IS NULL
           THEN NULL
         ELSE(
             SELECT "CareWorkersLeaveDaysPerYear" FROM cqc."Establishment" WHERE "EstablishmentID" =  e."EstablishmentID"       
             )
         END CWAnnual_leave,
-
 
       -- jr28
       CASE 
