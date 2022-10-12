@@ -1113,9 +1113,9 @@ const findWorkplacesByBatch = (batchNum) =>
                       THEN 16
                   WHEN 'Shared lives'
                       THEN 17
-                  WHEN 'Disability adaptations / assistive technology services'
+                  WHEN 'Disability adaptations, assistive technology services'
                       THEN 18
-                  WHEN 'Occupational / employment-related services'
+                  WHEN 'Occupational, employment-related services'
                       THEN 19
                   WHEN 'Information and advice services'
                       THEN 20
@@ -1141,13 +1141,13 @@ const findWorkplacesByBatch = (batchNum) =>
                       THEN 64
                   WHEN 'Hospice services'
                       THEN 66
-                  WHEN 'Long term conditions services'
+                  WHEN 'Long-term conditions services'
                       THEN 67
                   WHEN 'Hospital services for people with mental health needs, learning disabilities, problems with substance misuse'
                       THEN 68
                   WHEN 'Rehabilitation services'
                       THEN 69
-                  WHEN 'Residential substance misuse treatment/ rehabilitation services'
+                  WHEN 'Residential substance misuse treatment, rehabilitation services'
                       THEN 70
                   WHEN 'Other service (healthcare)'
                       THEN 71
