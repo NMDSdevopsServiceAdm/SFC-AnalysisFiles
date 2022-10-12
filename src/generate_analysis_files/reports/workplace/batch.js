@@ -1091,11 +1091,11 @@ const findWorkplacesByBatch = (batchNum) =>
                       THEN 1
                   WHEN 'Care home services without nursing'
                       THEN 2
-                  WHEN 'Other adult residential care services'
+                  WHEN 'Other adult residential care service'
                       THEN 5
                   WHEN 'Day care and day services'
                       THEN 6
-                  WHEN 'Other adult day care services'
+                  WHEN 'Other adult day care service'
                       THEN 7
                   WHEN 'Domiciliary care services'
                       THEN 8
@@ -1105,7 +1105,7 @@ const findWorkplacesByBatch = (batchNum) =>
                       THEN 12
                   WHEN 'Carers support'
                       THEN 13
-                  WHEN 'Short breaks / respite care'
+                  WHEN 'Short breaks, respite care'
                       THEN 14
                   WHEN 'Community support and outreach'
                       THEN 15
@@ -1121,7 +1121,7 @@ const findWorkplacesByBatch = (batchNum) =>
                       THEN 20
                   WHEN 'Other adult community care service'
                       THEN 21
-                  WHEN 'Any other services'
+                  WHEN 'Other service (not healthcare)'
                       THEN 52
                   WHEN 'Sheltered housing'
                       THEN 53
@@ -1143,19 +1143,19 @@ const findWorkplacesByBatch = (batchNum) =>
                       THEN 66
                   WHEN 'Long term conditions services'
                       THEN 67
-                  WHEN 'Hospital services for people with mental health needs, learning disabilities and/or problems with substance misuse'
+                  WHEN 'Hospital services for people with mental health needs, learning disabilities, problems with substance misuse'
                       THEN 68
                   WHEN 'Rehabilitation services'
                       THEN 69
                   WHEN 'Residential substance misuse treatment/ rehabilitation services'
                       THEN 70
-                  WHEN 'Other healthcare service'
+                  WHEN 'Other service (healthcare)'
                       THEN 71
                   WHEN 'Head office services'
                       THEN 72
                   WHEN 'Nurses agency'
                       THEN 74
-                  WHEN 'Any childrens / young peoples services'
+                  WHEN 'Any children''s, young people''s service'
                       THEN 75
                   END
           FROM services
