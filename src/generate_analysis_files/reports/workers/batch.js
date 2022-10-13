@@ -604,35 +604,35 @@ const findWorkersByBatch = (batchNum) =>
        TO_CHAR(w."ContractSavedAt",'DD/MM/YYYY') emplstat_savedate,
        COALESCE((
           SELECT CASE "JobName"
-                    WHEN 'Senior Management' THEN 1
-                    WHEN 'Middle Management' THEN 2
-                    WHEN 'First Line Manager' THEN 3
+                    WHEN 'Senior management' THEN 1
+                    WHEN 'Middle management' THEN 2
+                    WHEN 'First-line manager' THEN 3
                     WHEN 'Registered Manager' THEN 4
                     WHEN 'Supervisor' THEN 5
-                    WHEN 'Social Worker' THEN 6
-                    WHEN 'Senior Care Worker' THEN 7
-                    WHEN 'Care Worker' THEN 8
-                    WHEN 'Community, Support and Outreach Work' THEN 9
-                    WHEN 'Employment Support' THEN 10
-                    WHEN 'Advice, Guidance and Advocacy' THEN 11
-                    WHEN 'Occupational Therapist' THEN 15
+                    WHEN 'Social worker' THEN 6
+                    WHEN 'Senior care worker' THEN 7
+                    WHEN 'Care worker' THEN 8
+                    WHEN 'Community, support and outreach work' THEN 9
+                    WHEN 'Employment support' THEN 10
+                    WHEN 'Advice, guidance and advocacy' THEN 11
+                    WHEN 'Occupational therapist' THEN 15
                     WHEN 'Registered Nurse' THEN 16
-                    WHEN 'Allied Health Professional (not Occupational Therapist)' THEN 17
+                    WHEN 'Allied health professional (not occupational therapist)' THEN 17
                     WHEN 'Technician' THEN 22
-                    WHEN 'Other job roles directly involved in providing care' THEN 23
-                    WHEN 'Managers and staff care-related but not care-providing' THEN 24
-                    WHEN 'Administrative / office staff not care-providing' THEN 25
-                    WHEN 'Ancillary staff not care-providing' THEN 26
-                    WHEN 'Other job roles not directly involved in providing care' THEN 27
-                    WHEN 'Activities worker or co-ordinator' THEN 34
-                    WHEN 'Safeguarding & Reviewing Officer' THEN 35
-                    WHEN 'Occupational Therapist Assistant' THEN 36
-                    WHEN 'Nursing Associate' THEN 37
-                    WHEN 'Nursing Assistant' THEN 38
-                    WHEN 'Assessment Officer' THEN 39
-                    WHEN 'Care Coordinator' THEN 40
-                    WHEN 'Care Navigator' THEN 41
-                    WHEN 'Any childrens / young people''s job role' THEN 42
+                    WHEN 'Other (directly involved in providing care)' THEN 23
+                    WHEN 'Managers and staff (care-related, but not care-providing)' THEN 24
+                    WHEN 'Administrative, office staff (non care-providing)' THEN 25
+                    WHEN 'Ancillary staff (non care-providing)' THEN 26
+                    WHEN 'Other (not directly involved in providing care)' THEN 27
+                    WHEN 'Activities worker, coordinator' THEN 34
+                    WHEN 'Safeguarding and reviewing officer' THEN 35
+                    WHEN 'Occupational therapist assistant' THEN 36
+                    WHEN 'Nursing associate' THEN 37
+                    WHEN 'Nursing assistant' THEN 38
+                    WHEN 'Assessment officer' THEN 39
+                    WHEN 'Care coordinator' THEN 40
+                    WHEN 'Care navigator' THEN 41
+                    WHEN 'Any children''s, young people''s job role' THEN 42
                  END
           FROM   "Job"
           WHERE  "JobID" = w."MainJobFKValue"
