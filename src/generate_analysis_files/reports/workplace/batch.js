@@ -1216,7 +1216,7 @@ const findWorkplacesByBatch = (batchNum) =>
         WHEN  "MoneySpentOnAdvertisingInTheLastFourWeeks"= 'None'
           THEN '0'
          ELSE(
-              SELECT   '£' || "MoneySpentOnAdvertisingInTheLastFourWeeks" FROM cqc."Establishment"  WHERE     "EstablishmentID" = e."EstablishmentID"           
+              SELECT  "MoneySpentOnAdvertisingInTheLastFourWeeks" FROM cqc."Establishment"  WHERE     "EstablishmentID" = e."EstablishmentID"           
              )
         END Advertising_costs,
 
@@ -1266,7 +1266,7 @@ const findWorkplacesByBatch = (batchNum) =>
 
      CASE
         WHEN "CareWorkersCashLoyaltyForFirstTwoYears" ~ '^[0-9\.]+$'
-          THEN ( SELECT   '£' || "CareWorkersCashLoyaltyForFirstTwoYears" FROM cqc."Establishment" WHERE "EstablishmentID" =  e."EstablishmentID" )
+          THEN ( SELECT  "CareWorkersCashLoyaltyForFirstTwoYears" FROM cqc."Establishment" WHERE "EstablishmentID" =  e."EstablishmentID" )
 		
         END CWLoyaltyBonusAMOUNT,
 		
