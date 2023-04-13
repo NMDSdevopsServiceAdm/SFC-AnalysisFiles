@@ -254,8 +254,8 @@ const findWorkplacesByBatch = (batchNum) =>
           END esttype,
       TO_CHAR("EmployerTypeChangedAt", 'DD/MM/YYYY') esttype_changedate,
       TO_CHAR("EmployerTypeSavedAt", 'DD/MM/YYYY') esttype_savedate,
-      RTRIM(regexp_replace("NameValue", '(\s{2,})|([\n\r])|(\s*,\s*)', ' ', 'g' )) establishmentname,
-      RTRIM(regexp_replace("Address1", '(\s{2,})|([\n\r])|(\s*,\s*)', ' ', 'g' )) address,
+      RTRIM(regexp_replace("NameValue", '(\\\s{2,})|([\\n\\r])|(\\\s*,\\\s*)', ' ', 'g' )) establishmentname,
+      RTRIM(regexp_replace("Address1", '(\\\s{2,})|([\\n\\r])|(\\\s*,\\\s*)', ' ', 'g' )) address,
       "PostCode" postcode,
       COALESCE((
               SELECT "RegionID"
