@@ -3,7 +3,7 @@ const dayjs = require('dayjs');
 const exec = require('await-exec');
 const config = require('../config');
 const { getBenchmarksFiles } = require('../src/utils/s3/benchmarks');
-const { updateBenchmarksDbTables } = require('../src/benchmarks/update_benchmarks_db_tables');
+// const { updateBenchmarksDbTables } = require('../src/benchmarks/update_benchmarks_db_tables');
 const { updateNewBenchmarksDbTables } = require('../src/benchmarks/update_new_benchmarks_db_tables');
 
 const slack = require('../src/utils/slack/slack-logger');
@@ -49,12 +49,12 @@ const updateBenchmarks = async () => {
     // await updateBenchmarksDbTables(reports);
     await updateNewBenchmarksDbTables(reports);
 
-    // console.log(`${dayjs()}: Files successfully updated`);
-    // await sendSlackBenchmarksUpdatedMessage(`${dayjs()}: Benchmarks successfully updated`);
+    console.log(`${dayjs()}: Files successfully updated`);
+    await sendSlackBenchmarksUpdatedMessage(`${dayjs()}: Benchmarks successfully updated`);
     return;
   } else {
     console.log(`${dayjs()}: Files not updated since ${dayjs().subtract(1, 'day')}`);
-    // await sendSlackBenchmarksUpdatedMessage(`${dayjs()}: Benchmarks not updated since ${dayjs().subtract(1, 'day')}`);
+    await sendSlackBenchmarksUpdatedMessage(`${dayjs()}: Benchmarks not updated since ${dayjs().subtract(1, 'day')}`);
     return;
   }
 };
