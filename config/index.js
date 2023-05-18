@@ -83,7 +83,7 @@ var config = convict({
   },
   environment: {
     doc: 'Which environment is this?',
-    default: '',
+    default: 'example',
     env: 'NODE_ENV',
   },
   aws: {
@@ -151,7 +151,7 @@ if (config.get('aws.secrets.use')) {
     // config.set('encryption.private', AWSSecrets.encryptionPrivate());
     // config.set('encryption.public', AWSSecrets.encryptionPublic());
     // config.set('encryption.passphrase', AWSSecrets.encryptionPassphrase());
-    
+
     if (config.get('dataEngineering.uploadToDataEngineering')) {
       config.set('dataEngineering.accessKey', AWSSecrets.dataEngineeringAccessKey());
       config.set('dataEngineering.secretKey', AWSSecrets.dataEngineeringSecretKey());
