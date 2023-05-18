@@ -16,7 +16,7 @@ const updateNewBenchmarksDbTables = async (reports) => {
 
   const qualsByEstablishmentId = await neatCsv(reports['Qualifications_by_establishmentid.csv']);
   const qualsByEstablishmentIdGoodOutstanding = await neatCsv(
-    reports['Qualifications_by_establishmentid_Good_Outstanding.csv'],
+    reports['Qualifications_by_establishmentid_Good_Oustanding.csv'],
   );
   const qualsByLAAndService = await neatCsv(reports['Qualifications_by_LA_and_service.csv']);
   const qualsByLAAndServiceGoodOutstanding = await neatCsv(
