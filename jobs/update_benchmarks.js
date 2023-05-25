@@ -3,8 +3,8 @@ const dayjs = require('dayjs');
 const exec = require('await-exec');
 const config = require('../config');
 const { getBenchmarksFiles } = require('../src/utils/s3/benchmarks');
-const { updateBenchmarksDbTables } = require('../src/benchmarks/update_benchmarks_db_tables');
-// const { updateNewBenchmarksDbTables } = require('../src/benchmarks/update_new_benchmarks_db_tables');
+// const { updateBenchmarksDbTables } = require('../src/benchmarks/update_benchmarks_db_tables');
+const { updateNewBenchmarksDbTables } = require('../src/benchmarks/update_new_benchmarks_db_tables');
 
 const slack = require('../src/utils/slack/slack-logger');
 
@@ -40,14 +40,13 @@ const downloadAllFilesFromS3 = async (benchmarksFiles) => {
 
 const updateBenchmarks = async () => {
   const benchmarksFiles = await getBenchmarksFiles();
-
   const benchmarksToBeUpdated = updatedSinceYesterday(benchmarksFiles);
-  // const benchmarksToBeUpdated = true;
+
   if (benchmarksToBeUpdated) {
     await setup();
     const reports = await downloadAllFilesFromS3(benchmarksFiles);
-    await updateBenchmarksDbTables(reports);
-    // await updateNewBenchmarksDbTables(reports);
+    // await updateBenchmarksDbTables(reports);
+    await updateNewBenchmarksDbTables(reports);
 
     console.log(`${dayjs()}: Files successfully updated`);
     await sendSlackBenchmarksUpdatedMessage(`${dayjs()}: Benchmarks successfully updated`);

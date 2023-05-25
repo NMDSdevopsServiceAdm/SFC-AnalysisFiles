@@ -155,7 +155,7 @@ const updateNewBenchmarksDbTables = async (reports) => {
     reportToDbColumnMap,
   );
 
-  await updateTable(transaction, establishmentsAndWorkers, 'BenchmarksEstablishmentAndWorkers', reportToDbColumnMap);
+  await updateTable(transaction, establishmentsAndWorkers, 'BenchmarksEstablishmentsAndWorkers', reportToDbColumnMap);
 
   await transaction('DataImports').withSchema('cqc').insert({
     Type: 'Benchmarks',
