@@ -11,7 +11,7 @@ const reportToDbColumnMap = new Map([
   ['Count_Has_SC_Qual', 'CountHasSCQual'],
   ['Count_No_SC_Qual', 'CountNoSCQual'],
   ['Qualifications', 'Qualifications'],
-  ['Workers_For_Sickness', 'WorkersForSickness'],
+  ['Workers_ForSickness', 'WorkersForSickness'],
   ['Sickness_Mean', 'AverageNoOfSickDays'],
   ['Employees', 'Employees'],
   ['Leavers', 'Leavers'],
