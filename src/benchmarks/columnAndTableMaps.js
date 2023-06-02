@@ -50,6 +50,7 @@ const fileNameToDbTableMap = new Map([
   ['TimeInRole_by_LA_and_service.csv', 'BenchmarksTimeInRoleByLAAndService'],
   ['TimeInRole_by_LA_and_service_Good_Outstanding.csv', 'BenchmarksTimeInRoleByLAAndServiceGoodOutstanding'],
   ['Establishments_and_workers.csv', 'BenchmarksEstablishmentsAndWorkers'],
+  ['Establishments_and_workers_Good_Outstanding.csv', 'BenchmarksEstablishmentsAndWorkersGoodOutstanding'],
 ]);
 
 const fileNames = [
@@ -78,6 +79,7 @@ const fileNames = [
   'TimeInRole_by_LA_and_service.csv',
   'TimeInRole_by_LA_and_service_Good_Outstanding.csv',
   'Establishments_and_workers.csv',
+  'Establishments_and_workers_Good_Outstanding.csv',
 ];
 
 module.exports = {
