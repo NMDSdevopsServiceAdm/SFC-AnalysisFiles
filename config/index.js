@@ -48,6 +48,12 @@ var config = convict({
       default: 'sfc-data-engineering-raw',
       env: 'DATA_ENGINEERING_S3_BUCKET',
     },
+    nhsBsaBucket: {
+      doc: 'NHS BSA API bucket for NHS Report',
+      default: 'nhs-bsa-report',
+      env: 'NHSBSA_S3_BUCKET',
+  
+    }
   },
   cron: {
     doc: 'When it should run',
@@ -81,6 +87,13 @@ var config = convict({
       default: false,
     },
   },
+  cronUploadToNhsBsaBucket: {
+    doc: 'It should run every night',
+    default: '0 0 * * *',
+    env: 'CRON_NHS_BSA',
+  
+  },
+  
   environment: {
     doc: 'Which environment is this?',
     default: 'example',
