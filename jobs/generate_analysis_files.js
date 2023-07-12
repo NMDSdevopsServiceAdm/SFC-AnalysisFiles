@@ -6,6 +6,8 @@ const relativeTime = require('dayjs/plugin/relativeTime');
 const humanizeDuration = require('humanize-duration');
 dayjs.extend(relativeTime);
 
+const slack = require('../src/utils/slack/slack-logger');
+
 const generateWorkplaceReport = require('../src/generate_analysis_files/reports/workplace');
 const generateWorkersReport = require('../src/generate_analysis_files/reports/workers');
 const generateLeaversReport = require('../src/generate_analysis_files/reports/leavers');
@@ -33,8 +35,9 @@ const run = async () => {
   if (config.get('dataEngineering.uploadToDataEngineering')) {
     await uploadReportsToDataEngineering(workplaceFilePath, workerFilePath, leaverFilePath);
   }
-  
+
   logCompletionTimes(startTime);
+  await sendSlackAnalysisFilesSuccessMessage();
 };
 
 const setup = async () => {
@@ -72,12 +75,28 @@ const logCompletionTimes = (startTime) => {
   console.log(`Duration: ${humanizeDuration(duration)}`);
 }
 
+const sendSlackAnalysisFilesSuccessMessage = async () => {
+  console.log(`${dayjs()}: The analysis files were successfully uploaded`) 
+  await slack.info(`${config.get('db.name')} - Run analysis files`, 
+  `${dayjs()}: The analysis files were successfully uploaded`, 
+  'slack.benchmarksUrl');
+}
+
+const sendSlackAnalysisFilesErrorMessage = async (errorMessage) => {
+  await slack.error(
+    `${config.get('db.name')} - Run analysis files`,
+    `There was an error uploading analysis files \n ${errorMessage}`,
+    'slack.benchmarksUrl',
+  );
+}
+
 (async () => {
   run()
     .then(() => {
       process.exit(0);
     })
-    .catch((err) => {
+    .catch(async(err) => {
+      await sendSlackAnalysisFilesErrorMessage(err)
       console.error(err);
       process.exit(1);
     });
