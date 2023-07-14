@@ -1,8 +1,7 @@
 const db = require('../src/generate_analysis_files/db');
 const axios = require('axios');
 const config = require('../config');
-
-const postcodes = ['CR03FP'];
+const { postcodes } = require('./postcodes');
 
 const getLongitudeLatitude = async () => {
   console.log('Start update');
