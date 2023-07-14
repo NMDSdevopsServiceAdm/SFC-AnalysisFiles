@@ -132,6 +132,12 @@ var config = convict({
       default: 3,
     },
   },
+  getAddress: {
+    apiKey: {
+      doc: 'getAddress api key',
+      env: 'GET_ADDRESS_API_KEY',
+    },
+  },
 });
 // Load environment dependent configuration
 var env = config.get('environment');
