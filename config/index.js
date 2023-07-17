@@ -136,6 +136,7 @@ var config = convict({
     apiKey: {
       doc: 'getAddress api key',
       env: 'GET_ADDRESS_API_KEY',
+      default: 'api_key',
     },
   },
 });
