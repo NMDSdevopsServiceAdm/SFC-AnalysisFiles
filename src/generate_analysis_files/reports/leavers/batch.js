@@ -595,7 +595,7 @@ const findLeaversByBatch = (batchNum) =>
                      WHEN 'Senior management' THEN 1
                      WHEN 'Middle management' THEN 2
                      WHEN 'First-line manager' THEN 3
-                     WHEN 'Registered manager' THEN 4
+                     WHEN 'Registered Manager' THEN 4
                      WHEN 'Supervisor' THEN 5
                      WHEN 'Social worker' THEN 6
                      WHEN 'Senior care worker' THEN 7
@@ -604,7 +604,7 @@ const findLeaversByBatch = (batchNum) =>
                      WHEN 'Employment support' THEN 10
                      WHEN 'Advice, guidance and advocacy' THEN 11
                      WHEN 'Occupational therapist' THEN 15
-                     WHEN 'Registered nurse' THEN 16
+                     WHEN 'Registered Nurse' THEN 16
                      WHEN 'Allied health professional (not occupational therapist)' THEN 17
                      WHEN 'Technician' THEN 22
                      WHEN 'Other (directly involved in providing care)' THEN 23
