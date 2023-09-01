@@ -1878,6 +1878,18 @@ const findLeaversByBatch = (batchNum) =>
           WHEN 6 THEN 1
           ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 6 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
        END jr42flag,
+       CASE "MainJobFKValue"
+          WHEN 30 THEN 1
+          ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 30 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
+       END jr43flag,
+       CASE "MainJobFKValue"
+          WHEN 31 THEN 1
+          ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 31 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
+       END jr44flag,
+       CASE "MainJobFKValue"
+          WHEN 32 THEN 1
+          ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 32 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
+       END jr45flag,
        CASE "RegisteredNurseValue"
           WHEN 'Adult Nurse' THEN 1
           WHEN 'Mental Health Nurse' THEN 2
