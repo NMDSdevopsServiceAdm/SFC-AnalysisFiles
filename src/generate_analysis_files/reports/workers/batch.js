@@ -2505,6 +2505,9 @@ const findWorkersByBatch = (batchNum) =>
                WHEN '8' THEN 40
                WHEN '9' THEN 41
                WHEN '6' THEN 42
+               WHEN '30' THEN 43
+               WHEN '31' THEN 44
+               WHEN '32' THEN 45
             END
          FROM "WorkerAudit"
          WHERE "WorkerFK" = w."ID"
