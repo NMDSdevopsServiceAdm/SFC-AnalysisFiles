@@ -15,6 +15,10 @@ const scheduler = new Bree({
       name: 'cqc_changes',
       cron: config.get('cronCqcChanges'),
     },
+    {
+      name: 'nhs_bsa_report',
+      cron: config.get('cronUploadToNhsBsaBucket'),
+    },
   ],
 });
 
