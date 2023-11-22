@@ -47,7 +47,7 @@ const createBatches = async (runDate, numInBatch = 2000) => {
   );
 
   await db.raw('CREATE INDEX "Afr1BatchiSkAi0mo_idx" ON "Afr1BatchiSkAi0mo"("BatchNo")');
-
+  await db.raw(`SELECT * FROM "Afr1BatchiSkAi0mo"`); // We need to do this SELECT statement to ensure the Table is availible otherwise the next function will fail
   await populateBatch(numInBatch);
 };
 

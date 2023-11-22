@@ -1,3 +1,5 @@
+'use strict';
+
 const exec = require('await-exec');
 const fs = require('fs');
 
@@ -16,7 +18,7 @@ const { uploadFile, uploadFileToDataEngineering } = require('../src/utils/s3');
 const version = require('../package.json').version;
 const config = require('../config');
 
-const reportDir = './output';
+const reportDir = '/tmp/generate_analysisfile/output';
 
 const run = async () => {
   const startTime = dayjs();
@@ -43,8 +45,8 @@ const run = async () => {
 const setup = async () => {
   console.log(`Refreshing ${reportDir} directory`);
 
-  await exec(`rm -rf ${reportDir}`);
-  await exec(`mkdir ${reportDir}`);
+  // await exec(`rm -rf ${reportDir}`);
+  await exec(`mkdir -p ${reportDir}`);
 };
 
 const zipAndUploadReports = async () => {
@@ -76,9 +78,9 @@ const logCompletionTimes = (startTime) => {
 }
 
 const sendSlackAnalysisFilesSuccessMessage = async () => {
-  console.log(`${dayjs()}: The analysis files were successfully uploaded`) 
-  await slack.info(`${config.get('db.name')} - Run analysis files`, 
-  `${dayjs()}: The analysis files were successfully uploaded`, 
+  console.log(`${dayjs()}: The analysis files were successfully uploaded`)
+  await slack.info(`${config.get('db.name')} - Run analysis files`,
+  `${dayjs()}: The analysis files were successfully uploaded`,
   'slack.benchmarksUrl');
 }
 
@@ -101,3 +103,6 @@ const sendSlackAnalysisFilesErrorMessage = async (errorMessage) => {
       process.exit(1);
     });
 })();
+
+
+module.exports = { run }
