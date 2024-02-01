@@ -16,7 +16,7 @@ const { uploadFile, uploadFileToDataEngineering } = require('../src/utils/s3');
 const version = require('../package.json').version;
 const config = require('../config');
 
-const reportDir = './output';
+const reportDir = '/tmp/generate_analysisfile/output';
 
 const run = async () => {
   const startTime = dayjs();
@@ -44,7 +44,7 @@ const setup = async () => {
   console.log(`Refreshing ${reportDir} directory`);
 
   await exec(`rm -rf ${reportDir}`);
-  await exec(`mkdir ${reportDir}`);
+  await exec(`mkdir -p ${reportDir}`);
 };
 
 const zipAndUploadReports = async () => {
