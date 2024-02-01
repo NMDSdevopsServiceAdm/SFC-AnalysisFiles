@@ -81,6 +81,18 @@ var config = convict({
       default: false,
     },
   },
+  reports: {
+    accessKey: {
+      doc: 'Access key for reports AWS',
+      default: 'change_me',
+      env: 'REPORTS_ACCESS_KEY',
+    },
+    secretKey: {
+      doc: 'Secret key for reports AWS',
+      default: 'change_me',
+      env: 'REPORTS_SECRET_KEY',
+    },
+  },
   environment: {
     doc: 'Which environment is this?',
     default: 'example',
