@@ -163,19 +163,19 @@ config.load(envConfigfile);
 // Perform validation
 config.validate({ allowed: 'strict' });
 
-if (config.get('aws.secrets.use')) {
-  console.log('Using AWS Secrets');
-  AWSSecrets.initialiseSecrets(config.get('aws.region'), config.get('aws.secrets.wallet')).then(() => {
-    console.log('Setting AWS details');
-    // config.set('encryption.private', AWSSecrets.encryptionPrivate());
-    // config.set('encryption.public', AWSSecrets.encryptionPublic());
-    // config.set('encryption.passphrase', AWSSecrets.encryptionPassphrase());
+// if (config.get('aws.secrets.use')) {
+//   console.log('Using AWS Secrets');
+//   AWSSecrets.initialiseSecrets(config.get('aws.region'), config.get('aws.secrets.wallet')).then(() => {
+//     console.log('Setting AWS details');
+//     // config.set('encryption.private', AWSSecrets.encryptionPrivate());
+//     // config.set('encryption.public', AWSSecrets.encryptionPublic());
+//     // config.set('encryption.passphrase', AWSSecrets.encryptionPassphrase());
 
-    if (config.get('dataEngineering.uploadToDataEngineering')) {
-      config.set('dataEngineering.accessKey', AWSSecrets.dataEngineeringAccessKey());
-      config.set('dataEngineering.secretKey', AWSSecrets.dataEngineeringSecretKey());
-    }
-  });
-}
+//     if (config.get('dataEngineering.uploadToDataEngineering')) {
+//       config.set('dataEngineering.accessKey', AWSSecrets.dataEngineeringAccessKey());
+//       config.set('dataEngineering.secretKey', AWSSecrets.dataEngineeringSecretKey());
+//     }
+//   });
+// }
 
 module.exports = config;
