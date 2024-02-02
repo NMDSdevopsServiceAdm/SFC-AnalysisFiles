@@ -109,7 +109,7 @@ var config = convict({
         doc:
           'Whether to use AWS Secret Manager to retrieve sensitive information, e.g. ENCRYPTION_PRIVATE_KEY. If false, expect to read from environment variables.',
         format: 'Boolean',
-        default: true,
+        default: false,
       },
       wallet: {
         doc: 'The name of the AWS Secrets Manager wallet to recall from',
