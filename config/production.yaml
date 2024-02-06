@@ -1,5 +1,7 @@
 aws:
   region: eu-west-1
   secrets:
-    use: false
+    use: true
     wallet: prod/api
+dataEngineering:
+  uploadToDataEngineering: true

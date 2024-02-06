@@ -109,7 +109,7 @@ var config = convict({
         doc:
           'Whether to use AWS Secret Manager to retrieve sensitive information, e.g. ENCRYPTION_PRIVATE_KEY. If false, expect to read from environment variables.',
         format: 'Boolean',
-        default: false,
+        default: true,
       },
       wallet: {
         doc: 'The name of the AWS Secrets Manager wallet to recall from',
@@ -134,6 +134,12 @@ var config = convict({
       format: 'url',
       default: 'unknown',
       env: 'SLACK_BENCHMARKS_URL',
+    },
+    analysisFileUrl: {
+      doc: 'update analysis file slack notification endpoint',
+      format: 'url',
+      default: 'unknown',
+      env: 'SLACK_ANALYSIS_FILE_URL',
     },
     level: {
       doc: 'The level of notifications to be sent to Slack: 0 - disabled, 1-error, 2-warning, 3-info, 5 - trace',
@@ -163,19 +169,19 @@ config.load(envConfigfile);
 // Perform validation
 config.validate({ allowed: 'strict' });
 
-// if (config.get('aws.secrets.use')) {
-//   console.log('Using AWS Secrets');
-//   AWSSecrets.initialiseSecrets(config.get('aws.region'), config.get('aws.secrets.wallet')).then(() => {
-//     console.log('Setting AWS details');
-//     // config.set('encryption.private', AWSSecrets.encryptionPrivate());
-//     // config.set('encryption.public', AWSSecrets.encryptionPublic());
-//     // config.set('encryption.passphrase', AWSSecrets.encryptionPassphrase());
+if (config.get('aws.secrets.use')) {
+  console.log('Using AWS Secrets');
+  AWSSecrets.initialiseSecrets(config.get('aws.region'), config.get('aws.secrets.wallet')).then(() => {
+    console.log('Setting AWS details');
+    // config.set('encryption.private', AWSSecrets.encryptionPrivate());
+    // config.set('encryption.public', AWSSecrets.encryptionPublic());
+    // config.set('encryption.passphrase', AWSSecrets.encryptionPassphrase());
 
-//     if (config.get('dataEngineering.uploadToDataEngineering')) {
-//       config.set('dataEngineering.accessKey', AWSSecrets.dataEngineeringAccessKey());
-//       config.set('dataEngineering.secretKey', AWSSecrets.dataEngineeringSecretKey());
-//     }
-//   });
-// }
+    if (config.get('dataEngineering.uploadToDataEngineering')) {
+      config.set('dataEngineering.accessKey', AWSSecrets.dataEngineeringAccessKey());
+      config.set('dataEngineering.secretKey', AWSSecrets.dataEngineeringSecretKey());
+    }
+  });
+}
 
 module.exports = config;

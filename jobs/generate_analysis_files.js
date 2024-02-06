@@ -79,14 +79,14 @@ const sendSlackAnalysisFilesSuccessMessage = async () => {
   console.log(`${dayjs()}: The analysis files were successfully uploaded`) 
   await slack.info(`${config.get('db.name')} - Run analysis files`, 
   `${dayjs()}: The analysis files were successfully uploaded`, 
-  'slack.benchmarksUrl');
+  'slack.analysisFileUrl');
 }
 
 const sendSlackAnalysisFilesErrorMessage = async (errorMessage) => {
   await slack.error(
     `${config.get('db.name')} - Run analysis files`,
     `There was an error uploading analysis files \n ${errorMessage}`,
-    'slack.benchmarksUrl',
+    'slack.analysisFileUrl',
   );
 }
 
