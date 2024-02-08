@@ -3,7 +3,6 @@ const config = require('../../../config');
 
 async function getBenchmarksFiles() {
 
-  // const s3 = new AWS.S3();
   const s3 = new AWS.S3({
     accessKeyId: config.get('reports.accessKey'),
     secretAccessKey: config.get('reports.secretKey'),
