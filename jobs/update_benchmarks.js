@@ -9,10 +9,7 @@ const { updateNewBenchmarksDbTables } = require('../src/benchmarks/update_new_be
 const slack = require('../src/utils/slack/slack-logger');
 
 const reportDir = './benchmarkFiles';
-const s3 = new AWS.S3({
-  accessKeyId: config.get('reports.accessKey'),
-  secretAccessKey: config.get('reports.secretKey'),
-});
+const s3 = new AWS.S3();
 
 const setup = async () => {
   console.log(`Refreshing ${reportDir} directory`);
