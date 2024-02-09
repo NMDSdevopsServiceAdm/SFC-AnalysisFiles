@@ -29,9 +29,10 @@ const dbConfig = {
         ]
       }
     }
-  }).getServiceCreds(config.get('db.name')).uri,
+  }).getServiceCreds(config.get('db.url')),
   dialect: config.get('db.dialect'),
   logging: config.get('log.sequelize'),
+
 };
 
 const sequelize = new Sequelize(dbConfig.uri, dbConfig);
