@@ -30,7 +30,7 @@ const dbConfig = {
         ]
       }
     }
-  }).getServiceCreds(config.get('db')).uri,
+  }).getServiceCreds(config.get('db.name')).uri,
   dialect: config.get('db.dialect'),
   logging: config.get('log.sequelize'),
 
