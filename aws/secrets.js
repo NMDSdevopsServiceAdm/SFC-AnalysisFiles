@@ -7,6 +7,7 @@ const initialiseSecrets = async (region, wallet) => {
     region,
   });
   console.log('Initialising AWS Secret');
+  console.log({dbConfigName:config.get('db.name'),dbConfig:config.get('db.url') });
   try {
     if (!wallet) throw new Error('wallet must be defined');
     const mySecretsValue = await secrets
@@ -21,6 +22,7 @@ const initialiseSecrets = async (region, wallet) => {
       });
 
     console.log('Checking Secret');
+    console.log({dbConfigName:config.get('db.name'),dbConfig:config.get('db.url') });
     if (typeof mySecretsValue.SecretString !== 'undefined') {
       const mySecrets = JSON.parse(mySecretsValue.SecretString);
 

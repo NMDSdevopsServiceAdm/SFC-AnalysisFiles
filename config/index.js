@@ -168,11 +168,16 @@ config.load(envConfigfile);
 
 // Perform validation
 config.validate({ allowed: 'strict' });
-
+console.log('before using AWS');
+console.log({dbConfigName:config.get('db.name'),dbConfig:config.get('db.url') });
 if (config.get('aws.secrets.use')) {
+  console.log('After using AWS');
+console.log({dbConfigName:config.get('db.name'),dbConfig:config.get('db.url') });
   console.log('Using AWS Secrets');
   AWSSecrets.initialiseSecrets(config.get('aws.region'), config.get('aws.secrets.wallet')).then(() => {
     console.log('Setting AWS details');
+    console.log('After Setting AWS');
+    console.log({dbConfigName:config.get('db.name'),dbConfig:config.get('db.url') });
     // config.set('encryption.private', AWSSecrets.encryptionPrivate());
     // config.set('encryption.public', AWSSecrets.encryptionPublic());
     // config.set('encryption.passphrase', AWSSecrets.encryptionPassphrase());
