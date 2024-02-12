@@ -7,8 +7,7 @@ const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
 const db = {};
 const cfenv =  require('cfenv');
-const { log } = require('util');
-
+console.log({dbConfigName:config.get('db.name'),dbConfig:config.get('db.url') });
 const dbConfig = {
   pool: {
     max: 10000,
