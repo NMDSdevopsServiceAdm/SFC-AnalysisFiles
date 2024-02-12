@@ -24,7 +24,7 @@ const dbConfig = {
       services: {
         postgres: [
           {
-            name: 'db.name',
+            name: 'localhost',
             credentials: {
               uri: config.get('db.url')
             }
