@@ -7,6 +7,9 @@ const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
 const db = {};
 const cfenv =  require('cfenv');
+
+console.log('inside index model file');
+
 console.log({dbConfigName:config.get('db.name'),dbConfig:config.get('db.url') });
 const dbConfig = {
   pool: {
