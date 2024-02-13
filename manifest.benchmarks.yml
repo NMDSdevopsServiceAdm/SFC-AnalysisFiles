@@ -5,8 +5,8 @@ applications:
     instances: 1
     buildpack: https://github.com/cloudfoundry/nodejs-buildpack.git#v1.7.31
     services:
-      - sfcbenchmarksdb
+      - sfc-db-benchmark
     env:
-      SERVICE_NAME: sfcbenchmarksdb
+      SERVICE_NAME: sfc-db-benchmark
       NODE_ENV: benchmarks
 stack: cflinuxfs3

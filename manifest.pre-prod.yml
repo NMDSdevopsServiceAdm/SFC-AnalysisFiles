@@ -5,8 +5,8 @@ applications:
     instances: 1
     buildpack: https://github.com/cloudfoundry/nodejs-buildpack.git#v1.7.31
     services:
-      - sfcuatdb02
+      - sfc-db-preprod
     env:
-      SERVICE_NAME: sfcuatdb02
-      NODE_ENV: preproduction
+      SERVICE_NAME: sfc-db-preprod
+      NODE_ENV: preprod
 stack: cflinuxfs3
