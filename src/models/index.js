@@ -10,7 +10,6 @@ const cfenv =  require('cfenv');
 
 console.log('inside index model file');
 
-console.log({dbConfigName:config.get('db.name'),dbConfig:config.get('db.url') });
 const dbConfig = {
   pool: {
     max: 10000,
