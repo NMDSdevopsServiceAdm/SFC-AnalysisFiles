@@ -1,7 +1,5 @@
-'use strict';
 
 const AWS = require('aws-sdk');
-const config = require('../config/index');
 
 let myLocalSecrets = null;
 
@@ -11,8 +9,6 @@ const initialiseSecrets = async (region, wallet) => {
   });
   console.log('Initialising AWS Secret');
   try {
-  console.log('Initialising inside the try AWS Secret');
-  console.log({dbConfigName:config.get('db.name'),dbConfig:config.get('db.url') });
     if (!wallet) throw new Error('wallet must be defined');
     const mySecretsValue = await secrets
       .getSecretValue({ SecretId: wallet })
@@ -25,8 +21,7 @@ const initialiseSecrets = async (region, wallet) => {
         throw error;
       });
 
-    console.log('Checking Secret');
-    console.log({dbConfigName:config.get('db.name'),dbConfig:config.get('db.url') });
+console.log('Checking Secret');
     if (typeof mySecretsValue.SecretString !== 'undefined') {
       const mySecrets = JSON.parse(mySecretsValue.SecretString);
 

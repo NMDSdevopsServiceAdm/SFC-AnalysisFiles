@@ -10,7 +10,6 @@ const cfenv =  require('cfenv');
 
 console.log('inside index model file');
 
-console.log({dbConfigName:config.get('db.name'),dbConfig:config.get('db.url') });
 const dbConfig = {
   pool: {
     max: 10000,
@@ -24,7 +23,7 @@ const dbConfig = {
       services: {
         postgres: [
           {
-            name: 'localhost',
+            name: config.get('db.name'),
             credentials: {
               uri: config.get('db.url')
             }
