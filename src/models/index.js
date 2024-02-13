@@ -8,8 +8,6 @@ const basename = path.basename(__filename);
 const db = {};
 const cfenv =  require('cfenv');
 
-console.log('inside index model file');
-
 const dbConfig = {
   pool: {
     max: 10000,
@@ -37,7 +35,6 @@ const dbConfig = {
 
 };
 
-console.log({dbConfig:dbConfig});
 const sequelize = new Sequelize(dbConfig.uri, dbConfig);
 
 fs
