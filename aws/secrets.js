@@ -10,7 +10,6 @@ const initialiseSecrets = async (region, wallet) => {
     region,
   });
   console.log('Initialising AWS Secret');
-  console.log({dbConfigName:config.get('db.name'),dbConfig:config.get('db.url') });
   try {
   console.log('Initialising inside the try AWS Secret');
   console.log({dbConfigName:config.get('db.name'),dbConfig:config.get('db.url') });
