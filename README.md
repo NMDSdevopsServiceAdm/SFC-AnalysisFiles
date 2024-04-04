@@ -51,5 +51,5 @@ journalctl -u  sfcreports.service  --since "1 hour ago"
 To check the status of the application use command below
 
 ```
- systemctl status sfcreports.service
+systemctl status sfcreports.service
 ```
