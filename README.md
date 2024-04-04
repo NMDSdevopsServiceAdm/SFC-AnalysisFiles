@@ -20,57 +20,36 @@ Once the reports have been generated, they will be uploaded to S3 for the Analys
 
 [Knex](http://knexjs.org) is the library we use to communicate with the DB.
 
-# Running the Scheduler
+# Installing the ansible and running the deployment
 
-Install the project dependencies
-
-```
-npm i
-```
-
-Set up ENV vars
+Install ansible on your machine using homebrew 
 
 ```
-export DATABASE_URL=
-export AWS_ACCESS_KEY_ID=
-export AWS_SECRET_ACCESS_KEY=
-export REPORTS_S3_BUCKET=
-export CRON=
-export NODE_ENV=
+brew install ansible
 ```
 
-Run the scheduler
+To run the deployment cd into the ansible directory and make sure you are allowed to SSH into EC2
 
 ```
-node src/index.js
+ansible-playbook --inventory-file inventory --private-key ~/.ssh/sfc-db  playbook.yml --user ubuntu -vvv
 ```
 
-Change the schedule
-
-The jobs and the schedule that they run on can be found in `src/index.js`
-
-# Running as a task
+For the changes to take place you should use the command below in the root of the directory after doing the SSH
 
 ```
-cf run-task sfcreports-staging -c "node --max-old-space-size=8192 jobs/generate_analysis_files.js" --name run-analysis-files -m 8G -k 4G
+sudo systemctl reload-or-restart sfcreports.service
 ```
 
-# Deployment
+# Logging and troubleshooting
 
-## Staging
-
-```
-cf push --no-route -f manifest.staging.yml -u process
-```
-
-## Pre-prod
+To see the logs for each environment run the command below in the terminal after the SSH
 
 ```
-cf push --no-route -f manifest.pre-prod.yml -u process
+journalctl -u  sfcreports.service  --since "1 hour ago"
 ```
 
-## Production
+To check the status of the application use command below
 
 ```
-cf push --no-route -f manifest.prod.yml -u process
+systemctl status sfcreports.service
 ```
