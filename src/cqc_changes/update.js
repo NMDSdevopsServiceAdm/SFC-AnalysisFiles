@@ -7,7 +7,8 @@ const slack = require('../utils/slack/slack-logger');
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
-const cqcEndpoint = config.get('cqcApiUrl')
+const cqcEndpoint = config.get('cqcApi.url');
+const cqcSubscriptionKey = config.get('cqcApi.subscriptionKey');
 
 const updateLocation = async (location, runCount, rateLimitExceededLocations, retrying) => {
     try {
@@ -15,7 +16,7 @@ const updateLocation = async (location, runCount, rateLimitExceededLocations, re
         console.log(`Updated ${runCount} locations`);
       }
 
-      const individualLocation = await axios.get(cqcEndpoint + '/locations/' + location.locationId);
+      const individualLocation = await axios.get(cqcEndpoint + '/locations/' + location.locationId, { 'headers': { 'Ocp-Apim-Subscription-Key': cqcSubscriptionKey }});
 
       if (!individualLocation.data.deregistrationDate) {
         // not deregistered so must exist

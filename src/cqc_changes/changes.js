@@ -4,7 +4,8 @@ const config = require('../../config/index')
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
-const cqcEndpoint = config.get('cqcApiUrl')
+const cqcEndpoint = config.get('cqcApi.url');
+const cqcSubscriptionKey = config.get('cqcApi.subscriptionKey');
 
 const getChangedIds = async (startTimestamp, endTimestamp) => {
     let changes = [];
@@ -13,7 +14,7 @@ const getChangedIds = async (startTimestamp, endTimestamp) => {
 
     do {
       const changeUrl = cqcEndpoint + nextPage;
-      const response = await axios.get(changeUrl);
+      const response = await axios.get(changeUrl, { 'headers': { 'Ocp-Apim-Subscription-Key': cqcSubscriptionKey }});
       nextPage = response.data.nextPageUri;
             
       response.data.changes.forEach((location) => {

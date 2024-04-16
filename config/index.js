@@ -118,9 +118,18 @@ var config = convict({
       },
     },
   },
-  cqcApiUrl: {
-    doc: 'The API endpoint for CQC',
-    default: 'https://api.cqc.org.uk/public/v1',
+  cqcApi: {
+    url: {
+      doc: 'The API endpoint for CQC',
+      format: 'url',
+      default: 'https://api.service.cqc.org.uk/public/v1',
+    },
+    subscriptionKey: {
+      doc: 'The subscription key passed in CQC API calls',
+      format: String,
+      default: '',
+      env: 'CQC_SUBSCRIPTION_KEY',
+    },
   },
   slack: {
     url: {
