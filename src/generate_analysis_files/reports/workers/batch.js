@@ -636,6 +636,13 @@ const findWorkersByBatch = (batchNum) =>
                     WHEN 'Deputy manager' THEN 43
                     WHEN 'Learning and development lead' THEN 44
                     WHEN 'Team leader' THEN 45
+                    WHEN 'Data Analyst' THEN 46
+                    WHEN 'Data governance manager' THEN 47
+                    WHEN 'IT and digital support' THEN 48
+                    WHEN 'IT Manager' THEN 49
+                    WHEN 'IT service desk manager' THEN 50
+                    WHEN 'Software developer' THEN 51
+                    WHEN 'Support worker' THEN 52
                  END
           FROM   "Job"
           WHERE  "JobID" = w."MainJobFKValue"
@@ -1908,6 +1915,18 @@ const findWorkersByBatch = (batchNum) =>
           WHEN 32 THEN 1
           ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 32 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
        END jr45flag,
+       CASE "MainJobFKValue"
+          WHEN 33 THEN 1
+          ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 33 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
+       END jr46flag,
+       CASE "MainJobFKValue"
+          WHEN 35 THEN 1
+          ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 35 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
+       END jr48flag,
+       CASE "MainJobFKValue"
+          WHEN 38 THEN 1
+          ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 38 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
+       END jr51flag,
        CASE "RegisteredNurseValue"
           WHEN 'Adult Nurse' THEN 1
           WHEN 'Mental Health Nurse' THEN 2
@@ -2508,6 +2527,13 @@ const findWorkersByBatch = (batchNum) =>
                WHEN '30' THEN 43
                WHEN '31' THEN 44
                WHEN '32' THEN 45
+               WHEN '33' THEN 46
+               WHEN '34' THEN 47
+               WHEN '35' THEN 48
+               WHEN '36' THEN 49
+               WHEN '37' THEN 50
+               WHEN '38' THEN 51
+               WHEN '39' THEN 52
             END
          FROM "WorkerAudit"
          WHERE "WorkerFK" = w."ID"
