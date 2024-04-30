@@ -40,7 +40,7 @@ const downloadAllFilesFromS3 = async (benchmarksFiles) => {
 
 const updateBenchmarks = async () => {
   const benchmarksFiles = await getBenchmarksFiles();
-  const benchmarksToBeUpdated = true;//updatedSinceYesterday(benchmarksFiles);
+  const benchmarksToBeUpdated = updatedSinceYesterday(benchmarksFiles);
 
   if (benchmarksToBeUpdated) {
     await setup();
