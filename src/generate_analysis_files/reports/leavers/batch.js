@@ -624,7 +624,7 @@ const findLeaversByBatch = (batchNum) =>
                      WHEN 'Deputy manager' THEN 43
                      WHEN 'Learning and development lead' THEN 44
                      WHEN 'Team leader' THEN 45
-                     WHEN 'Data Analyst' THEN 46
+                     WHEN 'Data analyst' THEN 46
                      WHEN 'Data governance manager' THEN 47
                      WHEN 'IT and digital support' THEN 48
                      WHEN 'IT manager' THEN 49
