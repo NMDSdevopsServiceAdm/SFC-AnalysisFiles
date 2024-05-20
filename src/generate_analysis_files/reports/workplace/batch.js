@@ -4766,7 +4766,588 @@ const findWorkplacesByBatch = (batchNum) =>
                       WHERE "EstablishmentID" = e."EstablishmentID"
                           AND "JobID" = 32
                       ), - 1)
-          END jr45vacy,   
+          END jr45vacy, 
+      -- jr46
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 33
+                  )
+              THEN 1
+          ELSE 0
+          END jr46flag,
+      COALESCE((
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 33
+          ), 0) jr46perm,
+      COALESCE((
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 33
+          ), 0) jr46temp,
+      COALESCE((
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 33
+          ), 0) jr46pool,
+      COALESCE((
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 33
+          ), 0) jr46agcy,
+      COALESCE((
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 33
+          ), 0) jr46oth,
+      COALESCE((
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 33
+          ), 0) jr46emp,
+      COALESCE((
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 33
+          ), 0) jr46work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 33
+                      ), - 1)
+          END jr46strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 33
+                      ), - 1)
+          END jr46stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 33
+                      ), - 1)
+          END jr46vacy,
+      -- jr47
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 34
+                  )
+              THEN 1
+          ELSE 0
+          END jr47flag,
+      COALESCE((
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 34
+          ), 0) jr47perm,
+      COALESCE((
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 34
+          ), 0) jr47temp,
+      COALESCE((
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 34
+          ), 0) jr47pool,
+      COALESCE((
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 34
+          ), 0) jr47agcy,
+      COALESCE((
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 34
+          ), 0) jr47oth,
+      COALESCE((
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 34
+          ), 0) jr47emp,
+      COALESCE((
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 34
+          ), 0) jr47work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 34
+                      ), - 1)
+          END jr47strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 34
+                      ), - 1)
+          END jr47stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 34
+                      ), - 1)
+          END jr47vacy,
+      -- jr48
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 35
+                  )
+              THEN 1
+          ELSE 0
+          END jr48flag,
+      COALESCE((
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 35
+          ), 0) jr48perm,
+      COALESCE((
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 35
+          ), 0) jr48temp,
+      COALESCE((
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 35
+          ), 0) jr48pool,
+      COALESCE((
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 35
+          ), 0) jr48agcy,
+      COALESCE((
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 35
+          ), 0) jr48oth,
+      COALESCE((
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 35
+          ), 0) jr48emp,
+      COALESCE((
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 35
+          ), 0) jr48work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 35
+                      ), - 1)
+          END jr48strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 35
+                      ), - 1)
+          END jr48stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 35
+                      ), - 1)
+          END jr48vacy,
+      -- jr49
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 36
+                  )
+              THEN 1
+          ELSE 0
+          END jr49flag,
+      COALESCE((
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 36
+          ), 0) jr49perm,
+      COALESCE((
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 36
+          ), 0) jr49temp,
+      COALESCE((
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 36
+          ), 0) jr49pool,
+      COALESCE((
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 36
+          ), 0) jr49agcy,
+      COALESCE((
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 36
+          ), 0) jr49oth,
+      COALESCE((
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 36
+          ), 0) jr49emp,
+      COALESCE((
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 36
+          ), 0) jr49work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 36
+                      ), - 1)
+          END jr49strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 36
+                      ), - 1)
+          END jr49stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 36
+                      ), - 1)
+          END jr49vacy,
+      -- jr50
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 37
+                  )
+              THEN 1
+          ELSE 0
+          END jr50flag,
+      COALESCE((
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 37
+          ), 0) jr50perm,
+      COALESCE((
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 37
+          ), 0) jr50temp,
+      COALESCE((
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 37
+          ), 0) jr50pool,
+      COALESCE((
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 37
+          ), 0) jr50agcy,
+      COALESCE((
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 37
+          ), 0) jr50oth,
+      COALESCE((
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 37
+          ), 0) jr50emp,
+      COALESCE((
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 37
+          ), 0) jr50work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 37
+                      ), - 1)
+          END jr50strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 37
+                      ), - 1)
+          END jr50stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 37
+                      ), - 1)
+          END jr50vacy,
+      -- jr51
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 38
+                  )
+              THEN 1
+          ELSE 0
+          END jr51flag,
+      COALESCE((
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 38
+          ), 0) jr51perm,
+      COALESCE((
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 38
+          ), 0) jr51temp,
+      COALESCE((
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 38
+          ), 0) jr51pool,
+      COALESCE((
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 38
+          ), 0) jr51agcy,
+      COALESCE((
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 38
+          ), 0) jr51oth,
+      COALESCE((
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 38
+          ), 0) jr51emp,
+      COALESCE((
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 38
+          ), 0) jr51work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 38
+                      ), - 1)
+          END jr51strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 38
+                      ), - 1)
+          END jr51stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 38
+                      ), - 1)
+          END jr51vacy,
+      -- jr52
+      CASE 
+          WHEN EXISTS (
+                  SELECT 1
+                  FROM "WorkerContractStats"
+                  WHERE "EstablishmentFK" = e."EstablishmentID"
+                      AND "MainJobFKValue" = 39
+                  )
+              THEN 1
+          ELSE 0
+          END jr52flag,
+      COALESCE((
+          SELECT total_perm_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 39
+          ), 0) jr52perm,
+      COALESCE((
+          SELECT total_temp_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 39
+          ), 0) jr52temp,
+      COALESCE((
+          SELECT total_pool_bank
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 39
+          ), 0) jr52pool,
+      COALESCE((
+          SELECT total_agency
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 39
+          ), 0) jr52agcy,
+      COALESCE((
+          SELECT total_other
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 39
+          ), 0) jr52oth,
+      COALESCE((
+          SELECT total_employed
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 39
+          ), 0) jr52emp,
+      COALESCE((
+          SELECT total_staff
+          FROM "WorkerContractStats"
+          WHERE "EstablishmentFK" = e."EstablishmentID"
+              AND "MainJobFKValue" = 39
+          ), 0) jr52work,
+      CASE 
+          WHEN "StartersValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_starters
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 39
+                      ), - 1)
+          END jr52strt,
+      CASE 
+          WHEN "LeaversValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_leavers
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 39
+                      ), - 1)
+          END jr52stop,
+      CASE 
+          WHEN "VacanciesValue" = 'None'
+              THEN 0
+          ELSE COALESCE((
+                      SELECT total_vacancies
+                      FROM "WorkerJobStats"
+                      WHERE "EstablishmentID" = e."EstablishmentID"
+                          AND "JobID" = 39
+                      ), - 1)
+          END jr52vacy,
       TO_CHAR("ServiceUsersChangedAt", 'DD/MM/YYYY') ut_changedate,
       TO_CHAR("ServiceUsersSavedAt", 'DD/MM/YYYY') ut_savedate,
       COALESCE((
