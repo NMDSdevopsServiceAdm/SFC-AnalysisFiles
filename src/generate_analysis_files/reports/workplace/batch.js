@@ -1397,7 +1397,8 @@ const findWorkplacesByBatch = (batchNum) =>
                           3,
                           29,
                           20,
-                          16
+                          16,
+                          52
                           )
                   )
               THEN 1
@@ -1415,7 +1416,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   3,
                   29,
                   20,
-                  16
+                  16,
+                  52
                   )
           ), 0) jr29perm,
       COALESCE((
@@ -1430,7 +1432,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   3,
                   29,
                   20,
-                  16
+                  16,
+                  52
                   )
           ), 0) jr29temp,
       COALESCE((
@@ -1445,7 +1448,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   3,
                   29,
                   20,
-                  16
+                  16,
+                  52
                   )
           ), 0) jr29pool,
       COALESCE((
@@ -1460,7 +1464,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   3,
                   29,
                   20,
-                  16
+                  16,
+                  52
                   )
           ), 0) jr29agcy,
       COALESCE((
@@ -1475,7 +1480,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   3,
                   29,
                   20,
-                  16
+                  16,
+                  52
                   )
           ), 0) jr29oth,
       COALESCE((
@@ -1490,7 +1496,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   3,
                   29,
                   20,
-                  16
+                  16,
+                  52
                   )
           ), 0) jr29emp,
       COALESCE((
@@ -1505,7 +1512,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   3,
                   29,
                   20,
-                  16
+                  16,
+                  52
                   )
           ), 0) jr29work,
       CASE 
@@ -1523,7 +1531,8 @@ const findWorkplacesByBatch = (batchNum) =>
                               3,
                               29,
                               20,
-                              16
+                              16,
+                              52
                               )
                       ), - 1)
           END jr29strt,
@@ -1542,7 +1551,8 @@ const findWorkplacesByBatch = (batchNum) =>
                               3,
                               29,
                               20,
-                              16
+                              16,
+                              52
                               )
                       ), - 1)
           END jr29stop,
@@ -1561,7 +1571,8 @@ const findWorkplacesByBatch = (batchNum) =>
                               3,
                               29,
                               20,
-                              16
+                              16,
+                              52
                               )
                       ), - 1)
           END jr29vacy,
@@ -1579,7 +1590,10 @@ const findWorkplacesByBatch = (batchNum) =>
                           28,
                           14,
                           30,
-                          32
+                          32,
+                          47,
+                          49,
+                          50
                           )
                   )
               THEN 1
@@ -1597,7 +1611,10 @@ const findWorkplacesByBatch = (batchNum) =>
                   28,
                   14,
                   30,
-                  32
+                  32,
+                  47,
+                  49,
+                  50
                   )
           ), 0) jr30perm,
       COALESCE((
@@ -1612,7 +1629,10 @@ const findWorkplacesByBatch = (batchNum) =>
                   28,
                   14,
                   30,
-                  32
+                  32,
+                  47,
+                  49,
+                  50
                   )
           ), 0) jr30temp,
       COALESCE((
@@ -1627,7 +1647,10 @@ const findWorkplacesByBatch = (batchNum) =>
                   28,
                   14,
                   30,
-                  32
+                  32,
+                  47,
+                  49,
+                  50
                   )
           ), 0) jr30pool,
       COALESCE((
@@ -1642,7 +1665,10 @@ const findWorkplacesByBatch = (batchNum) =>
                   28,
                   14,
                   30,
-                  32
+                  32,
+                  47,
+                  49,
+                  50
                   )
           ), 0) jr30agcy,
       COALESCE((
@@ -1657,7 +1683,10 @@ const findWorkplacesByBatch = (batchNum) =>
                   28,
                   14,
                   30,
-                  32
+                  32,
+                  47,
+                  49,
+                  50
                   )
           ), 0) jr30oth,
       COALESCE((
@@ -1672,7 +1701,10 @@ const findWorkplacesByBatch = (batchNum) =>
                   28,
                   14,
                   30,
-                  32
+                  32,
+                  47,
+                  49,
+                  50
                   )
           ), 0) jr30emp,
       COALESCE((
@@ -1687,7 +1719,10 @@ const findWorkplacesByBatch = (batchNum) =>
                   28,
                   14,
                   30,
-                  32
+                  32,
+                  47,
+                  49,
+                  50
                   )
           ), 0) jr30work,
       CASE 
@@ -1705,7 +1740,10 @@ const findWorkplacesByBatch = (batchNum) =>
                               28,
                               14,
                               30,
-                              32
+                              32,
+                              47,
+                              49,
+                              50
                               )
                       ), - 1)
           END jr30strt,
@@ -1724,7 +1762,10 @@ const findWorkplacesByBatch = (batchNum) =>
                               28,
                               14,
                               30,
-                              32
+                              32,
+                              47,
+                              49,
+                              50
                               )
                       ), - 1)
           END jr30stop,
@@ -1743,7 +1784,10 @@ const findWorkplacesByBatch = (batchNum) =>
                               28,
                               14,
                               30,
-                              32
+                              32,
+                              47,
+                              49,
+                              50
                               )
                       ), - 1)
           END jr30vacy,
@@ -1923,7 +1967,10 @@ const findWorkplacesByBatch = (batchNum) =>
                           8,
                           9,
                           6,
-                          31
+                          31,
+                          46,
+                          48,
+                          51
                           )
                   )
               THEN 1
@@ -1943,7 +1990,10 @@ const findWorkplacesByBatch = (batchNum) =>
                   8,
                   9,
                   6,
-                  31
+                  31,
+                  46,
+                  48,
+                  51
                   )
           ), 0) jr32perm,
     COALESCE((
@@ -1960,7 +2010,10 @@ const findWorkplacesByBatch = (batchNum) =>
                   8,
                   9,
                   6,
-                  31
+                  31,
+                  46,
+                  48,
+                  51
                   )
           ), 0) jr32temp,
     COALESCE((
@@ -1977,7 +2030,10 @@ const findWorkplacesByBatch = (batchNum) =>
                   8,
                   9,
                   6,
-                  31
+                  31,
+                  46,
+                  48,
+                  51
                   )
           ), 0) jr32pool,
     COALESCE((
@@ -1994,7 +2050,10 @@ const findWorkplacesByBatch = (batchNum) =>
                   8,
                   9,
                   6,
-                  31
+                  31,
+                  46,
+                  48,
+                  51
                   )
           ), 0) jr32agcy,
     COALESCE((
@@ -2011,7 +2070,10 @@ const findWorkplacesByBatch = (batchNum) =>
                   8,
                   9,
                   6,
-                  31
+                  31,
+                  46,
+                  48,
+                  51
                   )
           ), 0) jr32oth,
     COALESCE((
@@ -2028,7 +2090,10 @@ const findWorkplacesByBatch = (batchNum) =>
                   8,
                   9,
                   6,
-                  31
+                  31,
+                  46,
+                  48,
+                  51
                   )
           ), 0) jr32emp,
     COALESCE((
@@ -2045,7 +2110,10 @@ const findWorkplacesByBatch = (batchNum) =>
                   8,
                   9,
                   6,
-                  31
+                  31,
+                  46,
+                  48,
+                  51
                   )
           ), 0) jr32work,
       CASE 
@@ -2065,7 +2133,10 @@ const findWorkplacesByBatch = (batchNum) =>
                               8,
                               9,
                               6,
-                              31
+                              31,
+                              46,
+                              48,
+                              51
                               )
                       ), - 1)
           END jr32strt,
@@ -2086,7 +2157,10 @@ const findWorkplacesByBatch = (batchNum) =>
                               8,
                               9,
                               6,
-                              31
+                              31,
+                              46,
+                              48,
+                              51
                               )
                       ), - 1)
           END jr32stop,
@@ -2107,7 +2181,10 @@ const findWorkplacesByBatch = (batchNum) =>
                               8,
                               9,
                               6,
-                              31
+                              31,
+                              46,
+                              48,
+                              51
                               )
                       ), - 1)
           END jr32vacy,
