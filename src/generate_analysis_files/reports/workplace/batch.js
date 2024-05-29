@@ -1397,7 +1397,8 @@ const findWorkplacesByBatch = (batchNum) =>
                           3,
                           29,
                           20,
-                          16
+                          16,
+                          52
                           )
                   )
               THEN 1
@@ -1415,7 +1416,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   3,
                   29,
                   20,
-                  16
+                  16,
+                  52
                   )
           ), 0) jr29perm,
       COALESCE((
@@ -1430,7 +1432,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   3,
                   29,
                   20,
-                  16
+                  16,
+                  52
                   )
           ), 0) jr29temp,
       COALESCE((
@@ -1445,7 +1448,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   3,
                   29,
                   20,
-                  16
+                  16,
+                  52
                   )
           ), 0) jr29pool,
       COALESCE((
@@ -1460,7 +1464,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   3,
                   29,
                   20,
-                  16
+                  16,
+                  52
                   )
           ), 0) jr29agcy,
       COALESCE((
@@ -1475,7 +1480,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   3,
                   29,
                   20,
-                  16
+                  16,
+                  52
                   )
           ), 0) jr29oth,
       COALESCE((
@@ -1490,7 +1496,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   3,
                   29,
                   20,
-                  16
+                  16,
+                  52
                   )
           ), 0) jr29emp,
       COALESCE((
@@ -1505,7 +1512,8 @@ const findWorkplacesByBatch = (batchNum) =>
                   3,
                   29,
                   20,
-                  16
+                  16,
+                  52
                   )
           ), 0) jr29work,
       CASE 
@@ -1523,7 +1531,8 @@ const findWorkplacesByBatch = (batchNum) =>
                               3,
                               29,
                               20,
-                              16
+                              16,
+                              52
                               )
                       ), - 1)
           END jr29strt,
@@ -1542,7 +1551,8 @@ const findWorkplacesByBatch = (batchNum) =>
                               3,
                               29,
                               20,
-                              16
+                              16,
+                              52
                               )
                       ), - 1)
           END jr29stop,
@@ -1561,7 +1571,8 @@ const findWorkplacesByBatch = (batchNum) =>
                               3,
                               29,
                               20,
-                              16
+                              16,
+                              52
                               )
                       ), - 1)
           END jr29vacy,
