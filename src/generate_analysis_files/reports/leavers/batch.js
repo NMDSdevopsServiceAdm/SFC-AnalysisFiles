@@ -2436,7 +2436,7 @@ const findLeaversByBatch = (batchNum) =>
        COALESCE((SELECT total_training FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 34 LIMIT 1), 0) tr40count,
        COALESCE((SELECT total_accredited_yes FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 34 LIMIT 1), 0) tr40ac,
        COALESCE((SELECT total_accredited_no FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 34 LIMIT 1), 0) tr40nac,
-       COALESCE((SELECT total_accredited_unknown FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 34 LIMIT 1), 0) tr40dn
+       COALESCE((SELECT total_accredited_unknown FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 34 LIMIT 1), 0) tr40dn,
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 41 LIMIT 1) THEN 1 ELSE 0 END tr44flag,
        (SELECT latest_training_date FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 41 LIMIT 1) tr44latestdate,
        COALESCE((SELECT total_training FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 41 LIMIT 1), 0) tr44count,
@@ -2484,7 +2484,7 @@ const findLeaversByBatch = (batchNum) =>
        COALESCE((SELECT total_training FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 48 LIMIT 1), 0) tr54count,
        COALESCE((SELECT total_accredited_yes FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 48 LIMIT 1), 0) tr54ac,
        COALESCE((SELECT total_accredited_no FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 48 LIMIT 1), 0) tr54nac,
-       COALESCE((SELECT total_accredited_unknown FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 48 LIMIT 1), 0) tr54dn,
+       COALESCE((SELECT total_accredited_unknown FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 48 LIMIT 1), 0) tr54dn
 FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND w."Archived" = true
 JOIN "Afr3BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
