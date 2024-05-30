@@ -1,4 +1,5 @@
 const db = require('../../db');
+const { jobRoleGroups } = require('./jobRoleGroups');
 
 const getUnassignedBatchCount = async () => {
   const { count } = (await db('Afr1BatchiSkAi0mo').whereNull('BatchNo').count().first()) || {};
@@ -1389,17 +1390,7 @@ const findWorkplacesByBatch = (batchNum) =>
                   SELECT 1
                   FROM "WorkerContractStats"
                   WHERE "EstablishmentFK" = e."EstablishmentID"
-                      AND "MainJobFKValue" IN (
-                          25,
-                          10,
-                          11,
-                          12,
-                          3,
-                          29,
-                          20,
-                          16,
-                          52
-                          )
+                  AND "MainJobFKValue" IN (${jobRoleGroups.directCare})
                   )
               THEN 1
           ELSE 0
@@ -1408,113 +1399,43 @@ const findWorkplacesByBatch = (batchNum) =>
           SELECT SUM(total_perm_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  25,
-                  10,
-                  11,
-                  12,
-                  3,
-                  29,
-                  20,
-                  16,
-                  52
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.directCare})
           ), 0) jr29perm,
       COALESCE((
           SELECT SUM(total_temp_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  25,
-                  10,
-                  11,
-                  12,
-                  3,
-                  29,
-                  20,
-                  16,
-                  52
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.directCare})
           ), 0) jr29temp,
       COALESCE((
           SELECT SUM(total_pool_bank)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  25,
-                  10,
-                  11,
-                  12,
-                  3,
-                  29,
-                  20,
-                  16,
-                  52
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.directCare})
           ), 0) jr29pool,
       COALESCE((
           SELECT SUM(total_agency)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  25,
-                  10,
-                  11,
-                  12,
-                  3,
-                  29,
-                  20,
-                  16,
-                  52
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.directCare})
           ), 0) jr29agcy,
       COALESCE((
           SELECT SUM(total_other)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  25,
-                  10,
-                  11,
-                  12,
-                  3,
-                  29,
-                  20,
-                  16,
-                  52
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.directCare})
           ), 0) jr29oth,
       COALESCE((
           SELECT SUM(total_employed)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  25,
-                  10,
-                  11,
-                  12,
-                  3,
-                  29,
-                  20,
-                  16,
-                  52
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.directCare})
           ), 0) jr29emp,
       COALESCE((
           SELECT SUM(total_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  25,
-                  10,
-                  11,
-                  12,
-                  3,
-                  29,
-                  20,
-                  16,
-                  52
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.directCare})
           ), 0) jr29work,
       CASE 
           WHEN "StartersValue" = 'None'
@@ -1523,17 +1444,7 @@ const findWorkplacesByBatch = (batchNum) =>
                       SELECT SUM(total_starters)
                       FROM "WorkerJobStats"
                       WHERE "EstablishmentID" = e."EstablishmentID"
-                          AND "JobID" IN (
-                              25,
-                              10,
-                              11,
-                              12,
-                              3,
-                              29,
-                              20,
-                              16,
-                              52
-                              )
+                          AND "JobID" IN (${jobRoleGroups.directCare})
                       ), - 1)
           END jr29strt,
       CASE 
@@ -1543,17 +1454,7 @@ const findWorkplacesByBatch = (batchNum) =>
                       SELECT SUM(total_leavers)
                       FROM "WorkerJobStats"
                       WHERE "EstablishmentID" = e."EstablishmentID"
-                          AND "JobID" IN (
-                              25,
-                              10,
-                              11,
-                              12,
-                              3,
-                              29,
-                              20,
-                              16,
-                              52
-                              )
+                          AND "JobID" IN (${jobRoleGroups.directCare})
                       ), - 1)
           END jr29stop,
       CASE 
@@ -1563,17 +1464,7 @@ const findWorkplacesByBatch = (batchNum) =>
                       SELECT SUM(total_vacancies)
                       FROM "WorkerJobStats"
                       WHERE "EstablishmentID" = e."EstablishmentID"
-                          AND "JobID" IN (
-                              25,
-                              10,
-                              11,
-                              12,
-                              3,
-                              29,
-                              20,
-                              16,
-                              52
-                              )
+                          AND "JobID" IN (${jobRoleGroups.directCare})
                       ), - 1)
           END jr29vacy,
       -- jr30
@@ -1582,19 +1473,7 @@ const findWorkplacesByBatch = (batchNum) =>
                   SELECT 1
                   FROM "WorkerContractStats"
                   WHERE "EstablishmentFK" = e."EstablishmentID"
-                      AND "MainJobFKValue" IN (
-                          26,
-                          15,
-                          13,
-                          22,
-                          28,
-                          14,
-                          30,
-                          32,
-                          47,
-                          49,
-                          50
-                          )
+                  AND "MainJobFKValue" IN (${jobRoleGroups.manager})
                   )
               THEN 1
           ELSE 0
@@ -1603,127 +1482,43 @@ const findWorkplacesByBatch = (batchNum) =>
           SELECT SUM(total_perm_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  26,
-                  15,
-                  13,
-                  22,
-                  28,
-                  14,
-                  30,
-                  32,
-                  47,
-                  49,
-                  50
-                  )
+          AND "MainJobFKValue" IN (${jobRoleGroups.manager})
           ), 0) jr30perm,
       COALESCE((
           SELECT SUM(total_temp_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  26,
-                  15,
-                  13,
-                  22,
-                  28,
-                  14,
-                  30,
-                  32,
-                  47,
-                  49,
-                  50
-                  )
+          AND "MainJobFKValue" IN (${jobRoleGroups.manager})
           ), 0) jr30temp,
       COALESCE((
           SELECT SUM(total_pool_bank)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  26,
-                  15,
-                  13,
-                  22,
-                  28,
-                  14,
-                  30,
-                  32,
-                  47,
-                  49,
-                  50
-                  )
+          AND "MainJobFKValue" IN (${jobRoleGroups.manager})
           ), 0) jr30pool,
       COALESCE((
           SELECT SUM(total_agency)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  26,
-                  15,
-                  13,
-                  22,
-                  28,
-                  14,
-                  30,
-                  32,
-                  47,
-                  49,
-                  50
-                  )
+          AND "MainJobFKValue" IN (${jobRoleGroups.manager})
           ), 0) jr30agcy,
       COALESCE((
           SELECT SUM(total_other)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  26,
-                  15,
-                  13,
-                  22,
-                  28,
-                  14,
-                  30,
-                  32,
-                  47,
-                  49,
-                  50
-                  )
+         AND "MainJobFKValue" IN (${jobRoleGroups.manager})
           ), 0) jr30oth,
       COALESCE((
           SELECT SUM(total_employed)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  26,
-                  15,
-                  13,
-                  22,
-                  28,
-                  14,
-                  30,
-                  32,
-                  47,
-                  49,
-                  50
-                  )
+          AND "MainJobFKValue" IN (${jobRoleGroups.manager})
           ), 0) jr30emp,
       COALESCE((
           SELECT SUM(total_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  26,
-                  15,
-                  13,
-                  22,
-                  28,
-                  14,
-                  30,
-                  32,
-                  47,
-                  49,
-                  50
-                  )
+          AND "MainJobFKValue" IN (${jobRoleGroups.manager})
           ), 0) jr30work,
       CASE 
           WHEN "StartersValue" = 'None'
@@ -1732,19 +1527,7 @@ const findWorkplacesByBatch = (batchNum) =>
                       SELECT SUM(total_starters)
                       FROM "WorkerJobStats"
                       WHERE "EstablishmentID" = e."EstablishmentID"
-                          AND "JobID" IN (
-                              26,
-                              15,
-                              13,
-                              22,
-                              28,
-                              14,
-                              30,
-                              32,
-                              47,
-                              49,
-                              50
-                              )
+                          AND "JobID" IN (${jobRoleGroups.manager})
                       ), - 1)
           END jr30strt,
       CASE 
@@ -1754,19 +1537,7 @@ const findWorkplacesByBatch = (batchNum) =>
                       SELECT SUM(total_leavers)
                       FROM "WorkerJobStats"
                       WHERE "EstablishmentID" = e."EstablishmentID"
-                          AND "JobID" IN (
-                              26,
-                              15,
-                              13,
-                              22,
-                              28,
-                              14,
-                              30,
-                              32,
-                              47,
-                              49,
-                              50
-                              )
+                          AND "JobID" IN (${jobRoleGroups.manager})
                       ), - 1)
           END jr30stop,
       CASE 
@@ -1776,19 +1547,7 @@ const findWorkplacesByBatch = (batchNum) =>
                       SELECT SUM(total_vacancies)
                       FROM "WorkerJobStats"
                       WHERE "EstablishmentID" = e."EstablishmentID"
-                          AND "JobID" IN (
-                              26,
-                              15,
-                              13,
-                              22,
-                              28,
-                              14,
-                              30,
-                              32,
-                              47,
-                              49,
-                              50
-                              )
+                          AND "JobID" IN (${jobRoleGroups.manager})
                       ), - 1)
           END jr30vacy,
       -- jr31
@@ -1797,14 +1556,7 @@ const findWorkplacesByBatch = (batchNum) =>
                   SELECT 1
                   FROM "WorkerContractStats"
                   WHERE "EstablishmentFK" = e."EstablishmentID"
-                      AND "MainJobFKValue" IN (
-                          27,
-                          18,
-                          23,
-                          4,
-                          24,
-                          17
-                          )
+                      AND "MainJobFKValue" IN (${jobRoleGroups.professional})
                   )
               THEN 1
           ELSE 0
@@ -1813,92 +1565,43 @@ const findWorkplacesByBatch = (batchNum) =>
           SELECT SUM(total_perm_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  27,
-                  18,
-                  23,
-                  4,
-                  24,
-                  17
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.professional})
           ), 0) jr31perm,
       COALESCE((
           SELECT SUM(total_temp_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  27,
-                  18,
-                  23,
-                  4,
-                  24,
-                  17
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.professional})
           ), 0) jr31temp,
       COALESCE((
           SELECT SUM(total_pool_bank)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  27,
-                  18,
-                  23,
-                  4,
-                  24,
-                  17
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.professional})
           ), 0) jr31pool,
       COALESCE((
           SELECT SUM(total_agency)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  27,
-                  18,
-                  23,
-                  4,
-                  24,
-                  17
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.professional})
           ), 0) jr31agcy,
       COALESCE((
           SELECT SUM(total_other)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  27,
-                  18,
-                  23,
-                  4,
-                  24,
-                  17
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.professional})
           ), 0) jr31oth,
       COALESCE((
           SELECT SUM(total_employed)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  27,
-                  18,
-                  23,
-                  4,
-                  24,
-                  17
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.professional})
           ), 0) jr31emp,
       COALESCE((
           SELECT SUM(total_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  27,
-                  18,
-                  23,
-                  4,
-                  24,
-                  17
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.professional})
           ), 0) jr31work,
       CASE 
           WHEN "StartersValue" = 'None'
@@ -1907,14 +1610,7 @@ const findWorkplacesByBatch = (batchNum) =>
                       SELECT SUM(total_starters)
                       FROM "WorkerJobStats"
                       WHERE "EstablishmentID" = e."EstablishmentID"
-                          AND "JobID" IN (
-                              27,
-                              18,
-                              23,
-                              4,
-                              24,
-                              17
-                              )
+                          AND "JobID" IN (${jobRoleGroups.professional})
                       ), - 1)
           END jr31strt,
       CASE 
@@ -1924,14 +1620,7 @@ const findWorkplacesByBatch = (batchNum) =>
                       SELECT SUM(total_leavers)
                       FROM "WorkerJobStats"
                       WHERE "EstablishmentID" = e."EstablishmentID"
-                          AND "JobID" IN (
-                              27,
-                              18,
-                              23,
-                              4,
-                              24,
-                              17
-                              )
+                          AND "JobID" IN (${jobRoleGroups.professional})
                       ), - 1)
           END jr31stop,
       CASE 
@@ -1941,14 +1630,7 @@ const findWorkplacesByBatch = (batchNum) =>
                       SELECT SUM(total_vacancies)
                       FROM "WorkerJobStats"
                       WHERE "EstablishmentID" = e."EstablishmentID"
-                          AND "JobID" IN (
-                              27,
-                              18,
-                              23,
-                              4,
-                              24,
-                              17
-                              )
+                          AND "JobID" IN (${jobRoleGroups.professional})
                       ), - 1)
           END jr31vacy,
       -- jr32
@@ -1957,21 +1639,7 @@ const findWorkplacesByBatch = (batchNum) =>
                   SELECT 1
                   FROM "WorkerContractStats"
                   WHERE "EstablishmentFK" = e."EstablishmentID"
-                      AND "MainJobFKValue" IN (
-                          2,
-                          5,
-                          21,
-                          1,
-                          19,
-                          7,
-                          8,
-                          9,
-                          6,
-                          31,
-                          46,
-                          48,
-                          51
-                          )
+                  AND "MainJobFKValue" IN (${jobRoleGroups.other})
                   )
               THEN 1
           ELSE 0
@@ -1980,141 +1648,43 @@ const findWorkplacesByBatch = (batchNum) =>
           SELECT SUM(total_perm_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  2,
-                  5,
-                  21,
-                  1,
-                  19,
-                  7,
-                  8,
-                  9,
-                  6,
-                  31,
-                  46,
-                  48,
-                  51
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.other})
           ), 0) jr32perm,
     COALESCE((
           SELECT SUM(total_temp_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  2,
-                  5,
-                  21,
-                  1,
-                  19,
-                  7,
-                  8,
-                  9,
-                  6,
-                  31,
-                  46,
-                  48,
-                  51
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.other})
           ), 0) jr32temp,
     COALESCE((
           SELECT SUM(total_pool_bank)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  2,
-                  5,
-                  21,
-                  1,
-                  19,
-                  7,
-                  8,
-                  9,
-                  6,
-                  31,
-                  46,
-                  48,
-                  51
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.other})
           ), 0) jr32pool,
     COALESCE((
           SELECT SUM(total_agency)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  2,
-                  5,
-                  21,
-                  1,
-                  19,
-                  7,
-                  8,
-                  9,
-                  6,
-                  31,
-                  46,
-                  48,
-                  51
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.other})
           ), 0) jr32agcy,
     COALESCE((
           SELECT SUM(total_other)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  2,
-                  5,
-                  21,
-                  1,
-                  19,
-                  7,
-                  8,
-                  9,
-                  6,
-                  31,
-                  46,
-                  48,
-                  51
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.other})
           ), 0) jr32oth,
     COALESCE((
           SELECT SUM(total_employed)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  2,
-                  5,
-                  21,
-                  1,
-                  19,
-                  7,
-                  8,
-                  9,
-                  6,
-                  31,
-                  46,
-                  48,
-                  51
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.other})
           ), 0) jr32emp,
     COALESCE((
           SELECT SUM(total_staff)
           FROM "WorkerContractStats"
           WHERE "EstablishmentFK" = e."EstablishmentID"
-              AND "MainJobFKValue" IN (
-                  2,
-                  5,
-                  21,
-                  1,
-                  19,
-                  7,
-                  8,
-                  9,
-                  6,
-                  31,
-                  46,
-                  48,
-                  51
-                  )
+              AND "MainJobFKValue" IN (${jobRoleGroups.other})
           ), 0) jr32work,
       CASE 
           WHEN "StartersValue" = 'None'
@@ -2123,21 +1693,7 @@ const findWorkplacesByBatch = (batchNum) =>
                       SELECT SUM(total_starters)
                       FROM "WorkerJobStats"
                       WHERE "EstablishmentID" = e."EstablishmentID"
-                          AND "JobID" IN (
-                              2,
-                              5,
-                              21,
-                              1,
-                              19,
-                              7,
-                              8,
-                              9,
-                              6,
-                              31,
-                              46,
-                              48,
-                              51
-                              )
+                          AND "JobID" IN (${jobRoleGroups.other})
                       ), - 1)
           END jr32strt,
       CASE 
@@ -2147,21 +1703,7 @@ const findWorkplacesByBatch = (batchNum) =>
                       SELECT SUM(total_leavers)
                       FROM "WorkerJobStats"
                       WHERE "EstablishmentID" = e."EstablishmentID"
-                          AND "JobID" IN (
-                              2,
-                              5,
-                              21,
-                              1,
-                              19,
-                              7,
-                              8,
-                              9,
-                              6,
-                              31,
-                              46,
-                              48,
-                              51
-                              )
+                          AND "JobID" IN (${jobRoleGroups.other})
                       ), - 1)
           END jr32stop,
       CASE 
@@ -2171,21 +1713,7 @@ const findWorkplacesByBatch = (batchNum) =>
                       SELECT SUM(total_vacancies)
                       FROM "WorkerJobStats"
                       WHERE "EstablishmentID" = e."EstablishmentID"
-                          AND "JobID" IN (
-                              2,
-                              5,
-                              21,
-                              1,
-                              19,
-                              7,
-                              8,
-                              9,
-                              6,
-                              31,
-                              46,
-                              48,
-                              51
-                              )
+                          AND "JobID" IN (${jobRoleGroups.other})
                       ), - 1)
           END jr32vacy,
       -- jr01
