@@ -1919,14 +1919,30 @@ const findWorkersByBatch = (batchNum) =>
           WHEN 33 THEN 1
           ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 33 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
        END jr46flag,
+      CASE "MainJobFKValue"
+          WHEN 34 THEN 1
+          ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 34 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
+       END jr47flag,
        CASE "MainJobFKValue"
           WHEN 35 THEN 1
           ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 35 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
        END jr48flag,
+      CASE "MainJobFKValue"
+          WHEN 36 THEN 1
+          ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 36 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
+       END jr49flag,
+      CASE "MainJobFKValue"
+          WHEN 37 THEN 1
+          ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 37 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
+       END jr50flag,
        CASE "MainJobFKValue"
           WHEN 38 THEN 1
           ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 38 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
        END jr51flag,
+      CASE "MainJobFKValue"
+          WHEN 39 THEN 1
+          ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 39 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
+       END jr52flag,
        CASE "RegisteredNurseValue"
           WHEN 'Adult Nurse' THEN 1
           WHEN 'Mental Health Nurse' THEN 2
