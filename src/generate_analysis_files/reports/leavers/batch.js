@@ -1658,17 +1658,17 @@ const findLeaversByBatch = (batchNum) =>
           WHEN "RecruitedFromValue" = 'No' THEN 225
           WHEN 'Yes' THEN
              (
-                SELECT CASE "From"
-                          WHEN 'Adult care sector: Local Authority' THEN 210
-                          WHEN 'Adult care sector: private or voluntary sector' THEN 211
-                          WHEN 'Health sector' THEN 214
-                          WHEN 'Other sector' THEN 216
-                          WHEN 'Internal promotion or transfer or career development' THEN 217
-                          WHEN 'Not previously employed' THEN 219
-                          WHEN 'Agency' THEN 221
-                          WHEN 'Other sources' THEN 224
-                          WHEN 'Childrens/young people''s social care' THEN 226
-                          WHEN 'First role after education' THEN 227
+                SELECT CASE "ID"
+                          WHEN 1 THEN 210
+                          WHEN 2 THEN 211
+                          WHEN 3 THEN 214
+                          WHEN 5 THEN 216
+                          WHEN 6 THEN 217
+                          WHEN 7 THEN 219
+                          WHEN 8 THEN 221
+                          WHEN 10 THEN 224
+                          WHEN 4 THEN 226
+                          WHEN 9 THEN 227
                        END
                 FROM   "RecruitedFrom"
                 WHERE  "ID" = w."RecruitedFromOtherFK"
