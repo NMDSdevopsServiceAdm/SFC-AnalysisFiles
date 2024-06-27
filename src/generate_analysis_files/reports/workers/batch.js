@@ -2596,7 +2596,15 @@ const findWorkersByBatch = (batchNum) =>
             WHEN w."HealthAndCareVisaValue" IS NULL THEN -1
             WHEN w."HealthAndCareVisaValue" = 'Don''t know' THEN -2
          END
-      ) healthandcarevisa
+      ) healthandcarevisa,
+      (
+         SELECT CASE
+            WHEN w."EmployedFromOutsideUkValue" = 'No' THEN 2
+            WHEN w."EmployedFromOutsideUkValue" = 'Yes' THEN 1
+            WHEN w."EmployedFromOutsideUkValue" IS NULL THEN -1
+            WHEN w."EmployedFromOutsideUkValue" = 'Don''t know' THEN -2
+         END
+      ) employedfromuk
 FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND e."Archived" = false AND w."Archived" = false
 JOIN "Afr2BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
