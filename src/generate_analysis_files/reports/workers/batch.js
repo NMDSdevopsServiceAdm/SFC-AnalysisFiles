@@ -2604,7 +2604,23 @@ const findWorkersByBatch = (batchNum) =>
          AND "PropertyName" = 'MainJob'
          ORDER BY "When" DESC
          LIMIT 1
-       ) previous_mainjrid
+       ) previous_mainjrid,
+      (
+         SELECT CASE
+            WHEN w."HealthAndCareVisaValue" = 'Yes' THEN 1
+            WHEN w."HealthAndCareVisaValue" = 'No' THEN 0
+            WHEN w."HealthAndCareVisaValue" IS NULL THEN -1
+            WHEN w."HealthAndCareVisaValue" = 'Don''t know' THEN -2
+         END
+      ) healthandcarevisa,
+      (
+         SELECT CASE
+            WHEN w."EmployedFromOutsideUkValue" = 'No' THEN 2
+            WHEN w."EmployedFromOutsideUkValue" = 'Yes' THEN 1
+            WHEN w."EmployedFromOutsideUkValue" IS NULL THEN -1
+            WHEN w."EmployedFromOutsideUkValue" = 'Don''t know' THEN -2
+         END
+      ) employedfromuk
 FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND e."Archived" = false AND w."Archived" = false
 JOIN "Afr2BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
