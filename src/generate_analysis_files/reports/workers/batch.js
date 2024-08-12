@@ -2597,6 +2597,8 @@ const findWorkersByBatch = (batchNum) =>
             WHEN w."HealthAndCareVisaValue" = 'Don''t know' THEN -2
          END
       ) healthandcarevisa,
+      TO_CHAR(w."HealthAndCareVisaChangedAt",'DD/MM/YYYY') healthandcarevisa_changedate,
+      TO_CHAR(w."HealthAndCareVisaSavedAt",'DD/MM/YYYY') healthandcarevisa_savedate,
       (
          SELECT CASE
             WHEN w."EmployedFromOutsideUkValue" = 'No' THEN 2
@@ -2604,7 +2606,9 @@ const findWorkersByBatch = (batchNum) =>
             WHEN w."EmployedFromOutsideUkValue" IS NULL THEN -1
             WHEN w."EmployedFromOutsideUkValue" = 'Don''t know' THEN -2
          END
-      ) employedfromuk
+      ) employedfromuk,
+      TO_CHAR(w."EmployedFromOutsideUkChangedAt",'DD/MM/YYYY') employedfromuk_changedate,
+      TO_CHAR(w."EmployedFromOutsideUkSavedAt",'DD/MM/YYYY')  employedfromuk_savedate
 FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND e."Archived" = false AND w."Archived" = false
 JOIN "Afr2BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
