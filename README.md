@@ -53,3 +53,13 @@ To check the status of the application use command below
 ```
 systemctl status sfcreports.service
 ```
+
+## Run job locally for testing
+
+For development purpose, use the below command to run the `generate_analysis_files` job locally.
+
+This will prevent uploading the files or sending messages to slack.
+
+```shell
+npm run generate-analysis
+```

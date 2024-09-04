@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "generate-analysis": "node jobs/generate_analysis_files.js --runLocal",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Skills for Care",
