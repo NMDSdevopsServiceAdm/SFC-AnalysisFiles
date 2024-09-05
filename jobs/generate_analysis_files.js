@@ -16,7 +16,7 @@ const { uploadFile, uploadFileToDataEngineering } = require('../src/utils/s3');
 const version = require('../package.json').version;
 const config = require('../config');
 
-const reportDir = '/tmp/generate_analysisfile/output';
+const reportDir = '/tmp/generate_analysis_files/output';
 
 const run = async () => {
   const startTime = dayjs();
