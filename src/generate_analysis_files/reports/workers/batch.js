@@ -1717,10 +1717,18 @@ const findWorkersByBatch = (batchNum) =>
        CASE "CareCertificateValue" WHEN 'Yes, completed' THEN 1 WHEN 'No' THEN 2 WHEN 'Yes, in progress or partially completed' THEN 3 ELSE -1 END ccstatus,
        TO_CHAR("CareCertificateChangedAt",'DD/MM/YYYY') ccstatus_changedate,
        TO_CHAR("CareCertificateSavedAt",'DD/MM/YYYY') ccstatus_savedate,
-       CASE "Level2CareCertificateValue" WHEN 'Yes, completed' THEN 1 WHEN 'No' THEN 2 WHEN 'Yes, started' THEN 3 ELSE -1 END "ccQ2status",
+       CASE "Level2CareCertificateValue"
+         WHEN 'Yes, completed' THEN 1
+         WHEN 'Yes, started' THEN 2
+         WHEN 'No' THEN 3
+         ELSE -1
+       END "ccQ2status",
        TO_CHAR("Level2CareCertificateChangedAt",'DD/MM/YYYY') "ccQ2status_CC_changedate",
        TO_CHAR("Level2CareCertificateSavedAt",'DD/MM/YYYY') "ccQ2status_CC_savedate",
-       CASE "Level2CareCertificateValue" WHEN 'Yes, completed' THEN "Level2CareCertificateYear" ELSE NULL END "ccQ2statusyear",
+       CASE "Level2CareCertificateValue"
+         WHEN 'Yes, completed' THEN "Level2CareCertificateYear"
+         ELSE NULL
+       END "ccQ2status_year",
        CASE "ApprenticeshipTrainingValue" WHEN 'Yes' THEN 1 WHEN 'No' THEN 2 WHEN 'Don''t know' THEN 3 ELSE -1 END apprentice,
        TO_CHAR("ApprenticeshipTrainingChangedAt",'DD/MM/YYYY') apprentice_changedate,
        TO_CHAR("ApprenticeshipTrainingSavedAt",'DD/MM/YYYY') apprentice_savedate,
