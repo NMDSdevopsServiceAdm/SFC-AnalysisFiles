@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "generate-local-analysis-files": "node jobs/generate_analysis_files.js --runLocal",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha src/**/*.spec.js"
   },
   "author": "Skills for Care",
   "license": "ISC",
@@ -36,10 +36,12 @@
     "util": "^0.12.4"
   },
   "devDependencies": {
+    "chai": "^4.3.0",
     "eslint": "^7.11.0",
     "eslint-config-prettier": "^6.12.0",
     "husky": "^4.3.0",
     "lint-staged": "^10.4.0",
+    "mocha": "^10.7.3",
     "prettier": "^2.2.1"
   },
   "engines": {
