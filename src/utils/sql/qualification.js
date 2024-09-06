@@ -6,4 +6,12 @@ const qualificationColumn = (id, qualificationCode) => {
   );
 };
 
-module.exports = { qualificationColumn };
+const qualificationYearColumn = (id, qualificationYearCode) => { 
+  return '(SELECT "Year" FROM "WorkerQualificationStats" ' +
+  `WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = ${id} LIMIT 1) ${qualificationYearCode},`;
+}
+
+module.exports = {
+  qualificationColumn, 
+  qualificationYearColumn
+}

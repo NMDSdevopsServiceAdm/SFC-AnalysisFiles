@@ -1,4 +1,6 @@
 const db = require('../../db');
+const { qualificationColumn, qualificationYearColumn } = require('../../../utils/sql/qualification');
+const { newQualifications } = require('../../mappings/qualification')
 
 const populateBatch = async (numInBatch) => {
   await db.raw(
@@ -70,10 +72,15 @@ const dropBatch = async () => {
 
 const getBatches = async () => db.select('BatchNo').from('Afr2BatchiSkAi0mo').groupBy(1).orderBy(1);
 
-const findWorkersByBatch = (batchNum) =>
-  db
-    .raw(
-      `
+const findWorkersByBatch = (batchNum) => {
+
+   const sqlQueriesForNewQualifications = newQualifications.map(({ id, qualificationCode, qualificationYearCode }) => {
+      return qualificationColumn(id, qualificationCode) + qualificationYearColumn(id, qualificationYearCode)
+   }).join('\n');
+
+   return db
+      .raw(
+         `
     SELECT 'M' || DATE_PART('year',(b."RunDate" - INTERVAL '1 day')) || LPAD(DATE_PART('month',(b."RunDate" - INTERVAL '1 day'))::TEXT,2,'0') period,
        e."EstablishmentID" establishmentid,
        e."TribalID" tribalid,
@@ -2232,6 +2239,7 @@ const findWorkersByBatch = (batchNum) =>
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 44 LIMIT 1) THEN 1 ELSE 0 END ql143achq,
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 44 LIMIT 1) ql143year,
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 136 LIMIT 1) THEN 1 ELSE 0 END ql144achq,
+       ${sqlQueriesForNewQualifications}
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 136 LIMIT 1) ql144year,
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 127 LIMIT 1) THEN 1 ELSE 0 END ql301app,
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 127 LIMIT 1) ql301year,
@@ -2641,8 +2649,9 @@ FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND e."Archived" = false AND w."Archived" = false
 JOIN "Afr2BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
     `,
-    )
-    .stream();
+      )
+      .stream();
+}
 
 module.exports = {
   createBatches,
