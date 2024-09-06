@@ -1,5 +1,5 @@
 const db = require('../../db');
-const { qualificationColumn, qualificationYearColumn } = require('../../../utils/sql/qualification');
+const { generateSqlQueriesForQualificationColumns } = require('../../../utils/sql/qualification');
 const { newQualifications } = require('../../mappings/qualification')
 
 const populateBatch = async (numInBatch) => {
@@ -74,9 +74,7 @@ const getBatches = async () => db.select('BatchNo').from('Afr2BatchiSkAi0mo').gr
 
 const findWorkersByBatch = (batchNum) => {
 
-   const sqlQueriesForNewQualifications = newQualifications.map(({ id, qualificationCode, qualificationYearCode }) => {
-      return qualificationColumn(id, qualificationCode) + qualificationYearColumn(id, qualificationYearCode)
-   }).join('\n');
+   const sqlQueriesForNewQualifications = generateSqlQueriesForQualificationColumns(newQualifications);
 
    return db
       .raw(

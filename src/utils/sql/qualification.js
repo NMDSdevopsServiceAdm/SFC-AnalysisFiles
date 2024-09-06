@@ -6,12 +6,22 @@ const qualificationColumn = (id, qualificationCode) => {
   );
 };
 
-const qualificationYearColumn = (id, qualificationYearCode) => { 
-  return '(SELECT "Year" FROM "WorkerQualificationStats" ' +
-  `WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = ${id} LIMIT 1) ${qualificationYearCode},`;
-}
+const qualificationYearColumn = (id, qualificationYearCode) => {
+  return (
+    '(SELECT "Year" FROM "WorkerQualificationStats" ' +
+    `WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = ${id} LIMIT 1) ${qualificationYearCode},`
+  );
+};
+
+const generateSqlQueriesForQualificationColumns = (qualificationMappings) => {
+  const sqlQueriesForEachQualification = qualificationMappings.map(({ id, qualificationCode, qualificationYearCode }) => 
+    qualificationColumn(id, qualificationCode) + '\n' + qualificationYearColumn(id, qualificationYearCode)
+  );
+  return sqlQueriesForEachQualification.join('\n')
+};
 
 module.exports = {
-  qualificationColumn, 
-  qualificationYearColumn
-}
+  qualificationColumn,
+  qualificationYearColumn,
+  generateSqlQueriesForQualificationColumns,
+};
