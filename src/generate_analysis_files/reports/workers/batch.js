@@ -1,4 +1,6 @@
 const db = require('../../db');
+const { generateSqlQueriesForQualificationColumns } = require('../../../utils/sql/qualification');
+const { newQualifications } = require('../../mappings/qualification')
 
 const populateBatch = async (numInBatch) => {
   await db.raw(
@@ -70,10 +72,13 @@ const dropBatch = async () => {
 
 const getBatches = async () => db.select('BatchNo').from('Afr2BatchiSkAi0mo').groupBy(1).orderBy(1);
 
-const findWorkersByBatch = (batchNum) =>
-  db
-    .raw(
-      `
+const findWorkersByBatch = (batchNum) => {
+
+   const sqlQueriesForNewQualifications = generateSqlQueriesForQualificationColumns(newQualifications);
+
+   return db
+      .raw(
+         `
     SELECT 'M' || DATE_PART('year',(b."RunDate" - INTERVAL '1 day')) || LPAD(DATE_PART('month',(b."RunDate" - INTERVAL '1 day'))::TEXT,2,'0') period,
        e."EstablishmentID" establishmentid,
        e."TribalID" tribalid,
@@ -1717,6 +1722,18 @@ const findWorkersByBatch = (batchNum) =>
        CASE "CareCertificateValue" WHEN 'Yes, completed' THEN 1 WHEN 'No' THEN 2 WHEN 'Yes, in progress or partially completed' THEN 3 ELSE -1 END ccstatus,
        TO_CHAR("CareCertificateChangedAt",'DD/MM/YYYY') ccstatus_changedate,
        TO_CHAR("CareCertificateSavedAt",'DD/MM/YYYY') ccstatus_savedate,
+       CASE "Level2CareCertificateValue"
+         WHEN 'Yes, completed' THEN 1
+         WHEN 'Yes, started' THEN 2
+         WHEN 'No' THEN 3
+         ELSE -1
+       END "ccQ2status",
+       TO_CHAR("Level2CareCertificateChangedAt",'DD/MM/YYYY') "ccQ2status_CC_changedate",
+       TO_CHAR("Level2CareCertificateSavedAt",'DD/MM/YYYY') "ccQ2status_CC_savedate",
+       CASE "Level2CareCertificateValue"
+         WHEN 'Yes, completed' THEN "Level2CareCertificateYear"
+         ELSE NULL
+       END "ccQ2status_year",
        CASE "ApprenticeshipTrainingValue" WHEN 'Yes' THEN 1 WHEN 'No' THEN 2 WHEN 'Don''t know' THEN 3 ELSE -1 END apprentice,
        TO_CHAR("ApprenticeshipTrainingChangedAt",'DD/MM/YYYY') apprentice_changedate,
        TO_CHAR("ApprenticeshipTrainingSavedAt",'DD/MM/YYYY') apprentice_savedate,
@@ -2220,6 +2237,7 @@ const findWorkersByBatch = (batchNum) =>
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 44 LIMIT 1) THEN 1 ELSE 0 END ql143achq,
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 44 LIMIT 1) ql143year,
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 136 LIMIT 1) THEN 1 ELSE 0 END ql144achq,
+       ${sqlQueriesForNewQualifications}
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 136 LIMIT 1) ql144year,
        CASE WHEN EXISTS (SELECT 1 FROM "WorkerTrainingStats" WHERE "WorkerFK" = w."ID" AND "CategoryFK" = 127 LIMIT 1) THEN 1 ELSE 0 END ql301app,
        (SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 127 LIMIT 1) ql301year,
@@ -2629,8 +2647,9 @@ FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND e."Archived" = false AND w."Archived" = false
 JOIN "Afr2BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
     `,
-    )
-    .stream();
+      )
+      .stream();
+}
 
 module.exports = {
   createBatches,
