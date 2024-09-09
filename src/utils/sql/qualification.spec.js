@@ -9,7 +9,7 @@ describe('src/utils/sql/qualification.js', () => {
       const qualificationCode = 'ql145achq3';
 
       const expected =
-        'CASE WHEN EXISTS (SELECT 1 FROM "WorkerQualificationStatsV2" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 139 LIMIT 1) THEN 1 ELSE 0 END ql145achq3,';
+        'CASE WHEN EXISTS (SELECT 1 FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 139 LIMIT 1) THEN 1 ELSE 0 END ql145achq3,';
       const actual = qualificationColumn(id, qualificationCode);
 
       expect(actual).to.equal(expected);
@@ -20,7 +20,7 @@ describe('src/utils/sql/qualification.js', () => {
       const qualificationCode = 'ql146achq3';
 
       const expected =
-        'CASE WHEN EXISTS (SELECT 1 FROM "WorkerQualificationStatsV2" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 140 LIMIT 1) THEN 1 ELSE 0 END ql146achq3,';
+        'CASE WHEN EXISTS (SELECT 1 FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 140 LIMIT 1) THEN 1 ELSE 0 END ql146achq3,';
       const actual = qualificationColumn(id, qualificationCode);
 
       expect(actual).to.equal(expected);
@@ -33,7 +33,7 @@ describe('src/utils/sql/qualification.js', () => {
       const qualificationYearCode = 'ql145year3';
 
       const expected =
-        '(SELECT "Year" FROM "WorkerQualificationStatsV2" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 139 LIMIT 1) ql145year3,';
+        '(SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 139 LIMIT 1) ql145year3,';
       const actual = qualificationYearColumn(id, qualificationYearCode);
 
       expect(actual).to.equal(expected);
@@ -44,7 +44,7 @@ describe('src/utils/sql/qualification.js', () => {
       const qualificationYearCode = 'ql146year3';
 
       const expected =
-        '(SELECT "Year" FROM "WorkerQualificationStatsV2" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 140 LIMIT 1) ql146year3,';
+        '(SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 140 LIMIT 1) ql146year3,';
       const actual = qualificationYearColumn(id, qualificationYearCode);
 
       expect(actual).to.equal(expected);
@@ -59,13 +59,13 @@ describe('src/utils/sql/qualification.js', () => {
       ];
 
       const expectedSqlQueries = (
-        'CASE WHEN EXISTS (SELECT 1 FROM "WorkerQualificationStatsV2" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 139 LIMIT 1) THEN 1 ELSE 0 END ql145achq3,' +
+        'CASE WHEN EXISTS (SELECT 1 FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 139 LIMIT 1) THEN 1 ELSE 0 END ql145achq3,' +
         '\n' +
-        '(SELECT "Year" FROM "WorkerQualificationStatsV2" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 139 LIMIT 1) ql145year3,' +
+        '(SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 139 LIMIT 1) ql145year3,' +
         '\n' +
-        'CASE WHEN EXISTS (SELECT 1 FROM "WorkerQualificationStatsV2" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 140 LIMIT 1) THEN 1 ELSE 0 END ql146achq3,' +
+        'CASE WHEN EXISTS (SELECT 1 FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 140 LIMIT 1) THEN 1 ELSE 0 END ql146achq3,' +
         '\n' +
-        '(SELECT "Year" FROM "WorkerQualificationStatsV2" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 140 LIMIT 1) ql146year3,');
+        '(SELECT "Year" FROM "WorkerQualificationStats" WHERE "WorkerFK" = w."ID" AND "QualificationsFK" = 140 LIMIT 1) ql146year3,');
       const actual = generateSqlQueriesForQualificationColumns(mockMappings)
       
       expect(actual).to.equal(expectedSqlQueries)
