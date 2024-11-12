@@ -16,11 +16,15 @@ const { uploadFile, uploadFileToDataEngineering } = require('../src/utils/s3');
 const version = require('../package.json').version;
 const config = require('../config');
 
-const reportDir = '/tmp/generate_analysisfile/output';
+const reportDir = '/tmp/generate_analysis_files/output';
 
 const run = async () => {
   const startTime = dayjs();
   console.log(`Start: ${startTime.format('DD-MM-YYYY HH:mm:ss')}`);
+
+  if (runInLocal()) { 
+    console.log('Running the job locally. Will not upload the files or send slack messages.')
+  }
 
   await setup();
   await refreshViews();
@@ -29,6 +33,11 @@ const run = async () => {
   const workplaceFilePath = await generateWorkplaceReport(runDate, reportDir);
   const workerFilePath = await generateWorkersReport(runDate, reportDir);
   const leaverFilePath = await generateLeaversReport(runDate, reportDir);
+
+  if (runInLocal()) { 
+    console.log(`Job finished. The files are generated at ${reportDir}.`)
+    process.exit(0)
+  }
 
   await zipAndUploadReports();
 
@@ -83,6 +92,10 @@ const sendSlackAnalysisFilesSuccessMessage = async () => {
 }
 
 const sendSlackAnalysisFilesErrorMessage = async (errorMessage) => {
+  if (runInLocal()) { 
+    return;
+  }
+
   await slack.error(
     `${config.get('db.name')} - Run analysis files`,
     `There was an error uploading analysis files \n ${errorMessage}`,
@@ -90,12 +103,16 @@ const sendSlackAnalysisFilesErrorMessage = async (errorMessage) => {
   );
 }
 
+const runInLocal = () => { 
+  return process.argv.includes('--runLocal');
+}
+
 (async () => {
   run()
     .then(() => {
       process.exit(0);
     })
-    .catch(async(err) => {
+    .catch(async (err) => {
       await sendSlackAnalysisFilesErrorMessage(err)
       console.error(err);
       process.exit(1);
