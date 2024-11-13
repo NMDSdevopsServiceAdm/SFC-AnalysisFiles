@@ -604,7 +604,7 @@ const findLeaversByBatch = (batchNum) => {
                      WHEN 'Social worker' THEN 6
                      WHEN 'Senior care worker' THEN 7
                      WHEN 'Care worker' THEN 8
-                     WHEN 'Community, support and outreach work' THEN 9
+                     WHEN 'Community support and outreach work' THEN 9
                      WHEN 'Employment support' THEN 10
                      WHEN 'Advice, guidance and advocacy' THEN 11
                      WHEN 'Occupational therapist' THEN 15
@@ -612,17 +612,17 @@ const findLeaversByBatch = (batchNum) => {
                      WHEN 'Allied health professional (not occupational therapist)' THEN 17
                      WHEN 'Technician' THEN 22
                      WHEN 'Other (directly involved in providing care)' THEN 23
-                     WHEN 'Managers and staff (care-related, but not care-providing)' THEN 24
-                     WHEN 'Administrative, office staff (non care-providing)' THEN 25
+                     WHEN 'Manager (care-related, but not care-providing)' THEN 24
+                     WHEN 'Administrative' THEN 25
                      WHEN 'Ancillary staff (non care-providing)' THEN 26
                      WHEN 'Other (not directly involved in providing care)' THEN 27
-                     WHEN 'Activities worker, coordinator' THEN 34
+                     WHEN 'Activities worker, co-ordinator' THEN 34
                      WHEN 'Safeguarding and reviewing officer' THEN 35
                      WHEN 'Occupational therapist assistant' THEN 36
                      WHEN 'Nursing associate' THEN 37
                      WHEN 'Nursing assistant' THEN 38
                      WHEN 'Assessment officer' THEN 39
-                     WHEN 'Care coordinator' THEN 40
+                     WHEN 'Care co-ordinator' THEN 40
                      WHEN 'Care navigator' THEN 41
                      WHEN 'Any children''s, young people''s job role' THEN 42
                      WHEN 'Deputy manager' THEN 43
