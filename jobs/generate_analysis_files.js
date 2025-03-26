@@ -57,8 +57,9 @@ const setup = async () => {
 };
 
 const zipAndUploadReports = async () => {
-  const now = dayjs();
-  const zipName = `${now.format('YYYY-MM-DD-HH-mm-ss')}_analysis_files.zip`;
+  // const now = dayjs();
+  // const zipName = `${now.format('YYYY-MM-DD-HH-mm-ss')}_analysis_files.zip`;
+  const zipName = '2025-03-26-14-38-04_analysis_files.zip'
 
   // await exec(`cd ${reportDir} && zip -r ${zipName} *.csv`);
 
