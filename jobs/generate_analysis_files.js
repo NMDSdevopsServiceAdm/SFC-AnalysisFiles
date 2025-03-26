@@ -52,8 +52,8 @@ const run = async () => {
 const setup = async () => {
   console.log(`Refreshing ${reportDir} directory`);
 
-  await exec(`rm -rf ${reportDir}`);
-  await exec(`mkdir -p ${reportDir}`);
+  // await exec(`rm -rf ${reportDir}`);
+  // await exec(`mkdir -p ${reportDir}`);
 };
 
 const zipAndUploadReports = async () => {

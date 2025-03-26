@@ -16,27 +16,27 @@ async function processBatch(batchNo, fileName) {
 }
 
 module.exports = async (runDate, reportDir) => {
-  await before(runDate);
+  // await before(runDate);
 
-  const files = [];
+  // const files = [];
 
-  await Promise.map(
-    getBatches(),
-    (batch) => {
-      console.log(`Processing Leavers Batch #${batch.BatchNo}`);
+  // await Promise.map(
+  //   getBatches(),
+  //   (batch) => {
+  //     console.log(`Processing Leavers Batch #${batch.BatchNo}`);
 
-      const csvName = `${reportDir}/${runDate}_leavers_report_${batch.BatchNo.toString().padStart(2, '0')}.csv`;
-      files.push(csvName);
+  //     const csvName = `${reportDir}/${runDate}_leavers_report_${batch.BatchNo.toString().padStart(2, '0')}.csv`;
+  //     files.push(csvName);
 
-      return processBatch(batch.BatchNo, csvName);
-    },
-    { concurrency: 10 },
-  );
+  //     return processBatch(batch.BatchNo, csvName);
+  //   },
+  //   { concurrency: 10 },
+  // );
 
-  await after();
+  // await after();
 
   const filePath = `${reportDir}/${runDate}_leavers_report.csv`;
-  await concatFiles(files, filePath);
+  // await concatFiles(files, filePath);
 
   return filePath;
 };
