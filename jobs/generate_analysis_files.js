@@ -30,9 +30,9 @@ const run = async () => {
   await refreshViews();
 
   const runDate = dayjs().format('DD-MM-YYYY');
-  const workplaceFilePath = await generateWorkplaceReport(runDate, reportDir);
-  const workerFilePath = await generateWorkersReport(runDate, reportDir);
-  const leaverFilePath = await generateLeaversReport(runDate, reportDir);
+  // const workplaceFilePath = await generateWorkplaceReport(runDate, reportDir);
+  // const workerFilePath = await generateWorkersReport(runDate, reportDir);
+  // const leaverFilePath = await generateLeaversReport(runDate, reportDir);
 
   if (runInLocal()) { 
     console.log(`Job finished. The files are generated at ${reportDir}.`)
@@ -41,9 +41,9 @@ const run = async () => {
 
   await zipAndUploadReports();
 
-  if (config.get('dataEngineering.uploadToDataEngineering')) {
-    await uploadReportsToDataEngineering(workplaceFilePath, workerFilePath, leaverFilePath);
-  }
+  // if (config.get('dataEngineering.uploadToDataEngineering')) {
+  //   await uploadReportsToDataEngineering(workplaceFilePath, workerFilePath, leaverFilePath);
+  // }
 
   logCompletionTimes(startTime);
   await sendSlackAnalysisFilesSuccessMessage();
@@ -60,7 +60,7 @@ const zipAndUploadReports = async () => {
   const now = dayjs();
   const zipName = `${now.format('YYYY-MM-DD-HH-mm-ss')}_analysis_files.zip`;
 
-  await exec(`cd ${reportDir} && zip -r ${zipName} *.csv`);
+  // await exec(`cd ${reportDir} && zip -r ${zipName} *.csv`);
 
   return uploadFile(zipName, fs.createReadStream(`${reportDir}/${zipName}`));
 };
