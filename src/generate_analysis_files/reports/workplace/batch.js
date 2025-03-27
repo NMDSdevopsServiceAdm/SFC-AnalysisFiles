@@ -1212,27 +1212,6 @@ const findWorkplacesByBatch = (batchNum) =>
 		END benchmarkscount_year,
 
       CASE  
-        WHEN  "MoneySpentOnAdvertisingInTheLastFourWeeks" ='Don''t know'
-          THEN '-1' 
-        WHEN  "MoneySpentOnAdvertisingInTheLastFourWeeks"= 'None'
-          THEN '0'
-         ELSE(
-              SELECT  "MoneySpentOnAdvertisingInTheLastFourWeeks" FROM cqc."Establishment"  WHERE     "EstablishmentID" = e."EstablishmentID"           
-             )
-        END Advertising_costs,
-
-     CASE  
-       WHEN  "PeopleInterviewedInTheLastFourWeeks" ='Don''t know'
-          THEN '-1'
-        WHEN  "PeopleInterviewedInTheLastFourWeeks"= 'None'
-          THEN '0'
-      
-         ELSE(
-              SELECT "PeopleInterviewedInTheLastFourWeeks" FROM cqc."Establishment" WHERE "EstablishmentID" =  e."EstablishmentID"       
-             )
-        END Number_interviewed,
-
-      CASE  
         WHEN  "DoNewStartersRepeatMandatoryTrainingFromPreviousEmployment" = 'Yes, always'
            THEN 1
         WHEN  "DoNewStartersRepeatMandatoryTrainingFromPreviousEmployment"= 'Yes, very often'
