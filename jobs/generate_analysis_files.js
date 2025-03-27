@@ -62,13 +62,13 @@ const zipAndUploadReports = async () => {
 
   await exec(`cd ${reportDir} && zip -r ${zipName} *.csv`);
 
-  return uploadFile(zipName, fs.readFileSync(`${reportDir}/${zipName}`));
+  return uploadFile(zipName, fs.createReadStream(`${reportDir}/${zipName}`));
 };
 
 const uploadReportsToDataEngineering = async (workplaceFilePath, workerFilePath, leaverFilePath) => {
-  await uploadFileToDataEngineering(getFileKey('workplace'), fs.readFileSync(workplaceFilePath));
-  await uploadFileToDataEngineering(getFileKey('worker'), fs.readFileSync(workerFilePath));
-  await uploadFileToDataEngineering(getFileKey('leaver'), fs.readFileSync(leaverFilePath));
+  await uploadFileToDataEngineering(getFileKey('workplace'), fs.createReadStream(workplaceFilePath));
+  await uploadFileToDataEngineering(getFileKey('worker'), fs.createReadStream(workerFilePath));
+  await uploadFileToDataEngineering(getFileKey('leaver'), fs.createReadStream(leaverFilePath));
 };
 
 const getFileKey = (fileType) => {
