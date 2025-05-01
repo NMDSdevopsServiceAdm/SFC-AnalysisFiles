@@ -41,6 +41,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true,
       unique: true
+    },
+    providerid: {
+      type: DataTypes.TEXT,
+      allowNull: true
     }
   }, {
     schema: 'cqcref',
@@ -62,6 +66,7 @@ module.exports = (sequelize, DataTypes) => {
   location.updateLocation = async function(location) {
     return await this.upsert({
       locationid: location.data.locationId,
+      providerid: location.data.providerId,
       locationname: location.data.name,
       addressline1: location.data.postalAddressLine1,
       addressline2: location.data.postalAddressLine2,
