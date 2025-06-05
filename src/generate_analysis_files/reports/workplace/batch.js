@@ -1280,6 +1280,20 @@ const findWorkplacesByBatch = (batchNum) =>
             )
         END CWAnnual_leave,
 
+COALESCE((
+          SELECT CASE "Title"
+                    WHEN 'Aware of how the care workforce pathway works in practice' THEN 1
+                    WHEN 'Aware of the aims of the care workforce pathway' THEN 2
+                    WHEN 'Aware of the term ''care workforce pathway''' THEN 3
+                    WHEN 'Not aware of the care workforce pathway' THEN 0
+                    WHEN 'I do not know how aware our workplace is' THEN -2
+                 END
+          FROM   "CareWorkforcePathwayWorkplaceAwareness"
+          WHERE  "ID" = e."CareWorkforcePathwayWorkplaceAwarenessFK"
+       ),-1) CWPawareness,
+        TO_CHAR(e."CareWorkforcePathwayWorkplaceAwarenessSavedAt",'DD/MM/YYYY') CWPawareness_savedate,
+        TO_CHAR(e."CareWorkforcePathwayWorkplaceAwarenessChangedAt",'DD/MM/YYYY') CWPawareness_changedate,
+
       -- jr28
       CASE 
           WHEN EXISTS (
