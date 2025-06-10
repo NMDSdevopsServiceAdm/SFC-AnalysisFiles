@@ -1294,6 +1294,42 @@ COALESCE((
         TO_CHAR(e."CareWorkforcePathwayWorkplaceAwarenessSavedAt",'DD/MM/YYYY') CWPawareness_savedate,
         TO_CHAR(e."CareWorkforcePathwayWorkplaceAwarenessChangedAt",'DD/MM/YYYY') CWPawareness_changedate,
 
+        COALESCE((
+           CASE 
+                WHEN "CareWorkforcePathwayUseValue" = 'Yes' 
+                   THEN 1
+                WHEN "CareWorkforcePathwayUseValue" = 'No' 
+                   THEN 0
+                WHEN "CareWorkforcePathwayUseValue" = 'Don''t know' 
+                   THEN -2
+                END
+       ),-1) CWPuse,
+        TO_CHAR(e."CareWorkforcePathwayUseSavedAt",'DD/MM/YYYY') CWPuse_savedate,
+        TO_CHAR(e."CareWorkforcePathwayUseChangedAt",'DD/MM/YYYY') CWPuse_changedate,
+
+        COALESCE((
+          SELECT CASE "Text"
+                    WHEN 'To help define our organisation''s values' THEN 1
+                    WHEN 'To help update our job descriptions' THEN 2
+                    WHEN 'To help update our HR and learning and development policies' THEN 3
+                    WHEN 'To help identify learning and development opportunities for our staff' THEN 4
+                    WHEN 'To help identify skills and knowledge gaps in our staff' THEN 5
+                    WHEN 'To help set levels of pay' THEN 6
+                    WHEN 'To help with advertising job roles and recruitment' THEN 7
+                    WHEN 'To help demonstrate delivery and outcomes to commissioners and CQC' THEN 8
+                    WHEN 'To help plan our future workforce' THEN 9
+                    WHEN 'For something else' THEN 10
+                  
+                 END
+          FROM   "CareWorkforcePathwayReasons" c 
+          JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID"
+          WHERE  ec."EstablishmentID" = e."EstablishmentID"
+
+       ),-1) CWPreason,
+        TO_CHAR(e."CareWorkforcePathwayUseSavedAt",'DD/MM/YYYY') CWPreason_savedate,
+        TO_CHAR(e."CareWorkforcePathwayUseChangedAt",'DD/MM/YYYY') CWPreason_changedate,
+
+
       -- jr28
       CASE 
           WHEN EXISTS (
