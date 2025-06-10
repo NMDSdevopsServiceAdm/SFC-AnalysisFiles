@@ -1281,15 +1281,9 @@ const findWorkplacesByBatch = (batchNum) =>
         END CWAnnual_leave,
 
      COALESCE((
-          SELECT CASE "Title"
-                    WHEN 'Aware of how the care workforce pathway works in practice' THEN 1
-                    WHEN 'Aware of the aims of the care workforce pathway' THEN 2
-                    WHEN 'Aware of the term ''care workforce pathway''' THEN 3
-                    WHEN 'Not aware of the care workforce pathway' THEN 0
-                    WHEN 'I do not know how aware our workplace is' THEN -2
-                 END
-          FROM   "CareWorkforcePathwayWorkplaceAwareness"
-          WHERE  "ID" = e."CareWorkforcePathwayWorkplaceAwarenessFK"
+          SELECT "AnalysisFileCode"
+          FROM   "CareWorkforcePathwayWorkplaceAwareness" cp
+          WHERE  cp."ID" = e."CareWorkforcePathwayWorkplaceAwarenessFK"
         ),-1) CWPawareness,
         TO_CHAR(e."CareWorkforcePathwayWorkplaceAwarenessSavedAt",'DD/MM/YYYY') CWPawareness_savedate,
         TO_CHAR(e."CareWorkforcePathwayWorkplaceAwarenessChangedAt",'DD/MM/YYYY') CWPawareness_changedate,
@@ -1308,19 +1302,7 @@ const findWorkplacesByBatch = (batchNum) =>
         TO_CHAR(e."CareWorkforcePathwayUseChangedAt",'DD/MM/YYYY') CWPuse_changedate,
 
      COALESCE((
-          SELECT CASE "Text"
-                    WHEN 'To help define our organisation''s values' THEN 1
-                    WHEN 'To help update our job descriptions' THEN 2
-                    WHEN 'To help update our HR and learning and development policies' THEN 3
-                    WHEN 'To help identify learning and development opportunities for our staff' THEN 4
-                    WHEN 'To help identify skills and knowledge gaps in our staff' THEN 5
-                    WHEN 'To help set levels of pay' THEN 6
-                    WHEN 'To help with advertising job roles and recruitment' THEN 7
-                    WHEN 'To help demonstrate delivery and outcomes to commissioners and CQC' THEN 8
-                    WHEN 'To help plan our future workforce' THEN 9
-                    WHEN 'For something else' THEN 10
-                  
-                 END
+          SELECT "AnalysisFileCode"
           FROM   "CareWorkforcePathwayReasons" c 
           JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID"
           WHERE  ec."EstablishmentID" = e."EstablishmentID"
