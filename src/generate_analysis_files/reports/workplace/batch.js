@@ -1280,6 +1280,38 @@ const findWorkplacesByBatch = (batchNum) =>
             )
         END CWAnnual_leave,
 
+     COALESCE((
+          SELECT "AnalysisFileCode"
+          FROM   "CareWorkforcePathwayWorkplaceAwareness" cp
+          WHERE  cp."ID" = e."CareWorkforcePathwayWorkplaceAwarenessFK"
+        ),-1) CWPawareness,
+        TO_CHAR(e."CareWorkforcePathwayWorkplaceAwarenessSavedAt",'DD/MM/YYYY') CWPawareness_savedate,
+        TO_CHAR(e."CareWorkforcePathwayWorkplaceAwarenessChangedAt",'DD/MM/YYYY') CWPawareness_changedate,
+
+     COALESCE((
+           CASE 
+                WHEN "CareWorkforcePathwayUseValue" = 'Yes' 
+                   THEN 1
+                WHEN "CareWorkforcePathwayUseValue" = 'No' 
+                   THEN 0
+                WHEN "CareWorkforcePathwayUseValue" = 'Don''t know' 
+                   THEN -2
+            END
+        ),-1) CWPuse,
+        TO_CHAR(e."CareWorkforcePathwayUseSavedAt",'DD/MM/YYYY') CWPuse_savedate,
+        TO_CHAR(e."CareWorkforcePathwayUseChangedAt",'DD/MM/YYYY') CWPuse_changedate,
+
+     COALESCE((
+          SELECT "AnalysisFileCode"
+          FROM   "CareWorkforcePathwayReasons" c 
+          JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID"
+          WHERE  ec."EstablishmentID" = e."EstablishmentID"
+
+       ),-1) CWPreason,
+        TO_CHAR(e."CareWorkforcePathwayUseSavedAt",'DD/MM/YYYY') CWPreason_savedate,
+        TO_CHAR(e."CareWorkforcePathwayUseChangedAt",'DD/MM/YYYY') CWPreason_changedate,
+
+
       -- jr28
       CASE 
           WHEN EXISTS (
