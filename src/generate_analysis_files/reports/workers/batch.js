@@ -2642,7 +2642,26 @@ const findWorkersByBatch = (batchNum) => {
          END
       ) employedfromuk,
       TO_CHAR(w."EmployedFromOutsideUkChangedAt",'DD/MM/YYYY') employedfromuk_changedate,
-      TO_CHAR(w."EmployedFromOutsideUkSavedAt",'DD/MM/YYYY')  employedfromuk_savedate
+      TO_CHAR(w."EmployedFromOutsideUkSavedAt",'DD/MM/YYYY')  employedfromuk_savedate,
+
+     COALESCE((
+          SELECT CASE "Title"
+                    WHEN 'New to care' THEN 1
+                    WHEN 'Care or support worker' THEN 2
+                    WHEN 'Enhanced care worker' THEN 3
+                    WHEN 'Suppervisor or leader' THEN 4
+                    WHEN 'Practice leader' THEN 5
+                    WHEN 'Deputy manager' THEN 6
+                    WHEN 'Registered manager' THEN 7
+                    WHEN 'None of the above' THEN 8
+                    WHEN 'I do not know' THEN -2
+                 END
+          FROM   "CareWorkforcePathwayRoleCategories"
+          WHERE  "ID" = w."CareWorkforcePathwayRoleCategoryFK"
+       ),-1) careworkforcepathway,
+        TO_CHAR(w."CareWorkforcePathwayRoleCategorySavedAt",'DD/MM/YYYY') CareWorkForceCategory_savedate,
+        TO_CHAR(w."CareWorkforcePathwayRoleCategoryChangedAt",'DD/MM/YYYY') CareWorkForceCategory_changedate
+
 FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND e."Archived" = false AND w."Archived" = false
 JOIN "Afr2BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
