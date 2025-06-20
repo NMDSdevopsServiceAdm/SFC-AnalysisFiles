@@ -12,6 +12,7 @@ const newQualifications = [
   { id: 149, qualificationCode: 'ql155achq2', qualificationYearCode: 'ql155year2'},
   { id: 150, qualificationCode: 'ql156achq1', qualificationYearCode: 'ql156year1'},
   { id: 151, qualificationCode: 'ql157achq2', qualificationYearCode: 'ql157year2'},
+  { id: 153, qualificationCode: 'ql158achq2', qualificationYearCode: 'ql158year2'},
 ];
 
 module.exports = { newQualifications }
