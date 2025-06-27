@@ -1,5 +1,8 @@
 const db = require('../../db');
 const { jobRoleGroups } = require('./jobRoleGroups');
+const { generateSqlQueriesForCwpAwarnessReanosColumns } = require('../../../utils/sql/cwp-awarness-reasons');
+const { cwpAwarnessReasons } = require('../../mappings/cwp-awarness-reasons')
+
 
 const getUnassignedBatchCount = async () => {
   const { count } = (await db('Afr1BatchiSkAi0mo').whereNull('BatchNo').count().first()) || {};
@@ -58,8 +61,11 @@ const dropBatch = async () => {
 
 const getBatches = async () => db.select('BatchNo').from('Afr1BatchiSkAi0mo').groupBy(1).orderBy(1);
 
-const findWorkplacesByBatch = (batchNum) =>
-  db
+const findWorkplacesByBatch = (batchNum) =>{
+
+
+   const sqlQueriesForCwpAwarnessReasons = generateSqlQueriesForCwpAwarnessReanosColumns(cwpAwarnessReasons);
+  return db
     .raw(
       `
       SELECT 'M' || DATE_PART('year', (b."RunDate" - INTERVAL '1 day')) || LPAD(DATE_PART('month', (b."RunDate" - INTERVAL '1 day'))::TEXT, 2, '0') period,
@@ -1284,7 +1290,7 @@ const findWorkplacesByBatch = (batchNum) =>
           SELECT "AnalysisFileCode"
           FROM   "CareWorkforcePathwayWorkplaceAwareness" cp
           WHERE  cp."ID" = e."CareWorkforcePathwayWorkplaceAwarenessFK"
-        ),-1) CWPawareness,
+        ), -1) CWPawareness,
         TO_CHAR(e."CareWorkforcePathwayWorkplaceAwarenessSavedAt",'DD/MM/YYYY') CWPawareness_savedate,
         TO_CHAR(e."CareWorkforcePathwayWorkplaceAwarenessChangedAt",'DD/MM/YYYY') CWPawareness_changedate,
 
@@ -1297,19 +1303,11 @@ const findWorkplacesByBatch = (batchNum) =>
                 WHEN "CareWorkforcePathwayUseValue" = 'Don''t know' 
                    THEN -2
             END
-        ),-1) CWPuse,
+        ), -1) CWPuse,
         TO_CHAR(e."CareWorkforcePathwayUseSavedAt",'DD/MM/YYYY') CWPuse_savedate,
         TO_CHAR(e."CareWorkforcePathwayUseChangedAt",'DD/MM/YYYY') CWPuse_changedate,
 
-     COALESCE((
-          SELECT "AnalysisFileCode"
-          FROM   "CareWorkforcePathwayReasons" c 
-          JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID"
-          WHERE  ec."EstablishmentID" = e."EstablishmentID"
-
-       ),-1) CWPreason,
-        TO_CHAR(e."CareWorkforcePathwayUseSavedAt",'DD/MM/YYYY') CWPreason_savedate,
-        TO_CHAR(e."CareWorkforcePathwayUseChangedAt",'DD/MM/YYYY') CWPreason_changedate,
+           ${sqlQueriesForCwpAwarnessReasons}
 
 
       -- jr28
@@ -6117,7 +6115,7 @@ const findWorkplacesByBatch = (batchNum) =>
       [batchNum],
     )
     .stream();
-
+}
 module.exports = {
   createBatches,
   dropBatch,
