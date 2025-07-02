@@ -1,7 +1,7 @@
 const db = require('../../db');
 const { jobRoleGroups } = require('./jobRoleGroups');
-const { generateSqlQueriesForCwpAwarenessReasonsColumns } = require('../../../utils/sql/cwp-awarness-reasons');
-const { cwpAwarnessReasons } = require('../../mappings/cwp-awarness-reasons')
+const { generateSqlQueriesForCwpAwarenessReasonsColumns } = require('../../../utils/sql/cwp-awareness-reasons');
+const { cwpAwarenessReasons } = require('../../mappings/cwp-awareness-reasons')
 
 
 const getUnassignedBatchCount = async () => {
@@ -64,7 +64,7 @@ const getBatches = async () => db.select('BatchNo').from('Afr1BatchiSkAi0mo').gr
 const findWorkplacesByBatch = (batchNum) =>{
 
 
-   const sqlQueriesForCwpAwarnessReasons = generateSqlQueriesForCwpAwarenessReasonsColumns(cwpAwarnessReasons);
+   const sqlQueriesForCwpAwarenessReasons = generateSqlQueriesForCwpAwarenessReasonsColumns(cwpAwarenessReasons);
   return db
     .raw(
       `
@@ -1307,7 +1307,7 @@ const findWorkplacesByBatch = (batchNum) =>{
         TO_CHAR(e."CareWorkforcePathwayUseSavedAt",'DD/MM/YYYY') CWPuse_savedate,
         TO_CHAR(e."CareWorkforcePathwayUseChangedAt",'DD/MM/YYYY') CWPuse_changedate,
 
-           ${sqlQueriesForCwpAwarnessReasons}
+           ${sqlQueriesForCwpAwarenessReasons}
 
 
       -- jr28

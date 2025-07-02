@@ -1,29 +1,29 @@
 const { describe, it } = require('mocha');
 const expect = require('chai').expect;
-const { cwpAwarnessReasonColumn, generateSqlQueriesForCwpAwarenessReasonsColumns } = require('./cwp-awarness-reasons');
+const { cwpAwarenessReasonColumn, generateSqlQueriesForCwpAwarenessReasonsColumns } = require('./cwp-awareness-reasons');
 
-describe('src/utils/sql/cwp-awarness-reasons.js', () => {
+describe('src/utils/sql/cwp-Awareness-reasons.js', () => {
 
 
-  describe('cwpAwarnessReasonColumn', () => {
+  describe('cwpAwarenessReasonColumn', () => {
     it('should return a number that represent the sql query for adding a cwp reasons with the id and reason column provided', () => {
       const id = '1';
-      const cwpAwarnessReasonCode = 'cwpreason1';
+      const cwpAwarenessReasonCode = 'cwpreason1';
 
       const expected =
         '(SELECT "AnalysisFileCode"  FROM   "CareWorkforcePathwayReasons" c JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID"  WHERE e."EstablishmentID" = ec."EstablishmentID"  AND "CareWorkforcePathwayReasonID"= 1 LIMIT 1) cwpreason1,';
-      const actual = cwpAwarnessReasonColumn(id, cwpAwarnessReasonCode);
+      const actual = cwpAwarenessReasonColumn(id, cwpAwarenessReasonCode);
 
       expect(actual).to.equal(expected);
     });
 
     it('should return a number that represent the sql query for adding a cwp reasons with the id and reason column provided', () => {
       const id = '2';
-      const cwpAwarnessReasonCode = 'cwpreason2';
+      const cwpAwarenessReasonCode = 'cwpreason2';
 
       const expected =
         '(SELECT "AnalysisFileCode"  FROM   "CareWorkforcePathwayReasons" c JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID"  WHERE e."EstablishmentID" = ec."EstablishmentID"  AND "CareWorkforcePathwayReasonID"= 2 LIMIT 1) cwpreason2,';
-       const actual = cwpAwarnessReasonColumn(id, cwpAwarnessReasonCode);
+       const actual = cwpAwarenessReasonColumn(id, cwpAwarenessReasonCode);
 
       expect(actual).to.equal(expected);
     });
@@ -32,8 +32,8 @@ describe('src/utils/sql/cwp-awarness-reasons.js', () => {
   describe('generateSqlQueriesForCwpAwarenessReasonsColumns', () => {
     it('should generate sql queries for the cwp reasons columns', () => {
       const mockMappings = [
-        { id: 1, cwpAwarnessReasonCode: 'cwpreason1'},
-        { id: 2, cwpAwarnessReasonCode: 'cwpreason2' },
+        { id: 1, cwpAwarenessReasonCode: 'cwpreason1'},
+        { id: 2, cwpAwarenessReasonCode: 'cwpreason2' },
       ];
 
       const expectedSqlQueries = (
