@@ -1,6 +1,6 @@
 const db = require('../../db');
 const { jobRoleGroups } = require('./jobRoleGroups');
-const { generateSqlQueriesForCwpAwarnessReanosColumns } = require('../../../utils/sql/cwp-awarness-reasons');
+const { generateSqlQueriesForCwpAwarenessReasonsColumns } = require('../../../utils/sql/cwp-awarness-reasons');
 const { cwpAwarnessReasons } = require('../../mappings/cwp-awarness-reasons')
 
 
@@ -64,7 +64,7 @@ const getBatches = async () => db.select('BatchNo').from('Afr1BatchiSkAi0mo').gr
 const findWorkplacesByBatch = (batchNum) =>{
 
 
-   const sqlQueriesForCwpAwarnessReasons = generateSqlQueriesForCwpAwarnessReanosColumns(cwpAwarnessReasons);
+   const sqlQueriesForCwpAwarnessReasons = generateSqlQueriesForCwpAwarenessReasonsColumns(cwpAwarnessReasons);
   return db
     .raw(
       `

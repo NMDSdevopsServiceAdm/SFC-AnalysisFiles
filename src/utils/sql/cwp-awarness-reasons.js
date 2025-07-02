@@ -9,7 +9,7 @@ const cwpAwarnessReasonColumn = (id, cwpAwarnessReasonCode) => {
   );
 };
 
-const generateSqlQueriesForCwpAwarnessReanosColumns = (cwpAwarnessReasonMappings) => {
+const generateSqlQueriesForCwpAwarenessReasonsColumns = (cwpAwarnessReasonMappings) => {
   const sqlQueriesForEachCwpAwarnessReason = cwpAwarnessReasonMappings.map(({ id, cwpAwarnessReasonCode }) => 
    cwpAwarnessReasonColumn(id, cwpAwarnessReasonCode)
   );
@@ -18,5 +18,5 @@ const generateSqlQueriesForCwpAwarnessReanosColumns = (cwpAwarnessReasonMappings
 
 module.exports = {
   cwpAwarnessReasonColumn,
-  generateSqlQueriesForCwpAwarnessReanosColumns,
+  generateSqlQueriesForCwpAwarenessReasonsColumns,
 };

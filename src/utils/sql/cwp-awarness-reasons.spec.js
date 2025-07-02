@@ -1,6 +1,6 @@
 const { describe, it } = require('mocha');
 const expect = require('chai').expect;
-const { cwpAwarnessReasonColumn, generateSqlQueriesForCwpAwarnessReanosColumns } = require('./cwp-awarness-reasons');
+const { cwpAwarnessReasonColumn, generateSqlQueriesForCwpAwarenessReasonsColumns } = require('./cwp-awarness-reasons');
 
 describe('src/utils/sql/cwp-awarness-reasons.js', () => {
 
@@ -29,7 +29,7 @@ describe('src/utils/sql/cwp-awarness-reasons.js', () => {
     });
   });
 
-  describe('generateSqlQueriesForCwpAwarnessReanosColumns', () => {
+  describe('generateSqlQueriesForCwpAwarenessReasonsColumns', () => {
     it('should generate sql queries for the cwp reasons columns', () => {
       const mockMappings = [
         { id: 1, cwpAwarnessReasonCode: 'cwpreason1'},
@@ -41,7 +41,7 @@ describe('src/utils/sql/cwp-awarness-reasons.js', () => {
         '(SELECT "AnalysisFileCode"  FROM   "CareWorkforcePathwayReasons" c JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID"  WHERE e."EstablishmentID" = ec."EstablishmentID"  AND "CareWorkforcePathwayReasonID"= 1 LIMIT 1) cwpreason1,'+
         '\n' +
         '(SELECT "AnalysisFileCode"  FROM   "CareWorkforcePathwayReasons" c JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID"  WHERE e."EstablishmentID" = ec."EstablishmentID"  AND "CareWorkforcePathwayReasonID"= 2 LIMIT 1) cwpreason2,')
-      const actual = generateSqlQueriesForCwpAwarnessReanosColumns(mockMappings)
+      const actual = generateSqlQueriesForCwpAwarenessReasonsColumns(mockMappings)
       
       expect(actual).to.equal(expectedSqlQueries)
     });
