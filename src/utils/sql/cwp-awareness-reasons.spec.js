@@ -1,10 +1,9 @@
 const { describe, it } = require('mocha');
 const expect = require('chai').expect;
 const { cwpAwarenessReasonColumn, generateSqlQueriesForCwpAwarenessReasonsColumns } = require('./cwp-awareness-reasons');
+const { removeIndentation } = require('../test-utils.js')
 
 describe('src/utils/sql/cwp-Awareness-reasons.js', () => {
-  const removeIndentation = (sqlStatement) => sqlStatement.replace(/\s+/g, ' ').trim();
-
   describe('cwpAwarenessReasonColumn', () => {
     it('should return a number that represent the sql query for adding a cwp reasons with the id and reason column provided', () => {
       const id = '1';

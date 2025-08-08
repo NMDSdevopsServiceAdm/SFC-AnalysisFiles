@@ -1,11 +1,10 @@
 const { describe, it } = require('mocha');
 const expect = require('chai').expect;
 const { generateColumnsForYesNoDontKnowQuestion } = require('./generate-yes-no-dont-know-columns.js');
+const { removeIndentation } = require('../../test-utils.js')
 
 describe('src/utils/sql/generate-yes-no-don-know-columns.js', () => {
   describe('generateColumnsForYesNoDontKnowQuestion', () => {
-    const removeIndentation = (sqlStatement) => sqlStatement.replace(/\s+/g, ' ').trim();
-
     it('should return SQL statement retrieving from Value/ChangedAt columns set to standard variable format', () => {
         
         const expected =
