@@ -2,9 +2,9 @@
 
 const cwpAwarenessReasonColumn = (id, cwpAwarenessReasonCode) => {
   return (
-    '( SELECT "AnalysisFileCode"  FROM   "CareWorkforcePathwayReasons" c  ' +
-    ' JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID" ' +
-    `WHERE e."EstablishmentID" = ec."EstablishmentID"  AND "CareWorkforcePathwayReasonID"= ${id} LIMIT 1) ${cwpAwarenessReasonCode},`
+    '(SELECT "AnalysisFileCode" FROM "CareWorkforcePathwayReasons" c ' +
+    'JOIN "EstablishmentCWPReasons" ec on c."ID" = ec."CareWorkforcePathwayReasonID" ' +
+    `WHERE e."EstablishmentID" = ec."EstablishmentID" AND "CareWorkforcePathwayReasonID"= ${id} LIMIT 1) ${cwpAwarenessReasonCode},`
 
   );
 };
