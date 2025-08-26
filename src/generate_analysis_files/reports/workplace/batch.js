@@ -1309,6 +1309,23 @@ const findWorkplacesByBatch = (batchNum) =>{
 
            ${sqlQueriesForCwpAwarenessReasons}
 
+     
+     COALESCE((
+           CASE 
+                WHEN "StaffDoDelegatedHealthcareActivitiesValue" = 'Yes' 
+                   THEN 1
+                WHEN "StaffDoDelegatedHealthcareActivitiesValue" = 'No' 
+                   THEN 0
+                WHEN "StaffDoDelegatedHealthcareActivitiesValue" = 'Don''t know' 
+                   THEN -2
+            END
+        ), -1) DHAconducted,
+        TO_CHAR(e."StaffDoDelegatedHealthcareActivitiesSavedAt",'DD/MM/YYYY') DHAconducted_savedate,
+        TO_CHAR(e."StaffDoDelegatedHealthcareActivitiesChangedAt",'DD/MM/YYYY') DHAconducted_changedate,
+
+    
+
+
 
       -- jr28
       CASE 
