@@ -2,6 +2,8 @@ const db = require('../../db');
 const { jobRoleGroups } = require('./jobRoleGroups');
 const { generateSqlQueriesForCwpAwarenessReasonsColumns } = require('../../../utils/sql/cwp-awareness-reasons');
 const { cwpAwarenessReasons } = require('../../mappings/cwp-awareness-reasons')
+const { generateSqlQueriesForDhaActivitiesTypeColumns } = require('../../../utils/sql/delegated-healthcare-activities-type');
+const { dhaActivitiesType } = require('../../mappings/delegated-healthcare-activities-type')
 
 
 const getUnassignedBatchCount = async () => {
@@ -65,6 +67,7 @@ const findWorkplacesByBatch = (batchNum) =>{
 
 
    const sqlQueriesForCwpAwarenessReasons = generateSqlQueriesForCwpAwarenessReasonsColumns(cwpAwarenessReasons);
+    const sqlQueriesForDhaActivitiesType = generateSqlQueriesForDhaActivitiesTypeColumns(dhaActivitiesType);
   return db
     .raw(
       `
@@ -1308,6 +1311,36 @@ const findWorkplacesByBatch = (batchNum) =>{
         TO_CHAR(e."CareWorkforcePathwayUseChangedAt",'DD/MM/YYYY') CWPuse_changedate,
 
            ${sqlQueriesForCwpAwarenessReasons}
+
+     
+     COALESCE((
+           CASE 
+                WHEN "StaffDoDelegatedHealthcareActivitiesValue" = 'Yes' 
+                   THEN 1
+                WHEN "StaffDoDelegatedHealthcareActivitiesValue" = 'No' 
+                   THEN 0
+                WHEN "StaffDoDelegatedHealthcareActivitiesValue" = 'Don''t know' 
+                   THEN -2
+            END
+        ), -1) DHAconducted,
+        TO_CHAR(e."StaffDoDelegatedHealthcareActivitiesSavedAt",'DD/MM/YYYY') DHAconducted_savedate,
+        TO_CHAR(e."StaffDoDelegatedHealthcareActivitiesChangedAt",'DD/MM/YYYY') DHAconducted_changedate,
+
+    
+     COALESCE((
+           CASE 
+                WHEN "StaffWhatKindDelegatedHealthcareActivitiesValue" = 'Yes' 
+                   THEN 1
+                WHEN "StaffWhatKindDelegatedHealthcareActivitiesValue" = 'Don''t know' 
+                   THEN -2
+            END
+        ), -1) DHAtype,
+       
+
+         ${sqlQueriesForDhaActivitiesType}
+
+        TO_CHAR(e."StaffWhatKindDelegatedHealthcareActivitiesSavedAt",'DD/MM/YYYY') DHAtype_savedate,
+        TO_CHAR(e."StaffWhatKindDelegatedHealthcareActivitiesChangedAt",'DD/MM/YYYY') DHAtype_changedate,
 
 
       -- jr28
