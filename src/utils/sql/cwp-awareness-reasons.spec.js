@@ -1,20 +1,19 @@
 const { describe, it } = require('mocha');
 const expect = require('chai').expect;
 const { cwpAwarenessReasonColumn, generateSqlQueriesForCwpAwarenessReasonsColumns } = require('./cwp-awareness-reasons');
+const { removeIndentation } = require('../test-utils.js')
 
 describe('src/utils/sql/cwp-Awareness-reasons.js', () => {
-
-
   describe('cwpAwarenessReasonColumn', () => {
     it('should return a number that represent the sql query for adding a cwp reasons with the id and reason column provided', () => {
       const id = '1';
       const cwpAwarenessReasonCode = 'cwpreason1';
 
       const expected =
-        '(SELECT "AnalysisFileCode"  FROM   "CareWorkforcePathwayReasons" c JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID"  WHERE e."EstablishmentID" = ec."EstablishmentID"  AND "CareWorkforcePathwayReasonID"= 1 LIMIT 1) cwpreason1,';
+        '(SELECT "AnalysisFileCode" FROM "CareWorkforcePathwayReasons" c JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID"  WHERE e."EstablishmentID" = ec."EstablishmentID"  AND "CareWorkforcePathwayReasonID"= 1 LIMIT 1) cwpreason1,';
       const actual = cwpAwarenessReasonColumn(id, cwpAwarenessReasonCode);
 
-      expect(actual).to.equal(expected);
+      expect(removeIndentation(actual)).to.equal(removeIndentation(expected));
     });
 
     it('should return a number that represent the sql query for adding a cwp reasons with the id and reason column provided', () => {
@@ -22,10 +21,10 @@ describe('src/utils/sql/cwp-Awareness-reasons.js', () => {
       const cwpAwarenessReasonCode = 'cwpreason2';
 
       const expected =
-        '(SELECT "AnalysisFileCode"  FROM   "CareWorkforcePathwayReasons" c JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID"  WHERE e."EstablishmentID" = ec."EstablishmentID"  AND "CareWorkforcePathwayReasonID"= 2 LIMIT 1) cwpreason2,';
+        '(SELECT "AnalysisFileCode" FROM "CareWorkforcePathwayReasons" c JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID"  WHERE e."EstablishmentID" = ec."EstablishmentID" AND "CareWorkforcePathwayReasonID"= 2 LIMIT 1) cwpreason2,';
        const actual = cwpAwarenessReasonColumn(id, cwpAwarenessReasonCode);
 
-      expect(actual).to.equal(expected);
+      expect(removeIndentation(actual)).to.equal(removeIndentation(expected));
     });
   });
 
@@ -38,12 +37,12 @@ describe('src/utils/sql/cwp-Awareness-reasons.js', () => {
 
       const expectedSqlQueries = (
       
-        '(SELECT "AnalysisFileCode"  FROM   "CareWorkforcePathwayReasons" c JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID"  WHERE e."EstablishmentID" = ec."EstablishmentID"  AND "CareWorkforcePathwayReasonID"= 1 LIMIT 1) cwpreason1,'+
+        '(SELECT "AnalysisFileCode" FROM "CareWorkforcePathwayReasons" c JOIN "EstablishmentCWPReasons" ec on c."ID" = ec."CareWorkforcePathwayReasonID" WHERE e."EstablishmentID" = ec."EstablishmentID" AND "CareWorkforcePathwayReasonID"= 1 LIMIT 1) cwpreason1,'+
         '\n' +
-        '(SELECT "AnalysisFileCode"  FROM   "CareWorkforcePathwayReasons" c JOIN "EstablishmentCWPReasons" ec on  c."ID" = ec."CareWorkforcePathwayReasonID"  WHERE e."EstablishmentID" = ec."EstablishmentID"  AND "CareWorkforcePathwayReasonID"= 2 LIMIT 1) cwpreason2,')
+        '(SELECT "AnalysisFileCode" FROM "CareWorkforcePathwayReasons" c JOIN "EstablishmentCWPReasons" ec on c."ID" = ec."CareWorkforcePathwayReasonID" WHERE e."EstablishmentID" = ec."EstablishmentID" AND "CareWorkforcePathwayReasonID"= 2 LIMIT 1) cwpreason2,')
       const actual = generateSqlQueriesForCwpAwarenessReasonsColumns(mockMappings)
       
-      expect(actual).to.equal(expectedSqlQueries)
+      expect(removeIndentation(actual)).to.equal(removeIndentation(expectedSqlQueries))
     });
   });
 });

@@ -1,6 +1,7 @@
 const db = require('../../db');
 const { generateSqlQueriesForQualificationColumns } = require('../../../utils/sql/qualification');
-const { newQualifications } = require('../../mappings/qualification')
+const { newQualifications } = require('../../mappings/qualification');
+const { generateColumnsForYesNoDontKnowQuestion } = require('../../../utils/sql/workers/generate-yes-no-dont-know-columns');
 
 const populateBatch = async (numInBatch) => {
   await db.raw(
@@ -2660,7 +2661,8 @@ const findWorkersByBatch = (batchNum) => {
           WHERE  "ID" = w."CareWorkforcePathwayRoleCategoryFK"
        ),-1) careworkforcepathway,
         TO_CHAR(w."CareWorkforcePathwayRoleCategorySavedAt",'DD/MM/YYYY') CareWorkForceCategory_savedate,
-        TO_CHAR(w."CareWorkforcePathwayRoleCategoryChangedAt",'DD/MM/YYYY') CareWorkForceCategory_changedate
+        TO_CHAR(w."CareWorkforcePathwayRoleCategoryChangedAt",'DD/MM/YYYY') CareWorkForceCategory_changedate,
+      ${generateColumnsForYesNoDontKnowQuestion('CarryOutDelegatedHealthcareActivities', 'delegatedhealthcareactivities')}
 
 FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND e."Archived" = false AND w."Archived" = false
