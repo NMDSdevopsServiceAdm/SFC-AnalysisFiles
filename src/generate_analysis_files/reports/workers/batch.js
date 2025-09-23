@@ -127,6 +127,7 @@ const findWorkersByBatch = (batchNum) => {
           w."LocalIdentifierChangedAt",
           w."EstablishmentFkChangedAt",
           w."FluJabChangedAt",
+          w."updated",
           (
              SELECT MAX(updated) FROM "WorkerQualifications" WHERE "WorkerFK" = w."ID"
           ),
@@ -170,6 +171,7 @@ const findWorkersByBatch = (batchNum) => {
           w."LocalIdentifierSavedAt",
           w."EstablishmentFkSavedAt",
           w."FluJabSavedAt",
+          w."updated",
           (
              SELECT MAX(updated) FROM "WorkerQualifications" WHERE "WorkerFK" = w."ID"
           ),
