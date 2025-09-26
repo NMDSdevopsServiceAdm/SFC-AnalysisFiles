@@ -2,7 +2,7 @@ const generateColumnsForYesNoDontKnowQuestion = (columnName, analysisFileVariabl
   return (
     `(
         SELECT CASE
-            WHEN w."${columnName}Value" = 'No' THEN 2
+            WHEN w."${columnName}Value" = 'No' THEN 0
             WHEN w."${columnName}Value" = 'Yes' THEN 1
             WHEN w."${columnName}Value" IS NULL THEN -1
             WHEN w."${columnName}Value" = 'Don''t know' THEN -2
