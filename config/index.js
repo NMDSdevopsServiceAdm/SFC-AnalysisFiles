@@ -19,6 +19,15 @@ var config = convict({
       format: '*',
       default: 'postgres://sfcadmin:unknown@localhost:5432/sfcdevdb',
       env: 'DATABASE_URL',
+      ssl: {
+      require: true,
+      rejectUnauthorized: true,
+      ca: fs
+        .readFileSync(
+          path.join(__dirname, "../../certificate/global-bundle.pem")
+        )
+        .toString(),
+    },
     },
     name: {
       doc: 'Service name',
