@@ -25,7 +25,7 @@ var config = convict({
       rejectUnauthorized: true,
       ca: fs
         .readFileSync(
-          path.join(__dirname, "../certificate/global-bundle.pem")
+          path.join(__dirname, "../config/certificate/global-bundle.pem")
         )
         .toString(),
     },
