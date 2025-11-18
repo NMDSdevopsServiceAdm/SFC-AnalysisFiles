@@ -2,6 +2,7 @@ var convict = require('convict');
 const AWSSecrets = require('../aws/secrets');
 const fs = require('fs');
 const yaml = require('js-yaml');
+const path = require('path');
 
 convict.addFormat(require('convict-format-with-validator').url);
 
@@ -24,7 +25,7 @@ var config = convict({
       rejectUnauthorized: true,
       ca: fs
         .readFileSync(
-          path.join(__dirname, "../certificate/global-bundle.pem")
+          path.join(__dirname, "../../certificate/global-bundle.pem")
         )
         .toString(),
     },
