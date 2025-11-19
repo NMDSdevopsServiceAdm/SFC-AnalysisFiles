@@ -9,7 +9,7 @@ const pg = require('knex')({
 
        ssl: {
       rejectUnauthorized: true,
-      ca: fs.readFileSync(config.database.sslCAPath, 'utf8'),
+      ca: fs.readFileSync(config.db.sslCAPath, 'utf8'),
     },
   },
 
