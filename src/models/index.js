@@ -6,36 +6,29 @@ const path = require('path');
 const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
 const db = {};
-const cfenv =  require('cfenv');
+
+const dbUri = process.env.DATABASE_URL || config.get('db.url');
 
 const dbConfig = {
   pool: {
     max: 10000,
     min: 0,
     idle: 200000,
-    acquire: 200000
+    acquire: 200000,
   },
   retry: { max: 3 },
-  uri: cfenv.getAppEnv({
-    vcap: {
-      services: {
-        postgres: [
-          {
-            name: config.get('db.name'),
-            credentials: {
-              uri: config.get('db.url')
-            }
-          }
-        ]
-      }
-    }
-  }).getServiceCreds(config.get('db.name')).uri,
   dialect: config.get('db.dialect'),
   logging: config.get('log.sequelize'),
-
+  dialectOptions: {
+    ssl: {
+      rejectUnauthorized: true,
+      ca: fs.readFileSync(config.get('db.sslCAPath'), 'utf8'),
+    }
+  }
 };
 
-const sequelize = new Sequelize(dbConfig.uri, dbConfig);
+
+const sequelize = new Sequelize(dbUri, dbConfig);
 
 fs
   .readdirSync(__dirname)
