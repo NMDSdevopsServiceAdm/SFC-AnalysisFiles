@@ -2,7 +2,7 @@ var convict = require('convict');
 const AWSSecrets = require('../aws/secrets');
 const fs = require('fs');
 const yaml = require('js-yaml');
-const path = require('path');
+
 
 convict.addFormat(require('convict-format-with-validator').url);
 
@@ -20,15 +20,6 @@ var config = convict({
       format: '*',
       default: 'postgres://sfcadmin:unknown@localhost:5432/sfcdevdb',
       env: 'DATABASE_URL',
-      ssl: {
-      require: true,
-      rejectUnauthorized: true,
-      ca: fs
-        .readFileSync(
-          path.join(__dirname, "../config/certificate/global-bundle.pem")
-        )
-        .toString(),
-    },
     },
     name: {
       doc: 'Service name',
