@@ -1,15 +1,14 @@
 const config = require('../../../config');
 const fs = require('fs');
-const path = require('path');
 
 
 const pg = require('knex')({
   client: 'pg',
   connection: {connectionString: config.get('db.url'),
 
-       ssl: {
+      ssl: {
       rejectUnauthorized: true,
-      ca: fs.readFileSync(config.db.sslCAPath, 'utf8'),
+      ca: fs.readFileSync(config.get('db.sslCAPath'), 'utf8'),
     },
   },
 

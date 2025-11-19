@@ -22,6 +22,8 @@ var config = convict({
       env: 'DATABASE_URL',
     },
     sslCAPath: {
+      doc: 'Path to CA certificate',
+      format: String,
       default: path.join(__dirname, "../config/certificate/global-bundle.pem")
     },
     name: {
