@@ -3,8 +3,8 @@ const { jobRoleGroups } = require('./jobRoleGroups');
 const { generateSqlQueriesForCwpAwarenessReasonsColumns } = require('../../../utils/sql/cwp-awareness-reasons');
 const { cwpAwarenessReasons } = require('../../mappings/cwp-awareness-reasons')
 const { generateSqlQueriesForDhaActivitiesTypeColumns } = require('../../../utils/sql/delegated-healthcare-activities-type');
-const { dhaActivitiesType } = require('../../mappings/delegated-healthcare-activities-type')
-
+const { dhaActivitiesType } = require('../../mappings/delegated-healthcare-activities-type') 
+const { trainingCoursesCreatedCount } =  require('../../../utils/sql/training-course');
 
 const getUnassignedBatchCount = async () => {
   const { count } = (await db('Afr1BatchiSkAi0mo').whereNull('BatchNo').count().first()) || {};
@@ -1341,6 +1341,16 @@ const findWorkplacesByBatch = (batchNum) =>{
 
         TO_CHAR(e."StaffWhatKindDelegatedHealthcareActivitiesSavedAt",'DD/MM/YYYY') DHAtype_savedate,
         TO_CHAR(e."StaffWhatKindDelegatedHealthcareActivitiesChangedAt",'DD/MM/YYYY') DHAtype_changedate,
+
+    CASE 
+       WHEN EXISTS ( 
+        SELECT 1 FROM cqc."TrainingCourse" tc 
+         WHERE tc."EstablishmentFK" = e."EstablishmentID") 
+         THEN 1 
+         ELSE 0 
+      END TrainingCoursesCreated,
+
+      ${trainingCoursesCreatedCount()}
 
 
       -- jr28
