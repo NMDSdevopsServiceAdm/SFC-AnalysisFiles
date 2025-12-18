@@ -4,7 +4,7 @@ const trainingCoursesCreatedCount = () => {
     ' SELECT COUNT(tc."UID") ' +
     ' FROM cqc."TrainingCourse" tc ' +
     ' WHERE tc."EstablishmentFK" = e."EstablishmentID" ' +
-    '), 0) AS "TrainingCoursesCreatedCount",'
+    '), 0) AS "trainingCoursesCreatedCount",'
   );
 };
 
