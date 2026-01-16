@@ -2,4 +2,4 @@ aws:
   region: eu-west-1
   secrets:
     use: false
-    wallet: benchmark/api
+    wallet: benchmarks/api
