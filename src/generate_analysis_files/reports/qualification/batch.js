@@ -46,8 +46,8 @@ const createBatchesForQualification = async (runDate, numInBatch =20000) => {
     [runDate],
   );
 
-  await db.raw('CREATE INDEX "Afr3BatchiSkAi0mo_idx" ON "Afr5BatchiSkAi0mo"("BatchNo");');
-  await db.raw('CREATE INDEX idx_batch_training ON "Afr5BatchiSkAi0mo"("QualificationID");');
+  await db.raw('CREATE INDEX "Afr5BatchiSkAi0mo_idx" ON "Afr5BatchiSkAi0mo"("BatchNo");');
+  await db.raw('CREATE INDEX idx_batch_qualification ON "Afr5BatchiSkAi0mo"("QualificationID");');
   await db.raw('CREATE INDEX idx_batch_worker ON "Afr5BatchiSkAi0mo"("WorkerID");');
 
 
