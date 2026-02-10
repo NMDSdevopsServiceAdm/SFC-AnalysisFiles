@@ -2648,17 +2648,7 @@ const findWorkersByBatch = (batchNum) => {
       TO_CHAR(w."EmployedFromOutsideUkSavedAt",'DD/MM/YYYY')  employedfromuk_savedate,
 
      COALESCE((
-          SELECT CASE "Title"
-                    WHEN 'New to care' THEN 1
-                    WHEN 'Care or support worker' THEN 2
-                    WHEN 'Enhanced care worker' THEN 3
-                    WHEN 'Suppervisor or leader' THEN 4
-                    WHEN 'Practice leader' THEN 5
-                    WHEN 'Deputy manager' THEN 6
-                    WHEN 'Registered manager' THEN 7
-                    WHEN 'None of the above' THEN 8
-                    WHEN 'I do not know' THEN -2
-                 END
+          SELECT  "AnalysisFileCode"
           FROM   "CareWorkforcePathwayRoleCategories"
           WHERE  "ID" = w."CareWorkforcePathwayRoleCategoryFK"
        ),-1) careworkforcepathway,
