@@ -5,6 +5,7 @@ const { cwpAwarenessReasons } = require('../../mappings/cwp-awareness-reasons')
 const { generateSqlQueriesForDhaActivitiesTypeColumns } = require('../../../utils/sql/delegated-healthcare-activities-type');
 const { dhaActivitiesType } = require('../../mappings/delegated-healthcare-activities-type') 
 const { trainingCoursesCreatedCount } =  require('../../../utils/sql/training-course');
+const { generateColumnsForYesNoDontKnowQuestionNoChangeDate } = require('../../../utils/sql/generate-yes-no-dont-know-columns-no-chang-date');
 
 const getUnassignedBatchCount = async () => {
   const { count } = (await db('Afr1BatchiSkAi0mo').whereNull('BatchNo').count().first()) || {};
@@ -1270,16 +1271,14 @@ const findWorkplacesByBatch = (batchNum) =>{
           THEN NULL
         END CWEnhancedSickPay,
 
-      CASE  
+         ${generateColumnsForYesNoDontKnowQuestionNoChangeDate('PensionContribution', 'CWEnhancedPension')}
+         
+       CASE  
         WHEN  "PensionContribution" = 'Yes'
-           THEN 1
-        WHEN  "PensionContribution"= 'No'
-          THEN 2
-        WHEN  "PensionContribution"= 'Don''t know'
-          THEN -1
-        WHEN  "PensionContribution" IS NULL
-          THEN NULL
-        END CWEnhancedPension,
+          THEN "PensionContributionPercentage"
+        END CWEnhancedpensioncontribution,
+
+         ${generateColumnsForYesNoDontKnowQuestionNoChangeDate('StaffOptOutOfWorkplacePension', 'CWEnhancedpensionoptout')}
 
         CASE  
         WHEN  "CareWorkersLeaveDaysPerYear" IS NULL
