@@ -5,7 +5,8 @@ const { cwpAwarenessReasons } = require('../../mappings/cwp-awareness-reasons')
 const { generateSqlQueriesForDhaActivitiesTypeColumns } = require('../../../utils/sql/delegated-healthcare-activities-type');
 const { dhaActivitiesType } = require('../../mappings/delegated-healthcare-activities-type') 
 const { trainingCoursesCreatedCount } =  require('../../../utils/sql/training-course');
-const { generateColumnsForYesNoDontKnowQuestionNoChangeDate } = require('../../../utils/sql/generate-yes-no-dont-know-columns-no-chang-date');
+const { YESNO_TYPE_MAPPING,RATE_TYPE_MAPPING } = require('../../../utils/sql/generate-columns/generate-mapping');
+const { generateCaseColumn } = require('../../../utils/sql/generate-columns/generate-columns');
 
 const getUnassignedBatchCount = async () => {
   const { count } = (await db('Afr1BatchiSkAi0mo').whereNull('BatchNo').count().first()) || {};
@@ -1271,14 +1272,17 @@ const findWorkplacesByBatch = (batchNum) =>{
           THEN NULL
         END CWEnhancedSickPay,
 
-         ${generateColumnsForYesNoDontKnowQuestionNoChangeDate('PensionContribution', 'CWEnhancedPension')}
+         ${generateCaseColumn('PensionContribution', 'CWEnhancedPension',YESNO_TYPE_MAPPING)}
          
        CASE  
         WHEN  "PensionContribution" = 'Yes'
           THEN "PensionContributionPercentage"
         END CWEnhancedpensioncontribution,
 
-         ${generateColumnsForYesNoDontKnowQuestionNoChangeDate('StaffOptOutOfWorkplacePension', 'CWEnhancedpensionoptout')}
+         ${generateCaseColumn('StaffOptOutOfWorkplacePension', 'CWEnhancedpensionoptout',YESNO_TYPE_MAPPING)}
+
+        ${generateCaseColumn('OfferSleepIn', 'Sleepins',YESNO_TYPE_MAPPING)}
+        ${generateCaseColumn('HowToPayForSleepIn', 'Sleepins_pay',RATE_TYPE_MAPPING)}
 
         CASE  
         WHEN  "CareWorkersLeaveDaysPerYear" IS NULL
