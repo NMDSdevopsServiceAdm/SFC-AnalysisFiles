@@ -10,7 +10,7 @@ describe('src/utils/sql/generate-yes-no-don-know-columns.js', () => {
         const expected =
         `(
         SELECT CASE
-            WHEN w."CarryOutDelegatedHealthcareActivitiesValue" = 'No' THEN 2
+            WHEN w."CarryOutDelegatedHealthcareActivitiesValue" = 'No' THEN 0
             WHEN w."CarryOutDelegatedHealthcareActivitiesValue" = 'Yes' THEN 1
             WHEN w."CarryOutDelegatedHealthcareActivitiesValue" IS NULL THEN -1
             WHEN w."CarryOutDelegatedHealthcareActivitiesValue" = 'Don''t know' THEN -2
