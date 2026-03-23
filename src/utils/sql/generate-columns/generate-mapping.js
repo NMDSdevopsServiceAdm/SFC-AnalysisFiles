@@ -1,9 +1,7 @@
-
 const YESNO_TYPE_MAPPING = {
-  'No': 0,
-  'Yes': 1,
+  No: 0,
+  Yes: 1,
   "Don''t know": -2,
-
 };
 
 const RATE_TYPE_MAPPING = {
@@ -14,5 +12,5 @@ const RATE_TYPE_MAPPING = {
 
 module.exports = {
   YESNO_TYPE_MAPPING,
-RATE_TYPE_MAPPING
+  RATE_TYPE_MAPPING,
 };

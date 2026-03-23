@@ -1,12 +1,14 @@
 const db = require('../../db');
 const { jobRoleGroups } = require('./jobRoleGroups');
 const { generateSqlQueriesForCwpAwarenessReasonsColumns } = require('../../../utils/sql/cwp-awareness-reasons');
-const { cwpAwarenessReasons } = require('../../mappings/cwp-awareness-reasons')
-const { generateSqlQueriesForDhaActivitiesTypeColumns } = require('../../../utils/sql/delegated-healthcare-activities-type');
-const { dhaActivitiesType } = require('../../mappings/delegated-healthcare-activities-type') 
-const { trainingCoursesCreatedCount } =  require('../../../utils/sql/training-course');
-const { YESNO_TYPE_MAPPING,RATE_TYPE_MAPPING } = require('../../../utils/sql/generate-columns/generate-mapping');
-const { generateCaseColumn } = require('../../../utils/sql/generate-columns/generate-columns');
+const { cwpAwarenessReasons } = require('../../mappings/cwp-awareness-reasons');
+const {
+  generateSqlQueriesForDhaActivitiesTypeColumns,
+} = require('../../../utils/sql/delegated-healthcare-activities-type');
+const { dhaActivitiesType } = require('../../mappings/delegated-healthcare-activities-type');
+const { trainingCoursesCreatedCount } = require('../../../utils/sql/training-course');
+const { YESNO_TYPE_MAPPING, RATE_TYPE_MAPPING } = require('../../../utils/sql/generate-columns/generate-mapping');
+const { generateCaseColumn, generateDateColumns } = require('../../../utils/sql/generate-columns/generate-columns');
 
 const getUnassignedBatchCount = async () => {
   const { count } = (await db('Afr1BatchiSkAi0mo').whereNull('BatchNo').count().first()) || {};
@@ -65,11 +67,10 @@ const dropBatch = async () => {
 
 const getBatches = async () => db.select('BatchNo').from('Afr1BatchiSkAi0mo').groupBy(1).orderBy(1);
 
-const findWorkplacesByBatch = (batchNum) =>{
+const findWorkplacesByBatch = (batchNum) => {
+  const sqlQueriesForCwpAwarenessReasons = generateSqlQueriesForCwpAwarenessReasonsColumns(cwpAwarenessReasons);
+  const sqlQueriesForDhaActivitiesType = generateSqlQueriesForDhaActivitiesTypeColumns(dhaActivitiesType);
 
-
-   const sqlQueriesForCwpAwarenessReasons = generateSqlQueriesForCwpAwarenessReasonsColumns(cwpAwarenessReasons);
-    const sqlQueriesForDhaActivitiesType = generateSqlQueriesForDhaActivitiesTypeColumns(dhaActivitiesType);
   return db
     .raw(
       `
@@ -1244,7 +1245,7 @@ const findWorkplacesByBatch = (batchNum) =>{
            THEN 4
         END Care_Cert_accepted,
 
-     CASE
+      CASE
         WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" IS NULL  
            THEN NULL
          WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" = 'Don''t know'
@@ -1255,13 +1256,13 @@ const findWorkplacesByBatch = (batchNum) =>{
            THEN 2
         END HAS_CWLoyaltyBonus,
 
-     CASE
+      CASE
         WHEN "CareWorkersCashLoyaltyForFirstTwoYears" ~ '^[0-9\.]+$'
           THEN ( SELECT  "CareWorkersCashLoyaltyForFirstTwoYears" FROM cqc."Establishment" WHERE "EstablishmentID" =  e."EstablishmentID" )
 		
         END CWLoyaltyBonusAMOUNT,
 		
-     CASE  
+      CASE  
         WHEN  "SickPay" = 'Yes'
            THEN 1
         WHEN  "SickPay"= 'No'
@@ -1272,19 +1273,46 @@ const findWorkplacesByBatch = (batchNum) =>{
           THEN NULL
         END CWEnhancedSickPay,
 
-         ${generateCaseColumn('PensionContribution', 'CWEnhancedPension',YESNO_TYPE_MAPPING)}
+      ${generateCaseColumn('PensionContribution', 'CWEnhancedPension', YESNO_TYPE_MAPPING)}
          
-       CASE  
+      CASE  
         WHEN  "PensionContribution" = 'Yes'
           THEN "PensionContributionPercentage"
         END CWEnhancedpensioncontribution,
 
-         ${generateCaseColumn('StaffOptOutOfWorkplacePension', 'CWEnhancedpensionoptout',YESNO_TYPE_MAPPING)}
+      ${generateDateColumns('PensionContributionPercentage', 'CWEnhancedpensioncontribution')}
 
-        ${generateCaseColumn('OfferSleepIn', 'Sleepins',YESNO_TYPE_MAPPING)}
-        ${generateCaseColumn('HowToPayForSleepIn', 'Sleepins_pay',RATE_TYPE_MAPPING)}
+      ${generateCaseColumn('StaffOptOutOfWorkplacePension', 'CWEnhancedpensionoptout', YESNO_TYPE_MAPPING)}
+      ${generateDateColumns('StaffOptOutOfWorkplacePension', 'CWEnhancedpensionoptout')}
 
-        CASE  
+      ${generateCaseColumn('OfferSleepIn', 'Sleepins', YESNO_TYPE_MAPPING)}
+      ${generateDateColumns('OfferSleepIn', 'Sleepins')}
+
+      ${generateCaseColumn('HowToPayForSleepIn', 'Sleepins_pay', RATE_TYPE_MAPPING)}
+      ${generateDateColumns('HowToPayForSleepIn', 'Sleepins_pay')}
+
+    
+      COALESCE((
+        SELECT "AnalysisFileCode"
+        FROM   "TravelTimePayOption" travelPay
+        WHERE  travelPay."ID" = e."TravelTimePayOptionFK"
+        ), -1) Traveltime,
+      ${generateDateColumns('TravelTimePayOption', 'Traveltime')}
+
+    
+      CASE 
+        WHEN ((
+          SELECT "IncludeRate"
+            FROM cqc."TravelTimePayOption" travelPay 
+            WHERE  travelPay."ID" = e."TravelTimePayOptionFK"
+        ))
+        THEN 
+          e."TravelTimePayRate"
+        ELSE NULL 
+        END Traveltime_differentrate,
+      ${generateDateColumns('TravelTimePayRate', 'Traveltime_differentrate')}
+
+      CASE  
         WHEN  "CareWorkersLeaveDaysPerYear" IS NULL
           THEN NULL
         ELSE(
@@ -1292,7 +1320,7 @@ const findWorkplacesByBatch = (batchNum) =>{
             )
         END CWAnnual_leave,
 
-     COALESCE((
+      COALESCE((
           SELECT "AnalysisFileCode"
           FROM   "CareWorkforcePathwayWorkplaceAwareness" cp
           WHERE  cp."ID" = e."CareWorkforcePathwayWorkplaceAwarenessFK"
@@ -1300,7 +1328,7 @@ const findWorkplacesByBatch = (batchNum) =>{
         TO_CHAR(e."CareWorkforcePathwayWorkplaceAwarenessSavedAt",'DD/MM/YYYY') CWPawareness_savedate,
         TO_CHAR(e."CareWorkforcePathwayWorkplaceAwarenessChangedAt",'DD/MM/YYYY') CWPawareness_changedate,
 
-     COALESCE((
+      COALESCE((
            CASE 
                 WHEN "CareWorkforcePathwayUseValue" = 'Yes' 
                    THEN 1
@@ -6161,7 +6189,7 @@ const findWorkplacesByBatch = (batchNum) =>{
       [batchNum],
     )
     .stream();
-}
+};
 module.exports = {
   createBatches,
   dropBatch,
