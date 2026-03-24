@@ -7,7 +7,7 @@ const {
 } = require('../../../utils/sql/delegated-healthcare-activities-type');
 const { dhaActivitiesType } = require('../../mappings/delegated-healthcare-activities-type');
 const { trainingCoursesCreatedCount } = require('../../../utils/sql/training-course');
-const { YESNO_TYPE_MAPPING, RATE_TYPE_MAPPING } = require('../../../utils/sql/generate-columns/generate-mapping');
+const { NEW_YESNO_TYPE_MAPPING, RATE_TYPE_MAPPING, OLD_YESNO_TYPE_MAPPING } = require('../../../utils/sql/generate-columns/generate-mapping');
 const { generateCaseColumn, generateDateColumns } = require('../../../utils/sql/generate-columns/generate-columns');
 
 const getUnassignedBatchCount = async () => {
@@ -1273,7 +1273,7 @@ const findWorkplacesByBatch = (batchNum) => {
           THEN NULL
         END CWEnhancedSickPay,
 
-      ${generateCaseColumn('PensionContribution', 'CWEnhancedPension', YESNO_TYPE_MAPPING)}
+      ${generateCaseColumn('PensionContribution', 'CWEnhancedPension', OLD_YESNO_TYPE_MAPPING)}
          
       CASE  
         WHEN  "PensionContribution" = 'Yes'
@@ -1282,10 +1282,10 @@ const findWorkplacesByBatch = (batchNum) => {
 
       ${generateDateColumns('PensionContributionPercentage', 'CWEnhancedpensioncontribution')}
 
-      ${generateCaseColumn('StaffOptOutOfWorkplacePension', 'CWEnhancedpensionoptout', YESNO_TYPE_MAPPING)}
+      ${generateCaseColumn('StaffOptOutOfWorkplacePension', 'CWEnhancedpensionoptout', NEW_YESNO_TYPE_MAPPING)}
       ${generateDateColumns('StaffOptOutOfWorkplacePension', 'CWEnhancedpensionoptout')}
 
-      ${generateCaseColumn('OfferSleepIn', 'Sleepins', YESNO_TYPE_MAPPING)}
+      ${generateCaseColumn('OfferSleepIn', 'Sleepins', NEW_YESNO_TYPE_MAPPING)}
       ${generateDateColumns('OfferSleepIn', 'Sleepins')}
 
       ${generateCaseColumn('HowToPayForSleepIn', 'Sleepins_pay', RATE_TYPE_MAPPING)}

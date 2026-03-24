@@ -1,4 +1,10 @@
-const YESNO_TYPE_MAPPING = {
+const OLD_YESNO_TYPE_MAPPING = {
+  Yes: 1,
+  No: 2,
+  "Don''t know": -1,
+};
+
+const NEW_YESNO_TYPE_MAPPING = {
   No: 0,
   Yes: 1,
   "Don''t know": -2,
@@ -11,6 +17,7 @@ const RATE_TYPE_MAPPING = {
 };
 
 module.exports = {
-  YESNO_TYPE_MAPPING,
+  OLD_YESNO_TYPE_MAPPING,
+  NEW_YESNO_TYPE_MAPPING,
   RATE_TYPE_MAPPING,
 };
