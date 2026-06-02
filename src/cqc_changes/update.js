@@ -34,10 +34,20 @@ const updateLocation = async (location, runCount, rateLimitExceededLocations, re
   console.log('Status:', error.response?.status);
   console.log('Response:', error.response?.data);
   
-      if (error.response.data.message && error.response.data.message.indexOf('No Locations found') > -1) {
-        await models.location.deleteLocation(location.locationId);
-        updateStatus(location, 'success');
-      } else if (error.response.status === 429) {
+     if (
+  error.response?.data?.message?.includes('No Locations found')
+) {
+  console.log(`Deleting ${location.locationId}`);
+
+  await models.location.deleteLocation(location.locationId);
+
+  console.log(`Deleted ${location.locationId}`);
+
+  updateStatus(location, 'success');
+
+  console.log(`Marked ${location.locationId} success`);
+
+} else if (error.response?.status === 429) {
         console.log('Adding location to rateLimitExceededLocations array');
         rateLimitExceededLocations.push(location);
       } else {
