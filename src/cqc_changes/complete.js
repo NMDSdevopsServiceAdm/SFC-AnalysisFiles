@@ -10,14 +10,12 @@ const updateComplete = async (locations, startDate, endDate) => {
     const endDateToDate = new Date(endDate);
     const finishDate = new Date();
 
-
     const failedLocations = locations.filter((location) => {
       return location.status != 'success'
     });
     const failed = failedLocations.length ? true : false;
   
     if (failed) {
-
       console.log(`${failedLocations.length} updates failed`);
       await slack.error(
         `${config.get('db.name')} - CQC changes`, 
