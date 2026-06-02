@@ -31,6 +31,10 @@ const updateLocation = async (location, runCount, rateLimitExceededLocations, re
     } catch (error) {
 
         console.log('Failed location:', location.locationId);
+        console.log(
+  'Failed location object:',
+  JSON.stringify(location, null, 2)
+);
   console.log('Status:', error.response?.status);
   console.log('Response:', error.response?.data);
   
@@ -47,7 +51,24 @@ const updateLocation = async (location, runCount, rateLimitExceededLocations, re
 
   console.log(`Marked ${location.locationId} success`);
 
-} else if (error.response?.status === 429) {
+}else if (
+    error.response?.status === 400 &&
+    error.response?.data?.message === 'Bad request'
+  ) {
+    console.log(
+      `Unknown location format: ${location.locationId}`
+    );
+
+    await slack.info(
+      `${config.get('db.name')} - CQC changes`,
+      `Unknown location format encountered: ${location.locationId}`
+    );
+
+    updateStatus(location, 'success');
+
+  } 
+
+else if (error.response?.status === 429) {
         console.log('Adding location to rateLimitExceededLocations array');
         rateLimitExceededLocations.push(location);
       } else {
