@@ -16,6 +16,8 @@ const updateLocation = async (location, runCount, rateLimitExceededLocations, re
         console.log(`Updated ${runCount} locations`);
       }
 
+      console.log(`Fetching location ${location.locationId}`);
+
       const individualLocation = await axios.get(cqcEndpoint + '/locations/' + location.locationId, { 'headers': { 'Ocp-Apim-Subscription-Key': cqcSubscriptionKey }});
 
       if (!individualLocation.data.deregistrationDate) {
@@ -27,6 +29,11 @@ const updateLocation = async (location, runCount, rateLimitExceededLocations, re
       
       updateStatus(location, 'success');
     } catch (error) {
+
+        console.log('Failed location:', location.locationId);
+  console.log('Status:', error.response?.status);
+  console.log('Response:', error.response?.data);
+  
       if (error.response.data.message && error.response.data.message.indexOf('No Locations found') > -1) {
         await models.location.deleteLocation(location.locationId);
         updateStatus(location, 'success');
