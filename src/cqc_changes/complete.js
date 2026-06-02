@@ -10,13 +10,6 @@ const updateComplete = async (locations, startDate, endDate) => {
     const endDateToDate = new Date(endDate);
     const finishDate = new Date();
 
-    locations
-  .filter(location => location.status !== 'success')
-  .forEach(location => {
-    console.log(
-      `Failed location: ${location.locationId}, status: ${location.status}`
-    );
-  });
 
     const failedLocations = locations.filter((location) => {
       return location.status != 'success'
@@ -24,12 +17,7 @@ const updateComplete = async (locations, startDate, endDate) => {
     const failed = failedLocations.length ? true : false;
   
     if (failed) {
-      console.log(
-  failedLocations.map(x => ({
-    locationId: x.locationId,
-    status: x.status
-  }))
-);
+
       console.log(`${failedLocations.length} updates failed`);
       await slack.error(
         `${config.get('db.name')} - CQC changes`, 
