@@ -30,7 +30,23 @@ const updateLocation = async (location, runCount, rateLimitExceededLocations, re
       if (error.response.data.message && error.response.data.message.indexOf('No Locations found') > -1) {
         await models.location.deleteLocation(location.locationId);
         updateStatus(location, 'success');
-      } else if (error.response.status === 429) {
+      } else if (
+    error.response?.status === 400 &&
+    error.response?.data?.message === 'Bad request'
+  ) {
+    console.log(
+      `Unknown location format: ${location.locationId}`
+    );
+
+    await slack.info(
+      `${config.get('db.name')} - CQC changes`,
+      `Unknown location format encountered: ${location.locationId}`
+    );
+
+    updateStatus(location, 'success');
+
+  }
+     else if (error.response?.status === 429) {
         console.log('Adding location to rateLimitExceededLocations array');
         rateLimitExceededLocations.push(location);
       } else {
