@@ -11,6 +11,7 @@ const slack = require('../src/utils/slack/slack-logger');
 const generateWorkplaceReport = require('../src/generate_analysis_files/reports/workplace');
 const generateWorkersReport = require('../src/generate_analysis_files/reports/workers');
 const generateLeaversReport = require('../src/generate_analysis_files/reports/leavers');
+const generateTrainingReport = require('../src/generate_analysis_files/reports/training');
 const { refreshViews } = require('../src/generate_analysis_files/reports/views');
 const { uploadFile, uploadFileToDataEngineering } = require('../src/utils/s3');
 const version = require('../package.json').version;
@@ -33,6 +34,7 @@ const run = async () => {
   const workplaceFilePath = await generateWorkplaceReport(runDate, reportDir);
   const workerFilePath = await generateWorkersReport(runDate, reportDir);
   const leaverFilePath = await generateLeaversReport(runDate, reportDir);
+  const trainingFilePath = await generateTrainingReport(runDate, reportDir);
 
   if (runInLocal()) { 
     console.log(`Job finished. The files are generated at ${reportDir}.`)
@@ -42,7 +44,7 @@ const run = async () => {
   await zipAndUploadReports();
 
   if (config.get('dataEngineering.uploadToDataEngineering')) {
-    await uploadReportsToDataEngineering(workplaceFilePath, workerFilePath, leaverFilePath);
+    await uploadReportsToDataEngineering(workplaceFilePath, workerFilePath, leaverFilePath,trainingFilePath);
   }
 
   logCompletionTimes(startTime);
@@ -65,10 +67,11 @@ const zipAndUploadReports = async () => {
   return uploadFile(zipName, fs.createReadStream(`${reportDir}/${zipName}`));
 };
 
-const uploadReportsToDataEngineering = async (workplaceFilePath, workerFilePath, leaverFilePath) => {
+const uploadReportsToDataEngineering = async (workplaceFilePath, workerFilePath, leaverFilePath,trainingFilePath) => {
   await uploadFileToDataEngineering(getFileKey('workplace'), fs.createReadStream(workplaceFilePath));
   await uploadFileToDataEngineering(getFileKey('worker'), fs.createReadStream(workerFilePath));
   await uploadFileToDataEngineering(getFileKey('leaver'), fs.createReadStream(leaverFilePath));
+   await uploadFileToDataEngineering(getFileKey('training'), fs.createReadStream(trainingFilePath));
 };
 
 const getFileKey = (fileType) => {
