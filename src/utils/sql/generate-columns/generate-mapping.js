@@ -34,11 +34,21 @@ const RATE_TYPE_MAPPING = {
   'I do not know': -2,
 };
 
+const ESTABLISHMENT_TYPE_MAPPING = {
+  'Local Authority (adult services)': 1,
+  'Local Authority (generic/other)': 3,
+  'Private Sector': 6,
+  'Voluntary / Charity': 7,
+  'Other' : 8,
+};
+
+
 module.exports = {
   OLD_YESNO_TYPE_MAPPING,
   NEW_YESNO_TYPE_MAPPING,
   RATE_TYPE_MAPPING,
   YESNO_TYPE_MAPPING,
   TRAINING_DELIVERY_MAPPING,
-  TRAINING_DELIVERY_TYPE_MAPPING
+  TRAINING_DELIVERY_TYPE_MAPPING,
+  ESTABLISHMENT_TYPE_MAPPING
 };
