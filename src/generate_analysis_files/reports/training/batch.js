@@ -63,10 +63,7 @@ const dropBatch = async () => {
 
 const getBatches = async () => db.select('BatchNo').from('Afr4BatchiSkAi0mo').groupBy(1).orderBy(1);
 
-const findTrainingsByBatch = (batchNum) => {
-  return db
-    .raw(
-      `
+const buildFindTrainingsByBatchQuery = () => `
       SELECT
        'M' || DATE_PART('year',(b."RunDate" - INTERVAL '1 day')) || LPAD(DATE_PART('month',(b."RunDate" - INTERVAL '1 day'))::TEXT,2,'0') period,
        e."EstablishmentID" establishmentid,
@@ -74,72 +71,109 @@ const findTrainingsByBatch = (batchNum) => {
        e."NmdsID" nmdsid,
        w."ID" workerid,
        TO_CHAR(w."created",'DD/MM/YYYY') createddate,
-       TO_CHAR(GREATEST(w."updated" ),'DD/MM/YYYY') updateddate,
-       COALESCE(( SELECT "AnalysisFileCode"  FROM   "Job"  WHERE  "JobID" = w."MainJobFKValue"),-1) mainjrid,
-       COALESCE(( SELECT "AnalysisFileCode"   FROM   services   WHERE  "id" = e."MainServiceFKValue"),-1) mainstid,
-       ${generateCaseColumn('e."EmployerTypeValue"', 'esttype', ESTABLISHMENT_TYPE_MAPPING)}
+       TO_CHAR(GREATEST(w."updated"),'DD/MM/YYYY') updateddate,
+
        COALESCE((
-              SELECT "CssrID"
-              FROM "Cssr"
-              WHERE "NmdsIDLetter" = SUBSTRING(e."NmdsID", 1, 1)
-                  AND "LocalCustodianCode" IN (
-                      SELECT local_custodian_code
-                      FROM cqcref.pcodedata
-                      WHERE postcode = e."PostCode"
-                      ) LIMIT 1
-              ), - 1) cssr,
-       COALESCE((SELECT 
-           "AnalysisFileCode"
-          FROM   "CareWorkforcePathwayRoleCategories"
-          WHERE  "ID" = w."CareWorkforcePathwayRoleCategoryFK"
-        ),-1) As careworkforcepathway,
+          SELECT "AnalysisFileCode"
+          FROM "Job"
+          WHERE "JobID" = w."MainJobFKValue"
+       ), -1) mainjrid,
 
-        t."Title"  Training_name, 
-        t."ID"      Training_id,
+       COALESCE((
+          SELECT "AnalysisFileCode"
+          FROM services
+          WHERE "id" = e."MainServiceFKValue"
+       ), -1) mainstid,
+
+       ${generateCaseColumn('e."EmployerTypeValue"', 'esttype', ESTABLISHMENT_TYPE_MAPPING)}
+
+       COALESCE((
+          SELECT "CssrID"
+          FROM "Cssr"
+          WHERE "NmdsIDLetter" = SUBSTRING(e."NmdsID", 1, 1)
+            AND "LocalCustodianCode" IN (
+              SELECT local_custodian_code
+              FROM cqcref.pcodedata
+              WHERE postcode = e."PostCode"
+            )
+          LIMIT 1
+       ), -1) cssr,
+
+       COALESCE((
+          SELECT "AnalysisFileCode"
+          FROM "CareWorkforcePathwayRoleCategories"
+          WHERE "ID" = w."CareWorkforcePathwayRoleCategoryFK"
+       ), -1) careworkforcepathway,
+
+       t."Title" Training_name,
+       t."ID" Training_id,
        TO_CHAR(t."created",'DD/MM/YYYY') training_savedate,
-       TO_CHAR(GREATEST(t."updated" ),'DD/MM/YYYY') training_changedate,
+       TO_CHAR(GREATEST(t."updated"),'DD/MM/YYYY') training_changedate,
 
-        COALESCE(tc."AnalysisFileCode", -1) AS Training_category,
-        ${generateCaseColumn('t."Accredited"', 'Accredited_training',YESNO_TYPE_MAPPING)}
+       COALESCE(tc."AnalysisFileCode", -1) AS Training_category,
 
-        ${generateCaseColumn('t."DeliveredBy"', 'Training_delivery', TRAINING_DELIVERY_MAPPING)}
+       ${generateCaseColumn('t."Accredited"', 'Accredited_training', YESNO_TYPE_MAPPING)}
 
-        CASE WHEN tp."IsOther" THEN t."OtherTrainingProviderName" ELSE tp."Name" END AS Training_provider_name,
+       ${generateCaseColumn('t."DeliveredBy"', 'Training_delivery', TRAINING_DELIVERY_MAPPING)}
 
-        ${generateCaseColumn('t."HowWasItDelivered"', 'Training_type', TRAINING_DELIVERY_TYPE_MAPPING)}
+       CASE
+         WHEN tp."IsOther"
+         THEN t."OtherTrainingProviderName"
+         ELSE tp."Name"
+       END AS Training_provider_name,
 
-        t."ValidityPeriodInMonth"  Training_valid_months, 
-        TO_CHAR(t."Completed",'DD/MM/YYYY') Training_completion_date,
-        TO_CHAR( t."Expires",'DD/MM/YYYY') Training_expiry_date,
-        CASE WHEN EXISTS ( SELECT 1 FROM "TrainingCertificates" cert WHERE cert."WorkerTrainingFK" = t."ID") THEN 1 ELSE 0
-          END AS Train_cert_upload,
-        CASE
-          WHEN t."TrainingCourseFK" IS NOT NULL THEN 1
-          ELSE 0 
-        END AS Training_linked
+       ${generateCaseColumn('t."HowWasItDelivered"', 'Training_type', TRAINING_DELIVERY_TYPE_MAPPING)}
 
-        FROM "Establishment" e
-            JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK"
-            JOIN "WorkerTraining" t ON w."ID" = t."WorkerFK"
+       t."ValidityPeriodInMonth" Training_valid_months,
+       TO_CHAR(t."Completed",'DD/MM/YYYY') Training_completion_date,
+       TO_CHAR(t."Expires",'DD/MM/YYYY') Training_expiry_date,
 
-            LEFT JOIN "TrainingCategories" tc ON tc."ID" = t."CategoryFK"
-            LEFT JOIN "TrainingProvider" tp ON tp."ID" = t."TrainingProviderFK"
+       CASE
+         WHEN EXISTS (
+           SELECT 1
+           FROM "TrainingCertificates" cert
+           WHERE cert."WorkerTrainingFK" = t."ID"
+         )
+         THEN 1
+         ELSE 0
+       END AS Train_cert_upload,
 
-            JOIN "Afr4BatchiSkAi0mo" b
-              ON b."TrainingID" = t."ID"
-                
-            WHERE
-                b."BatchNo" = ?
-            AND e."Status" IS NULL
-            AND e."Archived" = false AND w."Archived" = false
+       CASE
+         WHEN t."TrainingCourseFK" IS NOT NULL THEN 1
+         ELSE 0
+       END AS Training_linked
 
-            ORDER BY
-                b."EstablishmentID",
-                b."WorkerID";
-      `,
+      FROM "Establishment" e
+      JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK"
+      JOIN "WorkerTraining" t ON w."ID" = t."WorkerFK"
+
+      LEFT JOIN "TrainingCategories" tc
+        ON tc."ID" = t."CategoryFK"
+
+      LEFT JOIN "TrainingProvider" tp
+        ON tp."ID" = t."TrainingProviderFK"
+
+      JOIN "Afr4BatchiSkAi0mo" b
+        ON b."TrainingID" = t."ID"
+
+      WHERE
+        b."BatchNo" = ?
+        AND e."Status" IS NULL
+        AND e."Archived" = false
+        AND w."Archived" = false
+
+      ORDER BY
+        b."EstablishmentID",
+        b."WorkerID"
+`;
+
+const findTrainingsByBatch = (batchNum) => {
+  return db
+    .raw(
+      buildFindTrainingsByBatchQuery(),
       [batchNum]
     )
-     .stream();
+    .stream();
 };
 
 
@@ -148,4 +182,5 @@ module.exports = {
   dropBatch,
   getBatches,
   findTrainingsByBatch,
+  buildFindTrainingsByBatchQuery
 };
