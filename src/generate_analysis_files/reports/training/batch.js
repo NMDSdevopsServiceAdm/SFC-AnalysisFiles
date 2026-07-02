@@ -99,12 +99,18 @@ const buildFindTrainingsByBatchQuery = () => `
           LIMIT 1
        ), -1) cssr,
 
+      CASE 
+          WHEN t."DataSource" = 'Bulk'
+              THEN 1
+          ELSE 0
+      END derivedfrom_hasbulkuploaded,
+
        COALESCE((
           SELECT "AnalysisFileCode"
           FROM "CareWorkforcePathwayRoleCategories"
           WHERE "ID" = w."CareWorkforcePathwayRoleCategoryFK"
        ), -1) careworkforcepathway,
-
+   
        t."Title" Training_name,
        t."ID" Training_id,
        TO_CHAR(t."created",'DD/MM/YYYY') training_savedate,
