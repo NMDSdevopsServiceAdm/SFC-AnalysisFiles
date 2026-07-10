@@ -107,11 +107,11 @@ const buildFindTrainingsByBatchQuery = () => `
 
        COALESCE((
           SELECT "AnalysisFileCode"
-          FROM "CareWorkforcePathwayRoleCategories"
+          FROM "CareWorkforcePathwayRoleCategories" 
           WHERE "ID" = w."CareWorkforcePathwayRoleCategoryFK"
        ), -1) careworkforcepathway,
        
-       replace(t."Title", ',', '') AS Training_name,
+       t."Title" Training_name,
        t."ID" Training_id,
        TO_CHAR(t."created",'DD/MM/YYYY') training_savedate,
        TO_CHAR(GREATEST(t."updated"),'DD/MM/YYYY') training_changedate,
