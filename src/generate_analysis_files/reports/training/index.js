@@ -2,20 +2,23 @@ const Promise = require('bluebird');
 const { createBatchesForTraining, dropBatch, getBatches, findTrainingsByBatch } = require('./batch');
 const { concatFiles } = require('../../csv/concat');
 const { streamToCsv } = require('../../csv/stream');
-// const {decodeTrainingNames}= require('../../../utils/sql/decode-url-encoded-text')
+const {createDecodeTrainingNames}= require('../../../utils/sql/decode-url-encoded-text')
 
 const before = async (runDate) => {
   await createBatchesForTraining(runDate);
 };
 
 const after = async () => {
-  dropBatch();
+  await dropBatch();
 };
 
 async function processBatch(batchNo, fileName) {
     const stream = findTrainingsByBatch(batchNo);
 
- await streamToCsv(fileName, findTrainingsByBatch(batchNo));
+    await streamToCsv(
+      fileName,
+      stream.pipe(createDecodeTrainingNames())
+    );
 }
 
 module.exports = async (runDate, reportDir) => {
