@@ -1,13 +1,18 @@
 const generateCaseColumn = (columnName, alias, mapping, nullValue = -1) => {
+  const columnRef =
+    columnName.includes('.') || columnName.includes('"')
+      ? columnName
+      : `"${columnName}"`;
+
   const whenStatements = Object.entries(mapping)
-    .map(([key, value]) => `WHEN "${columnName}" = '${key}' THEN ${value}`)
+    .map(([key, value]) => `WHEN ${columnRef} = '${key}' THEN ${value}`)
     .join('\n    ');
 
   return `
 (
   CASE
     ${whenStatements}
-    WHEN "${columnName}" IS NULL THEN ${nullValue}
+    WHEN ${columnRef} IS NULL THEN ${nullValue}
     ELSE ${nullValue}
   END
 ) AS ${alias},
