@@ -1,7 +1,9 @@
 const db = require('../../db');
 const { generateSqlQueriesForQualificationColumns } = require('../../../utils/sql/qualification');
 const { newQualifications } = require('../../mappings/qualification');
-const { generateColumnsForYesNoDontKnowQuestion } = require('../../../utils/sql/workers/generate-yes-no-dont-know-columns');
+const {
+  generateColumnsForYesNoDontKnowQuestion,
+} = require('../../../utils/sql/workers/generate-yes-no-dont-know-columns');
 
 const populateBatch = async (numInBatch) => {
   await db.raw(
@@ -74,12 +76,11 @@ const dropBatch = async () => {
 const getBatches = async () => db.select('BatchNo').from('Afr2BatchiSkAi0mo').groupBy(1).orderBy(1);
 
 const findWorkersByBatch = (batchNum) => {
+  const sqlQueriesForNewQualifications = generateSqlQueriesForQualificationColumns(newQualifications);
 
-   const sqlQueriesForNewQualifications = generateSqlQueriesForQualificationColumns(newQualifications);
-
-   return db
-      .raw(
-         `
+  return db
+    .raw(
+      `
     SELECT 'M' || DATE_PART('year',(b."RunDate" - INTERVAL '1 day')) || LPAD(DATE_PART('month',(b."RunDate" - INTERVAL '1 day'))::TEXT,2,'0') period,
        e."EstablishmentID" establishmentid,
        e."TribalID" tribalid,
@@ -123,7 +124,6 @@ const findWorkersByBatch = (batchNum) => {
           w."HighestQualificationFKChangedAt",
           w."CompletedChangedAt",
           w."RegisteredNurseChangedAt",
-          w."NurseSpecialismFKChangedAt",
           w."LocalIdentifierChangedAt",
           w."EstablishmentFkChangedAt",
           w."FluJabChangedAt",
@@ -167,7 +167,6 @@ const findWorkersByBatch = (batchNum) => {
           w."HighestQualificationFKSavedAt",
           w."CompletedSavedAt",
           w."RegisteredNurseSavedAt",
-          w."NurseSpecialismFKSavedAt",
           w."LocalIdentifierSavedAt",
           w."EstablishmentFkSavedAt",
           w."FluJabSavedAt",
@@ -1973,16 +1972,6 @@ const findWorkersByBatch = (batchNum) => {
        END jd16registered,
        TO_CHAR("RegisteredNurseChangedAt",'DD/MM/YYYY') jd16registered_changedate,
        TO_CHAR("RegisteredNurseSavedAt",'DD/MM/YYYY') jd16registered_savedate,
-       CASE "NurseSpecialismFKValue" WHEN 1 THEN 1 ELSE 0 END jr16cat1,
-       CASE "NurseSpecialismFKValue" WHEN 2 THEN 1 ELSE 0 END jr16cat2,
-       CASE "NurseSpecialismFKValue" WHEN 3 THEN 1 ELSE 0 END jr16cat3,
-       CASE "NurseSpecialismFKValue" WHEN 4 THEN 1 ELSE 0 END jr16cat4,
-       CASE "NurseSpecialismFKValue" WHEN 5 THEN 1 ELSE 0 END jr16cat5,
-       CASE "NurseSpecialismFKValue" WHEN 6 THEN 1 ELSE 0 END jr16cat6,
-       CASE "NurseSpecialismFKValue" WHEN 7 THEN 1 ELSE 0 END jr16cat7,
-       CASE "NurseSpecialismFKValue" WHEN 8 THEN 1 ELSE 0 END jr16cat8,
-       TO_CHAR("NurseSpecialismFKChangedAt",'DD/MM/YYYY') jr16cat_changedate,
-       TO_CHAR("NurseSpecialismFKSavedAt",'DD/MM/YYYY') jr16cat_savedate,
        CASE "ApprovedMentalHealthWorkerValue" WHEN 'Yes' THEN 1 WHEN 'No' THEN 0 WHEN 'Don''t know' THEN -2 ELSE -1 END amhp,
        TO_CHAR("ApprovedMentalHealthWorkerChangedAt",'DD/MM/YYYY') amhp_changedate,
        TO_CHAR("ApprovedMentalHealthWorkerSavedAt",'DD/MM/YYYY') amhp_savedate,
@@ -2661,9 +2650,9 @@ FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND e."Archived" = false AND w."Archived" = false
 JOIN "Afr2BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
     `,
-      )
-      .stream();
-}
+    )
+    .stream();
+};
 
 module.exports = {
   createBatches,
