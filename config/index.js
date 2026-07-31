@@ -70,6 +70,11 @@ var config = convict({
     default: '0 0 * * *',
     env: 'CRON_CQC_CHANGES',
   },
+  cronTrainingFile: {
+    doc: 'When Training File should run',
+    default: '0 0 2,9,16,24 * *',
+    env: 'CRON_TRAINING_FILE',
+  },
   dataEngineering: {
     accessKey: {
       doc: 'Access key for data engineering AWS',
