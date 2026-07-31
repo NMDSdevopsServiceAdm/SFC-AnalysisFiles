@@ -30,9 +30,9 @@ const run = async () => {
   await refreshViews();
 
   const runDate = dayjs().format('DD-MM-YYYY');
-  // const workplaceFilePath = await generateWorkplaceReport(runDate, reportDir);
-  // const workerFilePath = await generateWorkersReport(runDate, reportDir);
-  // const leaverFilePath = await generateLeaversReport(runDate, reportDir);
+  const workplaceFilePath = await generateWorkplaceReport(runDate, reportDir);
+  const workerFilePath = await generateWorkersReport(runDate, reportDir);
+  const leaverFilePath = await generateLeaversReport(runDate, reportDir);
 
   if (runInLocal()) { 
     console.log(`Job finished. The files are generated at ${reportDir}.`)
