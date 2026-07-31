@@ -15,6 +15,10 @@ const scheduler = new Bree({
       name: 'cqc_changes',
       cron: config.get('cronCqcChanges'),
     },
+    {
+      name: 'generate_training_analysis_file',
+      cron: config.get('cronTrainingFile'),
+    },
   ],
 });
 
