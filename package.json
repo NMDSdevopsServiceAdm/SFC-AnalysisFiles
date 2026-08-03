@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "generate-local-analysis-files": "node jobs/generate_analysis_files.js --runLocal",
+    "generate-local-training-analysis-file": "node jobs/generate_training_analysis_file.js --runLocal",
     "test": "mocha src/**/*.spec.js"
   },
   "author": "Skills for Care",
