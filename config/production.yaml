@@ -4,4 +4,4 @@ aws:
     use: false
     wallet: prod/api
 dataEngineering:
-  uploadToDataEngineering: true
+  uploadToDataEngineering: false
