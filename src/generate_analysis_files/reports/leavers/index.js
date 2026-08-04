@@ -2,6 +2,10 @@ const Promise = require('bluebird');
 const { createBatches, dropBatch, getBatches, findLeaversByBatch } = require('./batch');
 const { concatFiles } = require('../../csv/concat');
 const { streamToCsv } = require('../../csv/stream');
+const { ColumnNamesUtil } = require('../../../utils/sql/column-names');
+const db = require('../../db');
+
+const ColumnNames = new ColumnNamesUtil(db);
 
 const before = async (runDate) => {
   await createBatches(runDate);
@@ -12,7 +16,9 @@ const after = async () => {
 };
 
 async function processBatch(batchNo, fileName) {
-  await streamToCsv(fileName, findLeaversByBatch(batchNo));
+  await streamToCsv(fileName, findLeaversByBatch(batchNo, ColumnNames));
+
+  await ColumnNames.reloadColumnNamesFromDb(db);
 }
 
 module.exports = async (runDate, reportDir) => {

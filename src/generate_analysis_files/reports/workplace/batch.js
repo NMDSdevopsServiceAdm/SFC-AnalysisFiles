@@ -7,7 +7,11 @@ const {
 } = require('../../../utils/sql/delegated-healthcare-activities-type');
 const { dhaActivitiesType } = require('../../mappings/delegated-healthcare-activities-type');
 const { trainingCoursesCreatedCount } = require('../../../utils/sql/training-course');
-const { NEW_YESNO_TYPE_MAPPING, RATE_TYPE_MAPPING, OLD_YESNO_TYPE_MAPPING } = require('../../../utils/sql/generate-columns/generate-mapping');
+const {
+  NEW_YESNO_TYPE_MAPPING,
+  RATE_TYPE_MAPPING,
+  OLD_YESNO_TYPE_MAPPING,
+} = require('../../../utils/sql/generate-columns/generate-mapping');
 const { generateCaseColumn, generateDateColumns } = require('../../../utils/sql/generate-columns/generate-columns');
 
 const getUnassignedBatchCount = async () => {
@@ -67,9 +71,13 @@ const dropBatch = async () => {
 
 const getBatches = async () => db.select('BatchNo').from('Afr1BatchiSkAi0mo').groupBy(1).orderBy(1);
 
-const findWorkplacesByBatch = (batchNum) => {
+const findWorkplacesByBatch = (batchNum, ColumnNames) => {
   const sqlQueriesForCwpAwarenessReasons = generateSqlQueriesForCwpAwarenessReasonsColumns(cwpAwarenessReasons);
   const sqlQueriesForDhaActivitiesType = generateSqlQueriesForDhaActivitiesTypeColumns(dhaActivitiesType);
+
+  const establishmentChangedAtColumns = ColumnNames.getColumnNamesAsString('Establishment', 'ChangedAt', 'e');
+  const establishmentSavedAtColumns = ColumnNames.getColumnNamesAsString('Establishment', 'SavedAt', 'e');
+  const workerChangedAtColumns = ColumnNames.getColumnNamesAsString('Worker', 'ChangedAt');
 
   return db
     .raw(
@@ -166,10 +174,10 @@ const findWorkplacesByBatch = (batchNum) => {
             ) as wrkAudit
         ) as chngDate) updatecount_year,
       -- TO_CHAR(GREATEST(created,updated),'DD/MM/YYYY') estabupdateddate,
-      TO_CHAR(GREATEST(e."EmployerTypeChangedAt", e."NumberOfStaffChangedAt", e."OtherServicesChangedAt", e."CapacityServicesChangedAt", e."ShareDataChangedAt", e."VacanciesChangedAt", e."StartersChangedAt", e."LeaversChangedAt", e."ServiceUsersChangedAt", e."NameChangedAt", e."MainServiceFKChangedAt", e."LocalIdentifierChangedAt", e."LocationIdChangedAt", e."Address1ChangedAt", e."Address2ChangedAt", e."Address3ChangedAt", e."TownChangedAt", e."CountyChangedAt", e."PostcodeChangedAt",e."updated"), 'DD/MM/YYYY') estabupdateddate,
-      TO_CHAR(GREATEST(e."EmployerTypeSavedAt", e."NumberOfStaffSavedAt", e."OtherServicesSavedAt", e."CapacityServicesSavedAt", e."ShareDataSavedAt", e."VacanciesSavedAt", e."StartersSavedAt", e."LeaversSavedAt", e."ServiceUsersSavedAt", e."NameSavedAt", e."MainServiceFKSavedAt", e."LocalIdentifierSavedAt", e."LocationIdSavedAt", e."Address1SavedAt", e."Address2SavedAt", e."Address3SavedAt", e."TownSavedAt", e."CountySavedAt", e."PostcodeSavedAt",e."updated"), 'DD/MM/YYYY') estabsavedate,
+      TO_CHAR(GREATEST(${establishmentChangedAtColumns}), 'DD/MM/YYYY') estabupdateddate,
+      TO_CHAR(GREATEST(${establishmentSavedAtColumns}), 'DD/MM/YYYY') estabsavedate,
       (
-          SELECT TO_CHAR(MAX(GREATEST("NameOrIdChangedAt", "ContractChangedAt", "MainJobFKChangedAt", "ApprovedMentalHealthWorkerChangedAt", "MainJobStartDateChangedAt", "OtherJobsChangedAt", "NationalInsuranceNumberChangedAt", "DateOfBirthChangedAt", "PostcodeChangedAt", "DisabilityChangedAt", "GenderChangedAt", "EthnicityFKChangedAt", "NationalityChangedAt", "CountryOfBirthChangedAt", "RecruitedFromChangedAt", "BritishCitizenshipChangedAt", "YearArrivedChangedAt", "SocialCareStartDateChangedAt", "DaysSickChangedAt", "ZeroHoursContractChangedAt", "WeeklyHoursAverageChangedAt", "WeeklyHoursContractedChangedAt", "AnnualHourlyPayChangedAt", "CareCertificateChangedAt", "ApprenticeshipTrainingChangedAt", "QualificationInSocialCareChangedAt", "SocialCareQualificationFKChangedAt", "OtherQualificationsChangedAt", "HighestQualificationFKChangedAt", "CompletedChangedAt", "RegisteredNurseChangedAt", "NurseSpecialismFKChangedAt", "LocalIdentifierChangedAt", "EstablishmentFkChangedAt", "FluJabChangedAt")), 'DD/MM/YYYY')
+          SELECT TO_CHAR(MAX(GREATEST(${workerChangedAtColumns})), 'DD/MM/YYYY')
           FROM "Worker"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "Archived" = false

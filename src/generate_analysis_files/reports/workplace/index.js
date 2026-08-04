@@ -2,9 +2,15 @@ const Promise = require('bluebird');
 const { createBatches, dropBatch, getBatches, findWorkplacesByBatch } = require('./batch');
 const { concatFiles } = require('../../csv/concat');
 const { streamToCsv } = require('../../csv/stream');
+const { ColumnNamesUtil } = require('../../../utils/sql/column-names');
+const db = require('../../db');
+
+const ColumnNames = new ColumnNamesUtil(db);
 
 const before = async (runDate) => {
   await createBatches(runDate);
+
+  await ColumnNames.reloadColumnNamesFromDb(db);
 };
 
 const after = async () => {
@@ -12,7 +18,7 @@ const after = async () => {
 };
 
 async function processBatch(batchNo, fileName) {
-  await streamToCsv(fileName, findWorkplacesByBatch(batchNo));
+  await streamToCsv(fileName, findWorkplacesByBatch(batchNo, ColumnNames));
 }
 
 module.exports = async (runDate, reportDir) => {
@@ -37,6 +43,6 @@ module.exports = async (runDate, reportDir) => {
 
   const filePath = `${reportDir}/${runDate}_workplaces_report.csv`;
   await concatFiles(files, filePath);
-  
+
   return filePath;
 };
