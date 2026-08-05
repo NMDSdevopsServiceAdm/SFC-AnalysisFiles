@@ -69,46 +69,6 @@ class ColumnNamesUtil {
   }
 }
 
-// const getColumnNamesWithPattern = async (db, tableName, pattern) => {
-//   const rawQuery = `
-//     SELECT column_name
-//     FROM information_schema.columns
-//     WHERE table_schema = 'cqc'
-//       AND table_name = ?
-//       AND (column_name LIKE ?);
-//     `;
-//   const result = await db.raw(rawQuery, [tableName, pattern]);
-
-//   if (result?.rows?.length) {
-//     const columnNames = result.rows.map((res) => res.column_name);
-//     return columnNames;
-//   }
-
-//   return [];
-// };
-
-// const buildQueryStringForChangedAtColumns = async (db, tableName, tableNameShortHand = null) => {
-//   const columnNames = await getColumnNamesWithPattern(db, tableName, '%ChangedAt');
-//   columnNames.push('updated');
-
-//   if (tableNameShortHand) {
-//     return columnNames.map((col) => `${tableNameShortHand}."${col}"`).join(', ');
-//   }
-
-//   return columnNames.map((col) => `"${col}"`).join(', ');
-// };
-
-// const buildQueryStringForSavedAtColumns = async (db, tableName, tableNameShortHand = null) => {
-//   const columnNames = await getColumnNamesWithPattern(db, tableName, '%SavedAt');
-//   columnNames.push('updated');
-
-//   if (tableNameShortHand) {
-//     return columnNames.map((col) => `${tableNameShortHand}."${col}"`).join(', ');
-//   }
-
-//   return columnNames.map((col) => `"${col}"`).join(', ');
-// };
-
 module.exports = {
   ColumnNamesUtil,
 };
