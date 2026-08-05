@@ -1,6 +1,6 @@
 const db = require('../../db');
 const { generateSqlQueriesForQualificationColumns } = require('../../../utils/sql/qualification');
-const { newQualifications } = require('../../mappings/qualification')
+const { newQualifications } = require('../../mappings/qualification');
 
 const populateBatch = async (numInBatch) => {
   await db.raw(
@@ -71,12 +71,15 @@ const dropBatch = async () => {
 
 const getBatches = async () => db.select('BatchNo').from('Afr3BatchiSkAi0mo').groupBy(1).orderBy(1);
 
-const findLeaversByBatch = (batchNum) => {
-   const sqlQueriesForNewQualifications = generateSqlQueriesForQualificationColumns(newQualifications);
+const findLeaversByBatch = (batchNum, ColumnNames) => {
+  const sqlQueriesForNewQualifications = generateSqlQueriesForQualificationColumns(newQualifications);
 
-   return db
-      .raw(
-         `
+  const workerChangedAtColumns = ColumnNames.getColumnNamesAsString('Worker', 'ChangedAt', 'w');
+  const workerSavedAtColumns = ColumnNames.getColumnNamesAsString('Worker', 'SavedAt', 'w');
+
+  return db
+    .raw(
+      `
     SELECT 'M' || DATE_PART('year',(b."RunDate" - INTERVAL '1 day')) || LPAD(DATE_PART('month',(b."RunDate" - INTERVAL '1 day'))::TEXT,2,'0') period,
         TO_CHAR((SELECT MAX("When") FROM "WorkerAudit" WHERE "EventType" = 'deleted' AND "WorkerFK" =  w."ID" LIMIT 1),'DD/MM/YYYY') deletedate,
        (SELECT "Reason" FROM "WorkerLeaveReasons" WHERE "ID" = w."LeaveReasonFK" LIMIT 1)  reason,
@@ -91,77 +94,11 @@ const findLeaversByBatch = (batchNum) => {
        1 wkplacestat,
        TO_CHAR(w."created",'DD/MM/YYYY') createddate,
        TO_CHAR(GREATEST(
-          w."NameOrIdChangedAt",
-          w."ContractChangedAt",
-          w."MainJobFKChangedAt",
-          w."ApprovedMentalHealthWorkerChangedAt",
-          w."MainJobStartDateChangedAt",
-          w."OtherJobsChangedAt",
-          w."NationalInsuranceNumberChangedAt",
-          w."DateOfBirthChangedAt",
-          w."PostcodeChangedAt",
-          w."DisabilityChangedAt",
-          w."GenderChangedAt",
-          w."EthnicityFKChangedAt",
-          w."NationalityChangedAt",
-          w."CountryOfBirthChangedAt",
-          w."RecruitedFromChangedAt",
-          w."BritishCitizenshipChangedAt",
-          w."YearArrivedChangedAt",
-          w."SocialCareStartDateChangedAt",
-          w."DaysSickChangedAt",
-          w."ZeroHoursContractChangedAt",
-          w."WeeklyHoursAverageChangedAt",
-          w."WeeklyHoursContractedChangedAt",
-          w."AnnualHourlyPayChangedAt",
-          w."CareCertificateChangedAt",
-          w."ApprenticeshipTrainingChangedAt",
-          w."QualificationInSocialCareChangedAt",
-          w."SocialCareQualificationFKChangedAt",
-          w."OtherQualificationsChangedAt",
-          w."HighestQualificationFKChangedAt",
-          w."CompletedChangedAt",
-          w."RegisteredNurseChangedAt",
-          w."NurseSpecialismFKChangedAt",
-          w."LocalIdentifierChangedAt",
-          w."EstablishmentFkChangedAt",
-          w."FluJabChangedAt"),'DD/MM/YYYY') updateddate,
+          ${workerChangedAtColumns}
+          ),'DD/MM/YYYY') updateddate,
        TO_CHAR(GREATEST(
-          w."NameOrIdSavedAt",
-          w."ContractSavedAt",
-          w."MainJobFKSavedAt",
-          w."ApprovedMentalHealthWorkerSavedAt",
-          w."MainJobStartDateSavedAt",
-          w."OtherJobsSavedAt",
-          w."NationalInsuranceNumberSavedAt",
-          w."DateOfBirthSavedAt",
-          w."PostcodeSavedAt",
-          w."DisabilitySavedAt",
-          w."GenderSavedAt",
-          w."EthnicityFKSavedAt",
-          w."NationalitySavedAt",
-          w."CountryOfBirthSavedAt",
-          w."RecruitedFromSavedAt",
-          w."BritishCitizenshipSavedAt",
-          w."YearArrivedSavedAt",
-          w."SocialCareStartDateSavedAt",
-          w."DaysSickSavedAt",
-          w."ZeroHoursContractSavedAt",
-          w."WeeklyHoursAverageSavedAt",
-          w."WeeklyHoursContractedSavedAt",
-          w."AnnualHourlyPaySavedAt",
-          w."CareCertificateSavedAt",
-          w."ApprenticeshipTrainingSavedAt",
-          w."QualificationInSocialCareSavedAt",
-          w."SocialCareQualificationFKSavedAt",
-          w."OtherQualificationsSavedAt",
-          w."HighestQualificationFKSavedAt",
-          w."CompletedSavedAt",
-          w."RegisteredNurseSavedAt",
-          w."NurseSpecialismFKSavedAt",
-          w."LocalIdentifierSavedAt",
-          w."EstablishmentFkSavedAt",
-          w."FluJabSavedAt"),'DD/MM/YYYY') savedate,
+         ${workerSavedAtColumns}
+          ),'DD/MM/YYYY') savedate,
        CASE e."ShareDataWithCQC" WHEN true THEN 1 ELSE 0 END cqcpermission,
        CASE e."ShareDataWithLA" WHEN true THEN 1 ELSE 0 END lapermission,
        CASE WHEN e."IsRegulated" is true THEN 2 ELSE 0 END regtype,
@@ -2494,9 +2431,9 @@ FROM   "Establishment" e
 JOIN "Worker" w ON e."EstablishmentID" = w."EstablishmentFK" AND w."Archived" = true
 JOIN "Afr3BatchiSkAi0mo" b ON e."EstablishmentID" = b."EstablishmentID" AND b."BatchNo" = ${batchNum};
     `,
-      )
-      .stream();
-   }
+    )
+    .stream();
+};
 
 module.exports = {
   createBatches,
