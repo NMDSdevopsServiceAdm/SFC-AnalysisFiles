@@ -39,7 +39,7 @@ class ColumnNamesUtil {
       return columnNames;
     }
 
-    return [];
+    throw new Error('Failed to load column names from database');
   }
 
   joinColumnNames(columnNames, tableNameShortHand) {
