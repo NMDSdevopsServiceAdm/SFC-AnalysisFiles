@@ -85,11 +85,12 @@ var config = convict({
       default: 'bob',
       env: 'DATA_ENGINEERING_SECRET_KEY',
     },
-    uploadToDataEngineering: {
-      doc: 'Whether to upload reports to data engineering AWS',
-      format: 'Boolean',
-      default: false,
-    },
+uploadToDataEngineering: {
+  doc: 'Whether to upload reports to data engineering AWS',
+  format: Boolean,
+  default: false,
+  env: 'DATA_ENGINEERING_UPLOAD',
+},
   },
   reports: {
     accessKey: {
