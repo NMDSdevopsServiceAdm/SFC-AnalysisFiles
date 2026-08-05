@@ -1,5 +1,4 @@
 var convict = require('convict');
-const AWSSecrets = require('../aws/secrets');
 const fs = require('fs');
 const yaml = require('js-yaml');
 const path = require('path');
@@ -86,11 +85,12 @@ var config = convict({
       default: 'bob',
       env: 'DATA_ENGINEERING_SECRET_KEY',
     },
-    uploadToDataEngineering: {
-      doc: 'Whether to upload reports to data engineering AWS',
-      format: 'Boolean',
-      default: false,
-    },
+uploadToDataEngineering: {
+  doc: 'Whether to upload reports to data engineering AWS',
+  format: Boolean,
+  default: false,
+  env: 'DATA_ENGINEERING_UPLOAD',
+},
   },
   reports: {
     accessKey: {
@@ -109,26 +109,7 @@ var config = convict({
     default: 'example',
     env: 'NODE_ENV',
   },
-  aws: {
-    region: {
-      doc: 'AWS region',
-      format: '*',
-      default: 'eu-west-2',
-    },
-    secrets: {
-      use: {
-        doc:
-          'Whether to use AWS Secret Manager to retrieve sensitive information, e.g. ENCRYPTION_PRIVATE_KEY. If false, expect to read from environment variables.',
-        format: 'Boolean',
-        default: false,
-      },
-      wallet: {
-        doc: 'The name of the AWS Secrets Manager wallet to recall from',
-        format: String,
-        default: 'bob',
-      },
-    },
-  },
+
   cqcApi: {
     url: {
       doc: 'The API endpoint for CQC',
@@ -178,29 +159,10 @@ var config = convict({
     },
   },
 });
-// Load environment dependent configuration
-var env = config.get('environment');
 
-const envConfigfile = yaml.safeLoad(fs.readFileSync(__dirname + '/' + env + '.yaml'));
-
-// load common file first, then env (so env overrides common)
-config.load(envConfigfile);
 
 // Perform validation
 config.validate({ allowed: 'strict' });
-if (config.get('aws.secrets.use')) {
-  console.log('Using AWS Secrets');
-  AWSSecrets.initialiseSecrets(config.get('aws.region'), config.get('aws.secrets.wallet')).then(() => {
-    console.log('Setting AWS details');
-    // config.set('encryption.private', AWSSecrets.encryptionPrivate());
-    // config.set('encryption.public', AWSSecrets.encryptionPublic());
-    // config.set('encryption.passphrase', AWSSecrets.encryptionPassphrase());
 
-    if (config.get('dataEngineering.uploadToDataEngineering')) {
-      config.set('dataEngineering.accessKey', AWSSecrets.dataEngineeringAccessKey());
-      config.set('dataEngineering.secretKey', AWSSecrets.dataEngineeringSecretKey());
-    }
-  });
-}
 
 module.exports = config;

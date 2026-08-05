@@ -1,7 +1,0 @@
-aws:
-  region: eu-west-1
-  secrets:
-    use: true
-    wallet: prod/api
-dataEngineering:
-  uploadToDataEngineering: true

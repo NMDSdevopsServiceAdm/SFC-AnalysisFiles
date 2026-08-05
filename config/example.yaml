@@ -1,6 +1,0 @@
-aws:
-  region: eu-west-2
-  secrets:
-    use: false
-
-
