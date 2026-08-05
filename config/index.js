@@ -158,13 +158,7 @@ var config = convict({
     },
   },
 });
-// Load environment dependent configuration
-var env = config.get('environment');
 
-const envConfigfile = yaml.safeLoad(fs.readFileSync(__dirname + '/' + env + '.yaml'));
-
-// load common file first, then env (so env overrides common)
-config.load(envConfigfile);
 
 // Perform validation
 config.validate({ allowed: 'strict' });
