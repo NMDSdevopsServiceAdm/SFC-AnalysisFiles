@@ -7,7 +7,11 @@ const {
 } = require('../../../utils/sql/delegated-healthcare-activities-type');
 const { dhaActivitiesType } = require('../../mappings/delegated-healthcare-activities-type');
 const { trainingCoursesCreatedCount } = require('../../../utils/sql/training-course');
-const { NEW_YESNO_TYPE_MAPPING, RATE_TYPE_MAPPING, OLD_YESNO_TYPE_MAPPING } = require('../../../utils/sql/generate-columns/generate-mapping');
+const {
+  NEW_YESNO_TYPE_MAPPING,
+  RATE_TYPE_MAPPING,
+  OLD_YESNO_TYPE_MAPPING,
+} = require('../../../utils/sql/generate-columns/generate-mapping');
 const { generateCaseColumn, generateDateColumns } = require('../../../utils/sql/generate-columns/generate-columns');
 
 const getUnassignedBatchCount = async () => {
@@ -169,7 +173,7 @@ const findWorkplacesByBatch = (batchNum) => {
       TO_CHAR(GREATEST(e."EmployerTypeChangedAt", e."NumberOfStaffChangedAt", e."OtherServicesChangedAt", e."CapacityServicesChangedAt", e."ShareDataChangedAt", e."VacanciesChangedAt", e."StartersChangedAt", e."LeaversChangedAt", e."ServiceUsersChangedAt", e."NameChangedAt", e."MainServiceFKChangedAt", e."LocalIdentifierChangedAt", e."LocationIdChangedAt", e."Address1ChangedAt", e."Address2ChangedAt", e."Address3ChangedAt", e."TownChangedAt", e."CountyChangedAt", e."PostcodeChangedAt",e."updated"), 'DD/MM/YYYY') estabupdateddate,
       TO_CHAR(GREATEST(e."EmployerTypeSavedAt", e."NumberOfStaffSavedAt", e."OtherServicesSavedAt", e."CapacityServicesSavedAt", e."ShareDataSavedAt", e."VacanciesSavedAt", e."StartersSavedAt", e."LeaversSavedAt", e."ServiceUsersSavedAt", e."NameSavedAt", e."MainServiceFKSavedAt", e."LocalIdentifierSavedAt", e."LocationIdSavedAt", e."Address1SavedAt", e."Address2SavedAt", e."Address3SavedAt", e."TownSavedAt", e."CountySavedAt", e."PostcodeSavedAt",e."updated"), 'DD/MM/YYYY') estabsavedate,
       (
-          SELECT TO_CHAR(MAX(GREATEST("NameOrIdChangedAt", "ContractChangedAt", "MainJobFKChangedAt", "ApprovedMentalHealthWorkerChangedAt", "MainJobStartDateChangedAt", "OtherJobsChangedAt", "NationalInsuranceNumberChangedAt", "DateOfBirthChangedAt", "PostcodeChangedAt", "DisabilityChangedAt", "GenderChangedAt", "EthnicityFKChangedAt", "NationalityChangedAt", "CountryOfBirthChangedAt", "RecruitedFromChangedAt", "BritishCitizenshipChangedAt", "YearArrivedChangedAt", "SocialCareStartDateChangedAt", "DaysSickChangedAt", "ZeroHoursContractChangedAt", "WeeklyHoursAverageChangedAt", "WeeklyHoursContractedChangedAt", "AnnualHourlyPayChangedAt", "CareCertificateChangedAt", "ApprenticeshipTrainingChangedAt", "QualificationInSocialCareChangedAt", "SocialCareQualificationFKChangedAt", "OtherQualificationsChangedAt", "HighestQualificationFKChangedAt", "CompletedChangedAt", "RegisteredNurseChangedAt", "NurseSpecialismFKChangedAt", "LocalIdentifierChangedAt", "EstablishmentFkChangedAt", "FluJabChangedAt")), 'DD/MM/YYYY')
+          SELECT TO_CHAR(MAX(GREATEST("NameOrIdChangedAt", "ContractChangedAt", "MainJobFKChangedAt", "ApprovedMentalHealthWorkerChangedAt", "MainJobStartDateChangedAt", "OtherJobsChangedAt", "NationalInsuranceNumberChangedAt", "DateOfBirthChangedAt", "PostcodeChangedAt", "DisabilityChangedAt", "GenderChangedAt", "EthnicityFKChangedAt", "NationalityChangedAt", "CountryOfBirthChangedAt", "RecruitedFromChangedAt", "BritishCitizenshipChangedAt", "YearArrivedChangedAt", "SocialCareStartDateChangedAt", "DaysSickChangedAt", "ZeroHoursContractChangedAt", "WeeklyHoursAverageChangedAt", "WeeklyHoursContractedChangedAt", "AnnualHourlyPayChangedAt", "CareCertificateChangedAt", "ApprenticeshipTrainingChangedAt", "QualificationInSocialCareChangedAt", "SocialCareQualificationFKChangedAt", "OtherQualificationsChangedAt", "HighestQualificationFKChangedAt", "CompletedChangedAt", "RegisteredNurseChangedAt", "LocalIdentifierChangedAt", "EstablishmentFkChangedAt", "FluJabChangedAt")), 'DD/MM/YYYY')
           FROM "Worker"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "Archived" = false
@@ -227,7 +231,7 @@ const findWorkplacesByBatch = (batchNum) => {
           ELSE 3
           END parentpermission,
       (
-          SELECT TO_CHAR(MAX(GREATEST("NameOrIdSavedAt", "ContractSavedAt", "MainJobFKSavedAt", "ApprovedMentalHealthWorkerSavedAt", "MainJobStartDateSavedAt", "OtherJobsSavedAt", "NationalInsuranceNumberSavedAt", "DateOfBirthSavedAt", "PostcodeSavedAt", "DisabilitySavedAt", "GenderSavedAt", "EthnicityFKSavedAt", "NationalitySavedAt", "CountryOfBirthSavedAt", "RecruitedFromSavedAt", "BritishCitizenshipSavedAt", "YearArrivedSavedAt", "SocialCareStartDateSavedAt", "DaysSickSavedAt", "ZeroHoursContractSavedAt", "WeeklyHoursAverageSavedAt", "WeeklyHoursContractedSavedAt", "AnnualHourlyPaySavedAt", "CareCertificateSavedAt", "ApprenticeshipTrainingSavedAt", "QualificationInSocialCareSavedAt", "SocialCareQualificationFKSavedAt", "OtherQualificationsSavedAt", "HighestQualificationFKSavedAt", "CompletedSavedAt", "RegisteredNurseSavedAt", "NurseSpecialismFKSavedAt", "LocalIdentifierSavedAt", "EstablishmentFkSavedAt", "FluJabSavedAt")), 'DD/MM/YYYY')
+          SELECT TO_CHAR(MAX(GREATEST("NameOrIdSavedAt", "ContractSavedAt", "MainJobFKSavedAt", "ApprovedMentalHealthWorkerSavedAt", "MainJobStartDateSavedAt", "OtherJobsSavedAt", "NationalInsuranceNumberSavedAt", "DateOfBirthSavedAt", "PostcodeSavedAt", "DisabilitySavedAt", "GenderSavedAt", "EthnicityFKSavedAt", "NationalitySavedAt", "CountryOfBirthSavedAt", "RecruitedFromSavedAt", "BritishCitizenshipSavedAt", "YearArrivedSavedAt", "SocialCareStartDateSavedAt", "DaysSickSavedAt", "ZeroHoursContractSavedAt", "WeeklyHoursAverageSavedAt", "WeeklyHoursContractedSavedAt", "AnnualHourlyPaySavedAt", "CareCertificateSavedAt", "ApprenticeshipTrainingSavedAt", "QualificationInSocialCareSavedAt", "SocialCareQualificationFKSavedAt", "OtherQualificationsSavedAt", "HighestQualificationFKSavedAt", "CompletedSavedAt", "RegisteredNurseSavedAt",  "LocalIdentifierSavedAt", "EstablishmentFkSavedAt", "FluJabSavedAt")), 'DD/MM/YYYY')
           FROM "Worker"
           WHERE "EstablishmentFK" = e."EstablishmentID"
               AND "Archived" = false
@@ -1233,34 +1237,6 @@ const findWorkplacesByBatch = (batchNum) => {
         WHEN  "DoNewStartersRepeatMandatoryTrainingFromPreviousEmployment"= 'No, never'
           THEN 4
         END Repeat_training_accepted,
-
-      CASE  
-        WHEN  "WouldYouAcceptCareCertificatesFromPreviousEmployment" = 'Yes, always'
-           THEN 1
-        WHEN  "WouldYouAcceptCareCertificatesFromPreviousEmployment"= 'Yes, very often'
-           THEN 2
-        WHEN  "WouldYouAcceptCareCertificatesFromPreviousEmployment"= 'Yes, but not very often'
-           THEN 3 
-        WHEN  "WouldYouAcceptCareCertificatesFromPreviousEmployment"= 'No, never'
-           THEN 4
-        END Care_Cert_accepted,
-
-      CASE
-        WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" IS NULL  
-           THEN NULL
-         WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" = 'Don''t know'
-           THEN -1
-        WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" = 'Yes'
-           THEN 1 
-        WHEN  "CareWorkersCashLoyaltyForFirstTwoYears" = 'No'
-           THEN 2
-        END HAS_CWLoyaltyBonus,
-
-      CASE
-        WHEN "CareWorkersCashLoyaltyForFirstTwoYears" ~ '^[0-9\.]+$'
-          THEN ( SELECT  "CareWorkersCashLoyaltyForFirstTwoYears" FROM cqc."Establishment" WHERE "EstablishmentID" =  e."EstablishmentID" )
-		
-        END CWLoyaltyBonusAMOUNT,
 		
       CASE  
         WHEN  "SickPay" = 'Yes'
