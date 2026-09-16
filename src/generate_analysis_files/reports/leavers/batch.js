@@ -1,6 +1,9 @@
 const db = require('../../db');
 const { generateSqlQueriesForQualificationColumns } = require('../../../utils/sql/qualification');
 const { newQualifications } = require('../../mappings/qualification')
+const { generateSqlQueriesForNursesQuestionAnswersColumns } = require('../../../utils/sql/workers/nurses-questions');
+const {nursesQuestionAnswers} = require('../../mappings/nurses-question');
+
 
 const populateBatch = async (numInBatch) => {
   await db.raw(
@@ -73,6 +76,8 @@ const getBatches = async () => db.select('BatchNo').from('Afr3BatchiSkAi0mo').gr
 
 const findLeaversByBatch = (batchNum) => {
    const sqlQueriesForNewQualifications = generateSqlQueriesForQualificationColumns(newQualifications);
+   const sqlQueriesForNursesQuestionAnswers = generateSqlQueriesForNursesQuestionAnswersColumns(nursesQuestionAnswers );
+
 
    return db
       .raw(
@@ -121,7 +126,7 @@ const findLeaversByBatch = (batchNum) => {
           w."OtherQualificationsChangedAt",
           w."HighestQualificationFKChangedAt",
           w."CompletedChangedAt",
-          w."RegisteredNurseChangedAt",
+          w."NurseFieldOfPracticeChangedAt",
           w."NurseSpecialismFKChangedAt",
           w."LocalIdentifierChangedAt",
           w."EstablishmentFkChangedAt",
@@ -157,7 +162,7 @@ const findLeaversByBatch = (batchNum) => {
           w."OtherQualificationsSavedAt",
           w."HighestQualificationFKSavedAt",
           w."CompletedSavedAt",
-          w."RegisteredNurseSavedAt",
+          w."NurseFieldOfPracticeSavedAt",
           w."NurseSpecialismFKSavedAt",
           w."LocalIdentifierSavedAt",
           w."EstablishmentFkSavedAt",
@@ -1913,16 +1918,9 @@ const findLeaversByBatch = (batchNum) => {
            WHEN 38 THEN 1
            ELSE CASE "OtherJobsValue" WHEN 'Yes' THEN CASE WHEN EXISTS (SELECT 1 FROM "WorkerJobs" WHERE "WorkerFK" = w."ID" AND "JobFK" = 38 LIMIT 1) THEN 1 ELSE 0 END ELSE 0 END
        END jr51flag,
-       CASE "RegisteredNurseValue"
-          WHEN 'Adult Nurse' THEN 1
-          WHEN 'Mental Health Nurse' THEN 2
-          WHEN 'Learning Disabilities Nurse' THEN 3
-          WHEN 'Children''s Nurse' THEN 4
-          WHEN 'Enrolled Nurse' THEN 5
-          ELSE -1
-       END jd16registered,
-       TO_CHAR("RegisteredNurseChangedAt",'DD/MM/YYYY') jd16registered_changedate,
-       TO_CHAR("RegisteredNurseSavedAt",'DD/MM/YYYY') jd16registered_savedate,
+      ${sqlQueriesForNursesQuestionAnswers}
+       TO_CHAR("NurseFieldOfPracticeChangedAt",'DD/MM/YYYY') jr16fop_changedate,
+       TO_CHAR("NurseFieldOfPracticeSavedAt",'DD/MM/YYYY') jr16fop_savedate,
        CASE "NurseSpecialismFKValue" WHEN 1 THEN 1 ELSE 0 END jr16cat1,
        CASE "NurseSpecialismFKValue" WHEN 2 THEN 1 ELSE 0 END jr16cat2,
        CASE "NurseSpecialismFKValue" WHEN 3 THEN 1 ELSE 0 END jr16cat3,
