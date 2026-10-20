@@ -2647,14 +2647,22 @@ const findWorkersByBatch = (batchNum) => {
       TO_CHAR(w."EmployedFromOutsideUkChangedAt",'DD/MM/YYYY') employedfromuk_changedate,
       TO_CHAR(w."EmployedFromOutsideUkSavedAt",'DD/MM/YYYY')  employedfromuk_savedate,
 
-     COALESCE((
+      COALESCE((
           SELECT 
            "AnalysisFileCode"
           FROM   "CareWorkforcePathwayRoleCategories"
           WHERE  "ID" = w."CareWorkforcePathwayRoleCategoryFK"
        ),-1) As careworkforcepathway,
-        TO_CHAR(w."CareWorkforcePathwayRoleCategorySavedAt",'DD/MM/YYYY') CareWorkForceCategory_savedate,
-        TO_CHAR(w."CareWorkforcePathwayRoleCategoryChangedAt",'DD/MM/YYYY') CareWorkForceCategory_changedate,
+
+      CASE
+         WHEN w."CareWorkforcePathwayRoleCategoryFK" IS NULL THEN -1
+         WHEN w."CWPRoleCategoryIsAlsoNominatedIndividual" = TRUE THEN 1
+         ELSE 2
+      END careworkforcepathway_nominated_individual,
+
+      TO_CHAR(w."CareWorkforcePathwayRoleCategorySavedAt",'DD/MM/YYYY') CareWorkForceCategory_savedate,
+      TO_CHAR(w."CareWorkforcePathwayRoleCategoryChangedAt",'DD/MM/YYYY') CareWorkForceCategory_changedate,
+
       ${generateColumnsForYesNoDontKnowQuestion('CarryOutDelegatedHealthcareActivities', 'delegatedhealthcareactivities')}
 
 FROM   "Establishment" e

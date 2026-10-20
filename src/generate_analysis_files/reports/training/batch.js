@@ -110,6 +110,12 @@ const buildFindTrainingsByBatchQuery = () => `
           FROM "CareWorkforcePathwayRoleCategories" 
           WHERE "ID" = w."CareWorkforcePathwayRoleCategoryFK"
        ), -1) careworkforcepathway,
+
+       CASE
+          WHEN w."CareWorkforcePathwayRoleCategoryFK" IS NULL THEN -1
+          WHEN w."CWPRoleCategoryIsAlsoNominatedIndividual" = TRUE THEN 1
+          ELSE 2
+       END careworkforcepathway_nominated_individual,
        
        t."Title" Training_name,
        t."ID" Training_id,
