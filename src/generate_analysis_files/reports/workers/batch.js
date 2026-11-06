@@ -2655,10 +2655,11 @@ const findWorkersByBatch = (batchNum) => {
        ),-1) As careworkforcepathway,
 
       CASE
-         WHEN w."CareWorkforcePathwayRoleCategoryFK" IS NULL THEN -1
+         WHEN w."CareWorkforcePathwayRoleCategoryFK" IS NULL THEN NULL
+         WHEN ((SELECT "Group" FROM cqc."CareWorkforcePathwayRoleCategories" WHERE "ID" = w."CareWorkforcePathwayRoleCategoryFK") <> 'Senior leadership') THEN NULL
+         WHEN w."CWPRoleCategoryIsAlsoNominatedIndividual" = FALSE THEN -1
          WHEN w."CWPRoleCategoryIsAlsoNominatedIndividual" = TRUE THEN 1
-         ELSE 2
-      END careworkforcepathway_nominated_individual,
+      END AS nominatedindividual,
 
       TO_CHAR(w."CareWorkforcePathwayRoleCategorySavedAt",'DD/MM/YYYY') CareWorkForceCategory_savedate,
       TO_CHAR(w."CareWorkforcePathwayRoleCategoryChangedAt",'DD/MM/YYYY') CareWorkForceCategory_changedate,
