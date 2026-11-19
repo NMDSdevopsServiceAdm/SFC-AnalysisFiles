@@ -36,7 +36,7 @@ module.exports = async (runDate, reportDir) => {
 
       return processBatch(batch.BatchNo, csvName);
     },
-    { concurrency: 10 },
+    { concurrency: 3 },
   );
 
   await after();

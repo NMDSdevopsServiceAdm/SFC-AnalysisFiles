@@ -12,6 +12,10 @@ const pg = require('knex')({
   connection: {connectionString: config.get('db.url'),
       ssl: sslConfig ,
   },
+    pool: {
+    min: 0,
+    max: 3,
+  },
 
   searchPath: ['public', 'cqc'],
 });
