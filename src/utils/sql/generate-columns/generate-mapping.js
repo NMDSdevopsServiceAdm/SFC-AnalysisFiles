@@ -25,6 +25,8 @@ const TRAINING_DELIVERY_MAPPING = {
 const TRAINING_DELIVERY_TYPE_MAPPING = {
   'Face to face': 1,
   'E-learning': 2,
+  'Online with a live trainer': 3,
+  'A mix of delivery methods': 4
 };
 
 
